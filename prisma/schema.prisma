@@ -1,0 +1,151 @@
+// Catered Savers Database Schema
+// Production-ready PostgreSQL schema with proper relationships
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Categories for organizing retailers and products
+model Category {
+  id          String @id @default(cuid())
+  name        String @unique
+  slug        String @unique
+  description String?
+  iconUrl     String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  retailers   Retailer[]
+  
+  @@map("categories")
+}
+
+// Verified retailers and their deal information
+model Retailer {
+  id              String @id @default(cuid())
+  name            String
+  url             String
+  description     String?
+  logoUrl         String?
+  isVerified      Boolean @default(false)
+  hasActiveSale   Boolean @default(false)
+  salePercentage  Int?
+  saleEndDate     DateTime?
+  clickCount      Int @default(0)
+  isActive        Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Foreign Keys
+  categoryId      String
+  
+  // Relationships
+  category        Category @relation(fields: [categoryId], references: [id])
+  clickEvents     AnalyticsEvent[]
+  
+  @@map("retailers")
+}
+
+// User accounts and preferences
+model User {
+  id              String @id @default(cuid())
+  email           String @unique
+  name            String?
+  preferences     Json? // Store category preferences, email frequency, etc.
+  mailchimpStatus String @default("pending") // pending, subscribed, unsubscribed
+  isActive        Boolean @default(true)
+  lastActiveAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  clickEvents     AnalyticsEvent[]
+  
+  @@map("users")
+}
+
+// Sponsored products for monetization
+model SponsoredProduct {
+  id               String @id @default(cuid())
+  title            String
+  description      String?
+  imageUrl         String?
+  affiliateUrl     String
+  price            Float?
+  originalPrice    Float?
+  isActive         Boolean @default(true)
+  startDate        DateTime @default(now())
+  endDate          DateTime?
+  clickCount       Int @default(0)
+  conversionCount  Int @default(0)
+  revenueGenerated Float @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relationships
+  clickEvents      AnalyticsEvent[]
+  
+  @@map("sponsored_products")
+}
+
+// Analytics and tracking
+model AnalyticsEvent {
+  id                String @id @default(cuid())
+  eventType         String // "retailer_click", "product_click", "signup", "email_open"
+  ipAddress         String?
+  userAgent         String?
+  metadata          Json? // Additional event data
+  createdAt         DateTime @default(now())
+  
+  // Foreign Keys (optional)
+  userId            String?
+  retailerId        String?
+  sponsoredProductId String?
+  
+  // Relationships
+  user              User? @relation(fields: [userId], references: [id])
+  retailer          Retailer? @relation(fields: [retailerId], references: [id])
+  sponsoredProduct  SponsoredProduct? @relation(fields: [sponsoredProductId], references: [id])
+  
+  @@map("analytics_events")
+}
+
+// Email campaigns and automation
+model EmailCampaign {
+  id            String @id @default(cuid())
+  name          String
+  subject       String
+  content       String // HTML content
+  campaignType  String // "weekly_digest", "welcome", "deal_alert", "re_engagement"
+  isActive      Boolean @default(true)
+  sentCount     Int @default(0)
+  openCount     Int @default(0)
+  clickCount    Int @default(0)
+  scheduledFor  DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("email_campaigns")
+}
+
+// Admin users for dashboard access
+model AdminUser {
+  id          String @id @default(cuid())
+  email       String @unique
+  name        String
+  role        String @default("admin") // "admin", "viewer", "editor"
+  isActive    Boolean @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("admin_users")
+}

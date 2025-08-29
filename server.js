@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
-const categoriesData = require('./data/categories');
-const { getActiveSponsoredProducts, trackSponsoredClick } = require('./data/sponsored-products');
+const db = require('./services/database');
 require('dotenv').config();
 
 const app = express();
@@ -122,11 +121,19 @@ app.post('/api/submit-savings', async (req, res) => {
       id: Date.now().toString()
     };
     
-    // Store in memory (in production, use a database)
-    if (!global.savingsResponses) {
-      global.savingsResponses = [];
+    // Save user to database
+    try {
+      const existingUser = await db.getUserByEmail(response.email);
+      if (!existingUser) {
+        await db.createUser(response.email, response.firstName, {
+          categories: response.categories,
+          submittedAt: timestamp
+        });
+      }
+    } catch (dbError) {
+      console.error('Error saving user to database:', dbError);
+      // Continue with Mailchimp even if DB save fails
     }
-    global.savingsResponses.push(savingsResponse);
 
         // Add subscriber to Mailchimp audience
     if (response.email) {
@@ -178,16 +185,37 @@ app.post('/api/submit-savings', async (req, res) => {
   }
 });
 
-// Get all savings responses (for admin purposes)
-app.get('/api/savings-responses', (req, res) => {
-  res.json(global.savingsResponses || []);
+// Get all users (for admin purposes)
+app.get('/api/savings-responses', async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
 });
 
 // Get admin clicks data
-app.get('/api/admin/clicks', (req, res) => {
-  // In production, you'd store this in a database
-  // For now, we'll return empty array
-  res.json({ clicks: [] });
+app.get('/api/admin/clicks', async (req, res) => {
+  try {
+    const clickAnalytics = await db.getClickAnalytics(30); // Last 30 days
+    res.json({ clicks: clickAnalytics });
+  } catch (error) {
+    console.error('Error fetching click analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// Get admin dashboard analytics
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    const analytics = await db.getAnalyticsSummary();
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching analytics summary:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
 });
 
 // Get savings response by ID
@@ -201,14 +229,36 @@ app.get('/api/savings-responses/:id', (req, res) => {
 });
 
 // Get all categories data
-app.get('/api/categories', (req, res) => {
-  res.json(categoriesData);
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await db.getAllCategories();
+    
+    // Transform to match the existing frontend format
+    const categoriesData = {};
+    categories.forEach(category => {
+      categoriesData[category.slug] = {
+        name: category.name,
+        description: category.description,
+        companies: category.retailers.map(retailer => ({
+          name: retailer.hasActiveSale ? `✅ ${retailer.name}` : retailer.name,
+          url: retailer.url,
+          description: retailer.description,
+          affiliate: true
+        }))
+      };
+    });
+    
+    res.json(categoriesData);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
 });
 
 // Get sponsored products
-app.get('/api/sponsored-products', (req, res) => {
+app.get('/api/sponsored-products', async (req, res) => {
   try {
-            const products = getActiveSponsoredProducts(4); // Get top 4 sponsored products
+    const products = await db.getActiveSponsoredProducts(4);
     res.json({
       success: true,
       products: products
@@ -223,12 +273,15 @@ app.get('/api/sponsored-products', (req, res) => {
 });
 
 // Track sponsored product clicks
-app.post('/api/track-sponsored-click', (req, res) => {
+app.post('/api/track-sponsored-click', async (req, res) => {
   try {
     const { productId } = req.body;
-    const clickData = trackSponsoredClick(productId);
+    const metadata = {
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    };
     
-    // In production, save this to analytics database
+    const clickData = await db.trackSponsoredClick(productId, metadata);
     console.log('Sponsored click tracked:', clickData);
     
     res.json({

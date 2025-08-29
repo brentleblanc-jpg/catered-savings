@@ -117,3 +117,5 @@ Thumbs.db
 
 # Server logs
 server.log
+
+/generated/prisma
