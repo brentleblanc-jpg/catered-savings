@@ -83,6 +83,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
 // Submit savings preferences
 app.post('/api/submit-savings', async (req, res) => {
   try {
@@ -177,6 +181,13 @@ app.post('/api/submit-savings', async (req, res) => {
 // Get all savings responses (for admin purposes)
 app.get('/api/savings-responses', (req, res) => {
   res.json(global.savingsResponses || []);
+});
+
+// Get admin clicks data
+app.get('/api/admin/clicks', (req, res) => {
+  // In production, you'd store this in a database
+  // For now, we'll return empty array
+  res.json({ clicks: [] });
 });
 
 // Get savings response by ID
