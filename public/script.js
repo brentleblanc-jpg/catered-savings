@@ -1,86 +1,193 @@
-// Questionnaire State Management
-let currentStep = 1;
-const totalSteps = 4;
+// Global functions for sponsored products
+async function loadSponsoredProducts() {
+    console.log('🚀 loadSponsoredProducts() called');
+    try {
+        console.log('📡 Fetching sponsored products from API...');
+        const response = await fetch('/api/sponsored-products');
+        const data = await response.json();
+        
+        console.log('📦 API response:', data);
+        
+        if (data.success && data.products.length > 0) {
+            console.log(`🎯 Found ${data.products.length} sponsored products, displaying them...`);
+            displaySponsoredProducts(data.products);
+        } else {
+            console.log('⚠️ No sponsored products found or API error');
+        }
+    } catch (error) {
+        console.error('❌ Error loading sponsored products:', error);
+    }
+}
 
-// DOM Elements
-const form = document.getElementById('questionnaireForm');
-const steps = document.querySelectorAll('.step');
-const progressFill = document.getElementById('progressFill');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const submitBtn = document.getElementById('submitBtn');
+function displaySponsoredProducts(products) {
+    console.log('🎨 displaySponsoredProducts() called with:', products);
+    const container = document.getElementById('sponsoredProductsList');
+    
+    if (!container) {
+        console.error('❌ Could not find sponsoredProductsList container!');
+        return;
+    }
+    
+    console.log('📝 Updating container HTML...');
+    container.innerHTML = products.map(product => `
+        <div class="sponsored-product" data-product-id="${product.id}">
+            <div class="sponsored-badge">Sponsored</div>
+            <img src="${product.image}" alt="${product.title}" class="product-image" 
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+IiU2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
+            <div class="product-title">${product.title}</div>
+            <div class="product-retailer">from ${product.retailer}</div>
+            <div class="product-pricing">
+                <span class="sale-price">$${product.salePrice.toFixed(2)}</span>
+                <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
+                <span class="discount-badge">${product.discount}% OFF</span>
+            </div>
+            <div class="product-description">${product.description}</div>
+            <button class="sponsored-cta" onclick="handleSponsoredClick(${product.id}, '${product.url}')">
+                <i class="fas fa-external-link-alt"></i> Shop Now
+            </button>
+        </div>
+    `).join('');
+}
 
-// Initialize the questionnaire
+// Catered Savings Form Handler
 document.addEventListener('DOMContentLoaded', function() {
-    updateProgress();
-    updateNavigationButtons();
-});
-
-// Navigation Functions
-function nextStep() {
-    if (currentStep < totalSteps && validateCurrentStep()) {
-        currentStep++;
-        showStep(currentStep);
-        updateProgress();
-        updateNavigationButtons();
-    }
-}
-
-function previousStep() {
-    if (currentStep > 1) {
-        currentStep--;
-        showStep(currentStep);
-        updateProgress();
-        updateNavigationButtons();
-    }
-}
-
-function showStep(stepNumber) {
-    steps.forEach(step => {
-        step.classList.remove('active');
+    const form = document.getElementById('savingsForm');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Form submission handler
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('🚀 Form submission event triggered!');
+        
+        if (!validateForm()) {
+            console.log('❌ Form validation failed');
+            return;
+        }
+        console.log('✅ Form validation passed');
+        
+        // Show loading state
+        const submitBtn = form.querySelector('.submit-btn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        submitBtn.disabled = true;
+        
+        try {
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Handle multiple category selections
+            const categoryCheckboxes = form.querySelectorAll('input[name="categories"]:checked');
+            data.categories = Array.from(categoryCheckboxes).map(cb => cb.value);
+            
+            console.log('📤 Sending form data:', data);
+            
+            const response = await fetch('/api/submit-savings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('✅ Form submitted successfully!');
+                console.log('📝 Hiding form, showing success message...');
+                
+                // Show success message
+                form.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                console.log('🔄 Loading sponsored products...');
+                // Load sponsored products
+                loadSponsoredProducts();
+                
+                // Reset form for potential reuse
+                form.reset();
+                
+                console.log('🎉 Success page should now be visible!');
+            } else {
+                throw new Error(result.message || 'Submission failed');
+            }
+            
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert('There was an error submitting your preferences. Please try again.');
+            
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
     });
     
-    const targetStep = document.querySelector(`[data-step="${stepNumber}"]`);
-    if (targetStep) {
-        targetStep.classList.add('active');
-    }
+    // Real-time validation for email field
+    const emailField = document.getElementById('email');
+    emailField.addEventListener('blur', function() {
+        if (this.value.trim() && !isValidEmail(this.value)) {
+            highlightField(this, true);
+            showFieldError(this, 'Please enter a valid email address');
+        } else {
+            highlightField(this, false);
+            hideFieldError(this);
+        }
+    });
     
-    // Special handling for review step
-    if (stepNumber === 4) {
-        populateReviewSummary();
-    }
+    // Category selection enhancement
+    const categoryCheckboxes = document.querySelectorAll('.category-checkbox input[type="checkbox"]');
+    categoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const categoryBox = this.closest('.category-checkbox');
+            if (this.checked) {
+                categoryBox.style.borderColor = '#667eea';
+                categoryBox.style.background = '#f0f4ff';
+            } else {
+                categoryBox.style.borderColor = '#e5e7eb';
+                categoryBox.style.background = '#ffffff';
+            }
+            updateSelectionCounter();
+        });
+    });
+    
+    // Initialize selection counter
+    updateSelectionCounter();
+});
+
+// Reset Form Function
+function resetForm() {
+    const form = document.getElementById('savingsForm');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Reset the form
+    form.reset();
+    
+    // Show the form and hide success message
+    form.style.display = 'block';
+    successMessage.style.display = 'none';
+    
+    // Reset category styling
+    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+    categoryCheckboxes.forEach(categoryBox => {
+        categoryBox.style.borderColor = '#e5e7eb';
+        categoryBox.style.background = '#ffffff';
+    });
+    
+    // Reset selection counter
+    updateSelectionCounter();
+    
+    // Scroll to top of form
+    form.scrollIntoView({ behavior: 'smooth' });
 }
 
-function updateProgress() {
-    const progress = (currentStep / totalSteps) * 100;
-    progressFill.style.width = `${progress}%`;
-}
 
-function updateNavigationButtons() {
-    // Previous button
-    if (currentStep === 1) {
-        prevBtn.style.display = 'none';
-    } else {
-        prevBtn.style.display = 'block';
-    }
-    
-    // Next/Submit button
-    if (currentStep === totalSteps) {
-        nextBtn.style.display = 'none';
-        submitBtn.style.display = 'block';
-    } else {
-        nextBtn.style.display = 'block';
-        submitBtn.style.display = 'none';
-    }
-}
 
 // Validation Functions
-function validateCurrentStep() {
-    const currentStepElement = document.querySelector(`[data-step="${currentStep}"]`);
-    const requiredFields = currentStepElement.querySelectorAll('[required]');
-    
+function validateForm() {
+    const form = document.getElementById('savingsForm');
+    const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
     
+    // Check required fields
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             isValid = false;
@@ -100,6 +207,26 @@ function validateCurrentStep() {
             }
         }
     });
+    
+    // Check if at least one category is selected
+    const selectedCategories = form.querySelectorAll('input[name="categories"]:checked');
+    if (selectedCategories.length === 0) {
+        isValid = false;
+        showCategoryError();
+    } else {
+        hideCategoryError();
+    }
+    
+    // Check terms agreement
+    const agreeTerms = document.getElementById('agreeTerms');
+    if (!agreeTerms.checked) {
+        isValid = false;
+        highlightField(agreeTerms, true);
+        showFieldError(agreeTerms, 'Please agree to receive weekly deal emails');
+    } else {
+        highlightField(agreeTerms, false);
+        hideFieldError(agreeTerms);
+    }
     
     return isValid;
 }
@@ -135,146 +262,55 @@ function hideFieldError(field) {
     }
 }
 
+function showCategoryError() {
+    const categoriesSection = document.querySelector('.form-section');
+    let existingError = categoriesSection.querySelector('.category-error');
+    
+    if (!existingError) {
+        existingError = document.createElement('div');
+        existingError.className = 'category-error';
+        existingError.style.color = '#e53e3e';
+        existingError.style.fontSize = '0.875rem';
+        existingError.style.marginTop = '10px';
+        existingError.style.textAlign = 'center';
+        existingError.textContent = 'Please select at least one category';
+        
+        const categoriesGrid = categoriesSection.querySelector('.categories-grid');
+        categoriesGrid.parentNode.insertBefore(existingError, categoriesGrid.nextSibling);
+    }
+}
+
+function hideCategoryError() {
+    const existingError = document.querySelector('.category-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
-// Review Summary Functions
-function populateReviewSummary() {
-    const reviewSummary = document.getElementById('reviewSummary');
-    const formData = new FormData(form);
-    
-    let summaryHTML = '';
-    
-    // Company Information
-    summaryHTML += `
-        <div class="review-item">
-            <span class="review-label">Company Name:</span>
-            <span class="review-value">${formData.get('companyName') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Company Size:</span>
-            <span class="review-value">${formData.get('companySize') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Industry:</span>
-            <span class="review-value">${formData.get('industry') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Website:</span>
-            <span class="review-value">${formData.get('website') || 'N/A'}</span>
-        </div>
-    `;
-    
-    // Business Needs
-    summaryHTML += `
-        <div class="review-item">
-            <span class="review-label">Primary Goal:</span>
-            <span class="review-value">${formData.get('primaryGoal') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Challenges:</span>
-            <span class="review-value">${formData.get('challenges') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Timeline:</span>
-            <span class="review-value">${formData.get('timeline') || 'N/A'}</span>
-        </div>
-    `;
-    
-    // Budget & Contact
-    summaryHTML += `
-        <div class="review-item">
-            <span class="review-label">Budget Range:</span>
-            <span class="review-value">${formData.get('budgetRange') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Decision Maker:</span>
-            <span class="review-value">${formData.get('decisionMaker') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Email:</span>
-            <span class="review-value">${formData.get('email') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Phone:</span>
-            <span class="review-value">${formData.get('phone') || 'N/A'}</span>
-        </div>
-        <div class="review-item">
-            <span class="review-label">Additional Notes:</span>
-            <span class="review-value">${formData.get('additionalNotes') || 'N/A'}</span>
-        </div>
-    `;
-    
-    reviewSummary.innerHTML = summaryHTML;
+// Selection Counter Function
+function updateSelectionCounter() {
+    const selectedCategories = document.querySelectorAll('input[name="categories"]:checked');
+    const counter = document.getElementById('selectedCount');
+    if (counter) {
+        counter.textContent = selectedCategories.length;
+    }
 }
 
-// Form Submission
-form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    if (!validateCurrentStep()) {
-        return;
-    }
-    
-    // Check terms agreement
-    const agreeTerms = document.getElementById('agreeTerms');
-    if (!agreeTerms.checked) {
-        alert('Please agree to the terms to continue.');
-        return;
-    }
-    
-    // Show loading state
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    submitBtn.disabled = true;
-    
-    try {
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        
-        const response = await fetch('/api/submit-questionnaire', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // Show success step
-            currentStep = 5;
-            showStep(currentStep);
-            updateProgress();
-            updateNavigationButtons();
-            
-            // Reset form for potential reuse
-            form.reset();
-        } else {
-            throw new Error(result.message || 'Submission failed');
-        }
-        
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        alert('There was an error submitting your questionnaire. Please try again.');
-        
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-});
+
 
 // Reset Form Function
 function resetForm() {
+    const form = document.getElementById('savingsForm');
+    const successMessage = document.getElementById('successMessage');
+    
     form.reset();
-    currentStep = 1;
-    showStep(currentStep);
-    updateProgress();
-    updateNavigationButtons();
+    form.style.display = 'block';
+    successMessage.style.display = 'none';
     
     // Clear any error highlighting
     const fields = form.querySelectorAll('input, select, textarea');
@@ -282,37 +318,47 @@ function resetForm() {
         highlightField(field, false);
         hideFieldError(field);
     });
+    
+    // Reset category styling
+    const categoryCheckboxes = form.querySelectorAll('.category-checkbox');
+    categoryCheckboxes.forEach(box => {
+        box.style.borderColor = '#e2e8f0';
+        box.style.background = '#f8fafc';
+    });
+    
+    // Clear category error
+    hideCategoryError();
+    
+    // Reset selection counter
+    updateSelectionCounter();
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Real-time validation for email field
-document.getElementById('email').addEventListener('blur', function() {
-    if (this.value.trim() && !isValidEmail(this.value)) {
-        highlightField(this, true);
-        showFieldError(this, 'Please enter a valid email address');
-    } else {
-        highlightField(this, false);
-        hideFieldError(this);
-    }
-});
-
-// Auto-advance on Enter key for single-line inputs
-document.querySelectorAll('input[type="text"], input[type="email"], input[type="url"], input[type="tel"]').forEach(input => {
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            nextStep();
+    // Function to handle sponsored product clicks (tracking + redirect)
+    window.handleSponsoredClick = async function(productId, url) {
+        try {
+            // Track the click
+            await fetch('/api/track-sponsored-click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productId })
+            });
+        } catch (error) {
+            console.error('Error tracking sponsored click:', error);
         }
-    });
-});
+        
+        // Redirect to product page
+        window.open(url, '_blank');
+    }
 
-// Auto-advance on change for select fields
-document.querySelectorAll('select').forEach(select => {
-    select.addEventListener('change', function() {
-        // Small delay to allow user to see their selection
-        setTimeout(() => {
-            if (validateCurrentStep()) {
-                nextStep();
-            }
-        }, 500);
-    });
+// Auto-submit on Enter key for email field
+document.getElementById('email').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('savingsForm').dispatchEvent(new Event('submit'));
+    }
 });

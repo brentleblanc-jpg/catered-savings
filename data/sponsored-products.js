@@ -1,0 +1,155 @@
+// Sponsored Products Database
+// This file contains products that retailers pay to display prominently after user signup
+// Format: retailer pays monthly fee for featured product placement
+
+const sponsoredProducts = [
+    {
+        id: 1,
+        title: "Apple AirPods Pro (2nd Gen)",
+        retailer: "Best Buy",
+        originalPrice: 249.99,
+        salePrice: 189.99,
+        discount: 24,
+        image: "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6418/6418599_sd.jpg",
+        url: "https://www.bestbuy.com/site/apple-airpods-pro-2nd-generation-with-magsafe-case-usbc-white/6418599.p",
+        description: "Active Noise Cancellation, Transparency mode, Spatial audio",
+        category: "tech-electronics",
+        isSponsored: true,
+        priority: 1, // Higher numbers show first
+        monthlyFee: 500, // What retailer pays per month
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 2,
+        title: "Nike Air Max 90",
+        retailer: "Nike",
+        originalPrice: 120.00,
+        salePrice: 84.99,
+        discount: 29,
+        image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd17b420-b388-4c8a-aaaa-e0a98ddf175f/air-max-90-mens-shoes-6n7J06.png",
+        url: "https://www.nike.com/w/sale-3yaep",
+        description: "Classic comfort meets iconic style",
+        category: "fashion",
+        isSponsored: true,
+        priority: 2,
+        monthlyFee: 750,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-06-30"
+    },
+    {
+        id: 3,
+        title: "KitchenAid Stand Mixer",
+        retailer: "Williams Sonoma",
+        originalPrice: 429.95,
+        salePrice: 299.95,
+        discount: 30,
+        image: "https://assets.wsimgs.com/wsimgs/rk/images/dp/wcm/202347/0070/kitchenaid-artisan-series-5-qt-stand-mixer-o.jpg",
+        url: "https://www.williams-sonoma.com/shop/sale-special-offer/",
+        description: "5-quart capacity, 10 speeds, includes 3 attachments",
+        category: "home-garden",
+        isSponsored: true,
+        priority: 3,
+        monthlyFee: 400,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 4,
+        title: "Carter's Baby Outfit Set",
+        retailer: "Carter's",
+        originalPrice: 39.99,
+        salePrice: 19.99,
+        discount: 50,
+        image: "https://www.carters.com/dw/image/v2/AAMK_PRD/on/demandware.static/-/Sites-carters_master_catalog/default/dw8c4a14cd/hi-res/V_126G770_MULTI.jpg",
+        url: "https://www.carters.com/c/deals",
+        description: "3-piece cotton outfit set, sizes newborn-24 months",
+        category: "kids-family",
+        isSponsored: true,
+        priority: 4,
+        monthlyFee: 300,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 5,
+        title: "Fitbit Charge 5",
+        retailer: "Amazon",
+        originalPrice: 199.95,
+        salePrice: 149.95,
+        discount: 25,
+        image: "https://m.media-amazon.com/images/I/61ZjlBOp+rL._AC_SL1500_.jpg",
+        url: "https://www.amazon.com/gp/goldbox",
+        description: "Advanced fitness & health tracker with built-in GPS",
+        category: "sports-outdoors",
+        isSponsored: true,
+        priority: 5,
+        monthlyFee: 600,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 6,
+        title: "Samsung 65\" QLED 4K TV",
+        retailer: "Best Buy",
+        originalPrice: 1299.99,
+        salePrice: 899.99,
+        discount: 31,
+        image: "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6428/6428300_sd.jpg",
+        url: "https://www.bestbuy.com/site/samsung-65-class-q60c-qled-4k-uhd-tizen-tv/6428300.p",
+        description: "Quantum HDR, Dual LED, Gaming Mode, Alexa Built-in",
+        category: "tech-electronics",
+        isSponsored: true,
+        priority: 6,
+        monthlyFee: 800,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    }
+];
+
+// Function to get active sponsored products sorted by priority
+function getActiveSponsoredProducts(limit = 4) {
+    const now = new Date();
+    return sponsoredProducts
+        .filter(product => {
+            if (!product.active) return false;
+            const start = new Date(product.startDate);
+            const end = new Date(product.endDate);
+            return now >= start && now <= end;
+        })
+        .sort((a, b) => b.priority - a.priority)
+        .slice(0, limit);
+}
+
+// Function to get sponsored products by category
+function getSponsoredProductsByCategory(category, limit = 2) {
+    return getActiveSponsoredProducts()
+        .filter(product => product.category === category)
+        .slice(0, limit);
+}
+
+// Function to track sponsored product clicks (for analytics)
+function trackSponsoredClick(productId, userId = null) {
+    const clickData = {
+        productId,
+        userId,
+        timestamp: new Date().toISOString(),
+        type: 'sponsored_click'
+    };
+    // In production, send this to analytics service
+    console.log('Sponsored product click tracked:', clickData);
+    return clickData;
+}
+
+module.exports = {
+    sponsoredProducts,
+    getActiveSponsoredProducts,
+    getSponsoredProductsByCategory,
+    trackSponsoredClick
+};

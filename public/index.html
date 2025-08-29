@@ -2,166 +2,205 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Solutions Questionnaire</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catered Savers - Weekly Deals & Discounts</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1><i class="fas fa-chart-line"></i> Business Solutions Assessment</h1>
-            <p>Help us understand your needs to provide the best solutions</p>
+            <h1><a href="#" onclick="resetForm()" class="title-link">Catered Savers</a></h1>
+            <p>50%+ off deals, delivered weekly</p>
         </header>
 
-        <div class="questionnaire-container">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+        <div class="main-content">
+            <div class="intro-section">
+                <h2>Why Choose Catered Savings?</h2>
+                <div class="steps">
+                    <div class="step-item">
+                        <div class="step-number">🎯</div>
+                        <p><strong>50%+ Off</strong><br>No fluff deals</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">⚡</div>
+                        <p><strong>Weekly</strong><br>Fresh deals</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">🎨</div>
+                        <p><strong>Personalized</strong><br>Your categories</p>
+                    </div>
+                </div>
             </div>
 
-            <form id="questionnaireForm" class="questionnaire-form">
-                <!-- Step 1: Company Information -->
-                <div class="step active" data-step="1">
-                    <h2>Company Information</h2>
-                    <div class="form-group">
-                        <label for="companyName">Company Name *</label>
-                        <input type="text" id="companyName" name="companyName" required>
+            <form id="savingsForm" class="savings-form">
+                <div class="form-section">
+                    <h3>Select Your Categories</h3>
+                    <div class="selection-counter">
+                        <span id="selectedCount">0</span> selected
                     </div>
-                    <div class="form-group">
-                        <label for="companySize">Company Size *</label>
-                        <select id="companySize" name="companySize" required>
-                            <option value="">Select company size</option>
-                            <option value="1-10">1-10 employees</option>
-                            <option value="11-50">11-50 employees</option>
-                            <option value="51-200">51-200 employees</option>
-                            <option value="201-1000">201-1000 employees</option>
-                            <option value="1000+">1000+ employees</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="industry">Industry *</label>
-                        <select id="industry" name="industry" required>
-                            <option value="">Select industry</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Healthcare">Healthcare</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Manufacturing">Manufacturing</option>
-                            <option value="Retail">Retail</option>
-                            <option value="Education">Education</option>
-                            <option value="Real Estate">Real Estate</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="website">Website</label>
-                        <input type="url" id="website" name="website" placeholder="https://yourcompany.com">
-                    </div>
-                </div>
-
-                <!-- Step 2: Business Needs -->
-                <div class="step" data-step="2">
-                    <h2>Business Needs & Goals</h2>
-                    <div class="form-group">
-                        <label for="primaryGoal">Primary Goal *</label>
-                        <select id="primaryGoal" name="primaryGoal" required>
-                            <option value="">Select primary goal</option>
-                            <option value="Increase Sales">Increase Sales</option>
-                            <option value="Improve Efficiency">Improve Efficiency</option>
-                            <option value="Reduce Costs">Reduce Costs</option>
-                            <option value="Expand Market">Expand Market</option>
-                            <option value="Digital Transformation">Digital Transformation</option>
-                            <option value="Customer Retention">Customer Retention</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="challenges">Current Challenges</label>
-                        <textarea id="challenges" name="challenges" rows="3" placeholder="Describe your main business challenges..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="timeline">Implementation Timeline *</label>
-                        <select id="timeline" name="timeline" required>
-                            <option value="">Select timeline</option>
-                            <option value="Immediate">Immediate (0-3 months)</option>
-                            <option value="Short-term">Short-term (3-6 months)</option>
-                            <option value="Medium-term">Medium-term (6-12 months)</option>
-                            <option value="Long-term">Long-term (12+ months)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Step 3: Budget & Contact -->
-                <div class="step" data-step="3">
-                    <h2>Budget & Contact Information</h2>
-                    <div class="form-group">
-                        <label for="budgetRange">Budget Range *</label>
-                        <select id="budgetRange" name="budgetRange" required>
-                            <option value="">Select budget range</option>
-                            <option value="Under $5K">Under $5,000</option>
-                            <option value="$5K-$25K">$5,000 - $25,000</option>
-                            <option value="$25K-$100K">$25,000 - $100,000</option>
-                            <option value="$100K-$500K">$100,000 - $500,000</option>
-                            <option value="$500K+">$500,000+</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="decisionMaker">Decision Maker Role</label>
-                        <input type="text" id="decisionMaker" name="decisionMaker" placeholder="CEO, Manager, Director, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email Address *</label>
-                        <input type="email" id="email" name="email" required placeholder="your.email@company.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567">
-                    </div>
-                    <div class="form-group">
-                        <label for="additionalNotes">Additional Notes</label>
-                        <textarea id="additionalNotes" name="additionalNotes" rows="3" placeholder="Any additional information you'd like to share..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Step 4: Review & Submit -->
-                <div class="step" data-step="4">
-                    <h2>Review Your Information</h2>
-                    <div class="review-summary" id="reviewSummary">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                    
+                    <div class="categories-grid">
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="tech-electronics">
                             <span class="checkmark"></span>
-                            I agree to receive communications about solutions and services
+                            <i class="fas fa-laptop"></i>
+                            <span>Tech & Electronics</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="fashion">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-tshirt"></i>
+                            <span>Fashion & Style</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="home-garden">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-home"></i>
+                            <span>Home & Garden</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="health-beauty">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Health & Beauty</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="sports-outdoors">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-football-ball"></i>
+                            <span>Sports & Outdoors</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="entertainment">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-film"></i>
+                            <span>Entertainment</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="food-dining">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-utensils"></i>
+                            <span>Food & Dining</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="travel">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-plane"></i>
+                            <span>Travel & Vacations</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="automotive">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-car"></i>
+                            <span>Automotive</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="books-media">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-book"></i>
+                            <span>Books & Media</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="kids-family">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-baby"></i>
+                            <span>Kids & Family</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="pets">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-paw"></i>
+                            <span>Pet Supplies</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="office-education">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Office & Education</span>
+                        </label>
+                        
+
+                        
+
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="other">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-ellipsis-h"></i>
+                            <span>Other</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Success Message -->
-                <div class="step success-step" data-step="5">
-                    <div class="success-content">
-                        <i class="fas fa-check-circle success-icon"></i>
-                        <h2>Thank You!</h2>
-                        <p>Your questionnaire has been submitted successfully. We'll analyze your responses and send you personalized recommendations within 24-48 hours.</p>
-                        <p>Check your email for a confirmation message.</p>
-                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Start Over</button>
+                <div class="form-section">
+                    <h3>Your Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Your first name" required>
                     </div>
                 </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                        <span class="checkmark"></span>
+                        I agree to receive weekly deal emails
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary submit-btn">
+                    <i class="fas fa-envelope"></i> Get Weekly Deals
+                </button>
             </form>
 
-            <div class="navigation-buttons">
-                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
-                    <i class="fas fa-arrow-left"></i> Previous
-                </button>
-                <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">
-                    Next <i class="fas fa-arrow-right"></i>
-                </button>
-                <button type="submit" class="btn btn-success" id="submitBtn" form="questionnaireForm" style="display: none;">
-                    <i class="fas fa-paper-plane"></i> Submit
-                </button>
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message" style="display: none;">
+                <div class="success-content">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h2>Welcome!</h2>
+                    <p>You're all set for weekly deals.</p>
+                </div>
+                
+                <!-- Sponsored Products Section -->
+                <div id="sponsoredProducts" class="sponsored-section">
+                    <div class="sponsored-header">
+                        <h3><i class="fas fa-star"></i> Featured Deals Just for You</h3>
+                        <p class="sponsored-subtitle">Hand-picked deals from our retail partners</p>
+                    </div>
+                    <div id="sponsoredProductsList" class="sponsored-products-grid">
+                        <!-- Sponsored products will be loaded here -->
+                    </div>
+                    <p class="sponsored-disclaimer">
+                        <i class="fas fa-info-circle"></i> 
+                        These are sponsored placements from our retail partners
+                    </p>
+                </div>
             </div>
         </div>
+
+        <footer class="footer">
+            <p>&copy; 2025 Catered Savings. All deals are 50% off or more from verified online retailers.</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>
