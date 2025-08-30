@@ -217,9 +217,60 @@
             <div id="users" class="tab-content">
                 <div class="tab-header">
                     <h2>User Management</h2>
-                    <div class="search-box">
-                        <input type="text" id="user-search" placeholder="Search users...">
-                        <i class="fas fa-search"></i>
+                    <div class="user-actions">
+                        <button class="btn btn-primary" id="add-user-btn">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                        <button class="btn btn-secondary" id="sync-mailchimp-btn">
+                            <i class="fas fa-sync"></i> Sync with Mailchimp
+                        </button>
+                        <div class="search-box">
+                            <input type="text" id="user-search" placeholder="Search users...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Comparison Section -->
+                <div class="user-comparison-section">
+                    <div class="comparison-cards">
+                        <div class="comparison-card">
+                            <div class="card-header">
+                                <i class="fas fa-database"></i>
+                                <h3>Our Database</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat-number" id="db-user-count">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                        </div>
+                        
+                        <div class="comparison-card">
+                            <div class="card-header">
+                                <i class="fas fa-envelope"></i>
+                                <h3>Mailchimp</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat-number" id="mailchimp-user-count">0</div>
+                                <div class="stat-label">Total Subscribers</div>
+                            </div>
+                        </div>
+                        
+                        <div class="comparison-card">
+                            <div class="card-header">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>Discrepancies</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat-number" id="discrepancy-count">0</div>
+                                <div class="stat-label">Missing/Extra</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sync-status" id="sync-status">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Click "Sync with Mailchimp" to compare user lists</span>
                     </div>
                 </div>
 
@@ -232,6 +283,7 @@
                                 <th>Categories</th>
                                 <th>Signup Date</th>
                                 <th>Status</th>
+                                <th>Mailchimp</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -500,6 +552,128 @@
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="cancel-product-btn">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="save-product-btn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="user-modal-title">Add New User</h3>
+                <span class="close" id="close-user-modal">&times;</span>
+            </div>
+            
+            <form id="user-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-email">Email Address *</label>
+                        <input type="email" id="user-email" required placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-name">Full Name</label>
+                        <input type="text" id="user-name" placeholder="John Doe">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Categories *</label>
+                    <div class="category-checkboxes">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="tech-electronics">
+                            <span class="checkmark"></span>
+                            Tech & Electronics
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="fashion">
+                            <span class="checkmark"></span>
+                            Fashion & Style
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="home-garden">
+                            <span class="checkmark"></span>
+                            Home & Garden
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="health-beauty">
+                            <span class="checkmark"></span>
+                            Health & Beauty
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="sports-outdoors">
+                            <span class="checkmark"></span>
+                            Sports & Outdoors
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="kids-family">
+                            <span class="checkmark"></span>
+                            Kids & Family
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="entertainment">
+                            <span class="checkmark"></span>
+                            Entertainment
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="automotive">
+                            <span class="checkmark"></span>
+                            Automotive
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="books-media">
+                            <span class="checkmark"></span>
+                            Books & Media
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="pets">
+                            <span class="checkmark"></span>
+                            Pet Supplies
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="office-education">
+                            <span class="checkmark"></span>
+                            Office & Education
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="food-dining">
+                            <span class="checkmark"></span>
+                            Food & Dining
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="travel">
+                            <span class="checkmark"></span>
+                            Travel
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="categories" value="other">
+                            <span class="checkmark"></span>
+                            Other
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-status">Status</label>
+                        <select id="user-status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="unsubscribed">Unsubscribed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="add-to-mailchimp" checked>
+                            <span class="checkmark"></span>
+                            Add to Mailchimp
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-user-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-user-btn">Save User</button>
                 </div>
             </form>
         </div>

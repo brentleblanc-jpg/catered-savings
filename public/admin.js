@@ -76,6 +76,29 @@ class AdminDashboard {
         document.getElementById('refresh-database').addEventListener('click', () => {
             this.refreshDatabase();
         });
+
+        // User management buttons
+        document.getElementById('add-user-btn').addEventListener('click', () => {
+            this.openUserModal();
+        });
+
+        document.getElementById('sync-mailchimp-btn').addEventListener('click', () => {
+            this.syncWithMailchimp();
+        });
+
+        // User modal events
+        document.getElementById('close-user-modal').addEventListener('click', () => {
+            this.closeUserModal();
+        });
+
+        document.getElementById('cancel-user-btn').addEventListener('click', () => {
+            this.closeUserModal();
+        });
+
+        document.getElementById('user-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveUser();
+        });
     }
 
     switchTab(tabName) {
@@ -646,6 +669,177 @@ class AdminDashboard {
             button.innerHTML = originalText;
             button.disabled = false;
         }
+    }
+
+    // User Management Methods
+    openUserModal() {
+        document.getElementById('user-modal').style.display = 'block';
+        document.getElementById('user-modal-title').textContent = 'Add New User';
+        document.getElementById('user-form').reset();
+        document.getElementById('add-to-mailchimp').checked = true;
+    }
+
+    closeUserModal() {
+        document.getElementById('user-modal').style.display = 'none';
+    }
+
+    async saveUser() {
+        const formData = {
+            email: document.getElementById('user-email').value,
+            name: document.getElementById('user-name').value,
+            categories: Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(cb => cb.value),
+            status: document.getElementById('user-status').value,
+            addToMailchimp: document.getElementById('add-to-mailchimp').checked
+        };
+
+        if (formData.categories.length === 0) {
+            this.showNotification('Please select at least one category', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/submit-savings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showNotification('User added successfully!', 'success');
+                this.closeUserModal();
+                this.loadUsers();
+                this.loadDashboardData();
+            } else {
+                this.showNotification('Error adding user: ' + result.message, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error adding user: ' + error.message, 'error');
+        }
+    }
+
+    async syncWithMailchimp() {
+        const button = document.getElementById('sync-mailchimp-btn');
+        const originalText = button.innerHTML;
+        const syncStatus = document.getElementById('sync-status');
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            button.disabled = true;
+            
+            syncStatus.className = 'sync-status';
+            syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Comparing user lists...';
+
+            // Get our database users
+            const dbResponse = await fetch('/api/admin/analytics');
+            const dbData = await dbResponse.json();
+            
+            // Get Mailchimp users (this would need to be implemented in the backend)
+            const mailchimpResponse = await fetch('/api/mailchimp/users');
+            const mailchimpData = await mailchimpResponse.json();
+
+            // Update comparison cards
+            document.getElementById('db-user-count').textContent = dbData.totalUsers || 0;
+            document.getElementById('mailchimp-user-count').textContent = mailchimpData.totalSubscribers || 0;
+            
+            const discrepancy = Math.abs((dbData.totalUsers || 0) - (mailchimpData.totalSubscribers || 0));
+            document.getElementById('discrepancy-count').textContent = discrepancy;
+
+            // Update sync status
+            if (discrepancy === 0) {
+                syncStatus.className = 'sync-status success';
+                syncStatus.innerHTML = '<i class="fas fa-check-circle"></i> User lists are in sync!';
+            } else if (discrepancy < 5) {
+                syncStatus.className = 'sync-status warning';
+                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Minor discrepancy: ${discrepancy} users differ`;
+            } else {
+                syncStatus.className = 'sync-status error';
+                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Significant discrepancy: ${discrepancy} users differ`;
+            }
+
+            this.showNotification('Mailchimp sync completed', 'success');
+            
+        } catch (error) {
+            syncStatus.className = 'sync-status error';
+            syncStatus.innerHTML = '<i class="fas fa-times-circle"></i> Sync failed: ' + error.message;
+            this.showNotification('Error syncing with Mailchimp: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    async deleteUser(userId) {
+        if (!confirm('Are you sure you want to delete this user?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showNotification('User deleted successfully', 'success');
+                this.loadUsers();
+                this.loadDashboardData();
+            } else {
+                this.showNotification('Error deleting user: ' + result.message, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error deleting user: ' + error.message, 'error');
+        }
+    }
+
+    async loadUsers() {
+        try {
+            const response = await fetch('/api/admin/analytics');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.users = data.users || [];
+                this.renderUsersTable();
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+
+    renderUsersTable() {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '';
+
+        this.users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.email}</td>
+                <td>${user.name || 'N/A'}</td>
+                <td>${user.categories ? user.categories.join(', ') : 'N/A'}</td>
+                <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <span class="status-badge ${user.status || 'active'}">
+                        ${user.status || 'active'}
+                    </span>
+                </td>
+                <td>
+                    <span class="mailchimp-status ${user.mailchimpStatus || 'unknown'}">
+                        <i class="fas fa-${user.mailchimpStatus === 'subscribed' ? 'check' : 'times'}"></i>
+                        ${user.mailchimpStatus || 'unknown'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="adminDashboard.deleteUser('${user.id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
     }
 }
 

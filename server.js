@@ -448,6 +448,76 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Mailchimp users endpoint
+app.get('/api/mailchimp/users', async (req, res) => {
+  try {
+    // This would need to be implemented to fetch from Mailchimp API
+    // For now, return mock data
+    res.json({
+      success: true,
+      totalSubscribers: 0, // This would be fetched from Mailchimp
+      message: 'Mailchimp integration not yet implemented'
+    });
+  } catch (error) {
+    console.error('Error fetching Mailchimp users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching Mailchimp users',
+      error: error.message
+    });
+  }
+});
+
+// Delete user endpoint
+app.delete('/api/admin/users/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Delete from database
+    await db.deleteUser(userId);
+    
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting user',
+      error: error.message
+    });
+  }
+});
+
+// Get user analytics with Mailchimp status
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    const totalUsers = users.length;
+    
+    // Add Mailchimp status to users (mock for now)
+    const usersWithStatus = users.map(user => ({
+      ...user,
+      mailchimpStatus: 'subscribed' // This would be checked against Mailchimp API
+    }));
+    
+    res.json({
+      success: true,
+      totalUsers,
+      users: usersWithStatus,
+      message: 'Analytics data retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching analytics',
+      error: error.message
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Open http://localhost:${PORT} in your browser`);
