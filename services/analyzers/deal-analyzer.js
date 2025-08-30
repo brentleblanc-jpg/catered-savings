@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
  */
 class DealAnalyzer {
   constructor() {
-    this.minDiscountPercentage = 20; // Minimum discount to consider
+    this.minDiscountPercentage = 50; // Minimum discount to consider - 50%+ REQUIRED
     this.maxPrice = 10000; // Maximum price to consider
     this.minPrice = 5; // Minimum price to consider
   }
