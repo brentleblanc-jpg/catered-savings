@@ -94,6 +94,7 @@ test: add fresh test scraper for validation
 - **Categories**: 14 product categories are established and working
 - **Monetization**: Sponsored products are primary revenue stream
 - **Email**: Mailchimp integration is working and preferred
+- **User Data**: When users enter email, name, and select categories, we save them in BOTH Mailchimp AND our internal database
 
 ### **Development Rules**
 - **Server Management**: Always check if server is running before making changes
@@ -110,6 +111,7 @@ test: add fresh test scraper for validation
 - **Database**: 60+ deals stored, fully functional with Prisma + SQLite
 - **Next Priority**: Email Automation or Analytics Dashboard
 - **Architecture**: Node.js + Express + Prisma + Mailchimp + Puppeteer
+- **User Data Flow**: Email + name + categories → Mailchimp + Internal DB (dual storage)
 
 ### **Key Technical Decisions**
 - **Prisma ORM**: Chosen for type-safe database operations
