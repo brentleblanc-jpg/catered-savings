@@ -780,10 +780,9 @@ class AdminDashboard {
             const response = await fetch('/api/admin/analytics');
             const data = await response.json();
             
-            if (data.success) {
-                this.users = data.users || [];
-                this.renderUsersTable();
-            }
+            // The analytics endpoint doesn't return a success field
+            this.users = data.users || [];
+            this.renderUsersTable();
         } catch (error) {
             console.error('Error loading users:', error);
         }
