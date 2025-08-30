@@ -214,11 +214,28 @@ app.get('/api/admin/analytics', async (req, res) => {
     const analytics = await db.getAnalyticsSummary();
     const users = await db.getAllUsers();
     
+    // Get Mailchimp members for comparison
+    let mailchimpMembers = [];
+    try {
+      const mailchimp = require('@mailchimp/mailchimp_marketing');
+      mailchimp.setConfig({
+        apiKey: process.env.MAILCHIMP_API_KEY,
+        server: process.env.MAILCHIMP_SERVER_PREFIX,
+      });
+      const mailchimpResponse = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID, {
+        count: 1000,
+        status: 'subscribed'
+      });
+      mailchimpMembers = mailchimpResponse.members.map(member => member.email_address);
+    } catch (error) {
+      console.error('Error fetching Mailchimp members for comparison:', error);
+    }
+
     // Add Mailchimp status to users and transform data for frontend
     const usersWithStatus = users.map(user => ({
       ...user,
       categories: user.preferences?.categories || [],
-      mailchimpStatus: user.mailchimpStatus || 'subscribed'
+      mailchimpStatus: mailchimpMembers.includes(user.email) ? 'subscribed' : 'not-synced'
     }));
     
     res.json({
@@ -463,12 +480,28 @@ app.get('/admin', (req, res) => {
 // Mailchimp users endpoint
 app.get('/api/mailchimp/users', async (req, res) => {
   try {
-    // This would need to be implemented to fetch from Mailchimp API
-    // For now, return mock data
+    const mailchimp = require('@mailchimp/mailchimp_marketing');
+    
+    mailchimp.setConfig({
+      apiKey: process.env.MAILCHIMP_API_KEY,
+      server: process.env.MAILCHIMP_SERVER_PREFIX,
+    });
+
+    // Get list members from Mailchimp
+    const response = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID, {
+      count: 1000, // Get up to 1000 members
+      status: 'subscribed'
+    });
+
     res.json({
       success: true,
-      totalSubscribers: 0, // This would be fetched from Mailchimp
-      message: 'Mailchimp integration not yet implemented'
+      totalSubscribers: response.total_items,
+      members: response.members.map(member => ({
+        email: member.email_address,
+        status: member.status,
+        subscribedAt: member.timestamp_opt
+      })),
+      message: 'Mailchimp data retrieved successfully'
     });
   } catch (error) {
     console.error('Error fetching Mailchimp users:', error);
