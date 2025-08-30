@@ -268,7 +268,7 @@ class DatabaseService {
   // User Management
   async deleteUser(userId) {
     return await prisma.user.delete({
-      where: { id: parseInt(userId) }
+      where: { id: userId }
     });
   }
 
