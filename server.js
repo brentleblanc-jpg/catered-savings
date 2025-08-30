@@ -3,6 +3,7 @@ const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
 const db = require('./services/database');
+const dealDiscovery = require('./services/deal-discovery-manager');
 require('dotenv').config();
 
 const app = express();
@@ -215,6 +216,99 @@ app.get('/api/admin/analytics', async (req, res) => {
   } catch (error) {
     console.error('Error fetching analytics summary:', error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// Deal Discovery API Endpoints
+
+// Run deal discovery process
+app.post('/api/deal-discovery/run', async (req, res) => {
+  try {
+    const stats = await dealDiscovery.runDiscovery();
+    res.json({
+      success: true,
+      message: 'Deal discovery completed',
+      stats
+    });
+  } catch (error) {
+    console.error('Error running deal discovery:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error running deal discovery',
+      error: error.message
+    });
+  }
+});
+
+// Get deal discovery status
+app.get('/api/deal-discovery/status', (req, res) => {
+  try {
+    const status = dealDiscovery.getStatus();
+    res.json({
+      success: true,
+      status
+    });
+  } catch (error) {
+    console.error('Error getting deal discovery status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting status'
+    });
+  }
+});
+
+// Get recent discovered deals
+app.get('/api/deal-discovery/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const deals = await dealDiscovery.getRecentDeals(limit);
+    res.json({
+      success: true,
+      deals
+    });
+  } catch (error) {
+    console.error('Error getting recent deals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting recent deals'
+    });
+  }
+});
+
+// Get deal statistics
+app.get('/api/deal-discovery/stats', async (req, res) => {
+  try {
+    const stats = await dealDiscovery.getDealStatistics();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('Error getting deal statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting statistics'
+    });
+  }
+});
+
+// Test a specific scraper
+app.post('/api/deal-discovery/test/:scraper', async (req, res) => {
+  try {
+    const scraperName = req.params.scraper;
+    const deals = await dealDiscovery.testScraper(scraperName);
+    res.json({
+      success: true,
+      message: `Test completed for ${scraperName}`,
+      deals
+    });
+  } catch (error) {
+    console.error('Error testing scraper:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error testing scraper',
+      error: error.message
+    });
   }
 });
 
