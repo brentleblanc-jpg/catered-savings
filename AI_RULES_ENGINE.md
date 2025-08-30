@@ -90,7 +90,8 @@ test: add fresh test scraper for validation
 - **Documentation**: Prefer centralized, clean documentation over scattered files
 
 ### **Business Rules**
-- **Deal Threshold**: Only show deals that are 50%+ off
+- **Deal Threshold**: Only show deals that are 50%+ off - NO EXCEPTIONS
+- **Deal Quality**: All captured deals must be 50% off or more - we should not see deals lower than this threshold
 - **Categories**: 14 product categories are established and working
 - **Monetization**: Sponsored products are primary revenue stream
 - **Email**: Mailchimp integration is working and preferred
@@ -101,6 +102,7 @@ test: add fresh test scraper for validation
 - **API Compatibility**: Maintain backward compatibility with existing endpoints
 - **Error Handling**: Provide clear error messages and logging
 - **Testing**: Test with real commands before claiming success
+- **Deal Validation**: All deal scrapers and analyzers must enforce 50%+ discount threshold
 
 ---
 
