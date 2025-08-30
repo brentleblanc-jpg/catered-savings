@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catered Savings - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="admin-logo">
+                    <div class="admin-logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Envelope -->
+                            <path d="M15 25 L85 25 L85 75 L15 75 Z" fill="none" stroke="#1e3a5f" stroke-width="4"/>
+                            <path d="M15 25 L50 50 L85 25" fill="none" stroke="#1e3a5f" stroke-width="4" stroke-linejoin="round"/>
+                            <path d="M15 75 L35 55" stroke="#1e3a5f" stroke-width="4" stroke-linecap="round"/>
+                            <path d="M85 75 L65 55" stroke="#1e3a5f" stroke-width="4" stroke-linecap="round"/>
+                            
+                            <!-- Price Tag -->
+                            <path d="M45 15 L70 15 L75 20 L75 35 L70 40 L45 40 L40 35 L40 20 Z" fill="#f4a261" stroke="#1e3a5f" stroke-width="3"/>
+                            <circle cx="47" cy="22" r="2" fill="#1e3a5f"/>
+                            
+                            <!-- Dollar Sign -->
+                            <text x="60" y="32" font-family="Arial Black, sans-serif" font-size="14" font-weight="900" fill="#1e3a5f" text-anchor="middle">$</text>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>Admin</h2>
+                        <p>Catered<span style="color: #ffd700;">Savings</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <ul class="sidebar-nav">
+                <li class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li class="nav-item" data-tab="products">
+                    <i class="fas fa-box"></i>
+                    <span>Sponsored Products</span>
+                </li>
+                <li class="nav-item" data-tab="analytics">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </li>
+                <li class="nav-item" data-tab="users">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </li>
+                <li class="nav-item" data-tab="revenue">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Revenue</span>
+                </li>
+                <li class="nav-item" data-tab="database">
+                    <i class="fas fa-database"></i>
+                    <span>Database Views</span>
+                </li>
+                <li class="nav-item" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="/" class="view-site-btn">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Site
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <!-- Top Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <h1 id="page-title">Dashboard</h1>
+                    <p id="page-description">Overview of your Catered Savings business</p>
+                </div>
+                <div class="header-right">
+                    <div class="admin-user">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=667eea&color=fff" alt="Admin" class="admin-avatar">
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-users">0</h3>
+                            <p>Total Subscribers</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="active-products">0</h3>
+                            <p>Active Products</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="monthly-revenue">$0</h3>
+                            <p>Monthly Revenue</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-mouse-pointer"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-clicks">0</h3>
+                            <p>Total Clicks</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-container">
+                        <h3>Recent Signups</h3>
+                        <div id="signups-chart" class="chart-placeholder">
+                            <i class="fas fa-chart-line"></i>
+                            <p>Loading chart...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Top Categories</h3>
+                        <div id="categories-chart" class="chart-placeholder">
+                            <i class="fas fa-chart-pie"></i>
+                            <p>Loading chart...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sponsored Products Tab -->
+            <div id="products" class="tab-content">
+                <div class="tab-header">
+                    <h2>Sponsored Products Management</h2>
+                    <button class="btn btn-primary" id="add-product-btn">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="products-table-container">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Retailer</th>
+                                <th>Price</th>
+                                <th>Monthly Fee</th>
+                                <th>Status</th>
+                                <th>Clicks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics" class="tab-content">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Signup Trends</h3>
+                        <div id="signup-trends" class="chart-placeholder">
+                            <i class="fas fa-chart-line"></i>
+                            <p>Loading trends...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Category Distribution</h3>
+                        <div id="category-distribution" class="chart-placeholder">
+                            <i class="fas fa-chart-pie"></i>
+                            <p>Loading distribution...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Click Performance</h3>
+                        <div id="click-performance" class="chart-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>Loading performance...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users" class="tab-content">
+                <div class="tab-header">
+                    <h2>User Management</h2>
+                    <div class="search-box">
+                        <input type="text" id="user-search" placeholder="Search users...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Categories</th>
+                                <th>Signup Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Revenue Tab -->
+            <div id="revenue" class="tab-content">
+                <div class="revenue-overview">
+                    <div class="revenue-card">
+                        <h3>Monthly Revenue</h3>
+                        <div class="revenue-amount" id="monthly-revenue-amount">$0</div>
+                        <p>From sponsored products</p>
+                    </div>
+                    
+                    <div class="revenue-card">
+                        <h3>Projected Annual</h3>
+                        <div class="revenue-amount" id="annual-revenue">$0</div>
+                        <p>Based on current products</p>
+                    </div>
+                </div>
+
+                <div class="revenue-breakdown">
+                    <h3>Revenue by Product</h3>
+                    <div id="revenue-breakdown-chart" class="chart-placeholder">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>Loading breakdown...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="settings-section">
+                    <h3>Mailchimp Configuration</h3>
+                    <div class="setting-item">
+                        <label>API Key</label>
+                        <input type="password" id="mailchimp-api-key" placeholder="Enter API key">
+                    </div>
+                    <div class="setting-item">
+                        <label>Server Prefix</label>
+                        <input type="text" id="mailchimp-server" placeholder="e.g., us13">
+                    </div>
+                    <div class="setting-item">
+                        <label>List ID</label>
+                        <input type="text" id="mailchimp-list-id" placeholder="Enter list ID">
+                    </div>
+                    <button class="btn btn-primary" id="save-mailchimp-btn">Save Mailchimp Settings</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Site Configuration</h3>
+                    <div class="setting-item">
+                        <label>Site Name</label>
+                        <input type="text" id="site-name" value="Catered Savings">
+                    </div>
+                    <div class="setting-item">
+                        <label>Contact Email</label>
+                        <input type="email" id="contact-email" placeholder="admin@cateredsavings.com">
+                    </div>
+                    <button class="btn btn-primary" id="save-site-btn">Save Site Settings</button>
+                </div>
+            </div>
+
+            <!-- Database Views Tab -->
+            <div id="database" class="tab-content">
+                <div class="database-section">
+                    <h3>Database Views & API Endpoints</h3>
+                    <p>Quick access to all database information and API endpoints</p>
+                    
+                    <div class="database-links-grid">
+                        <div class="database-link-card">
+                            <div class="link-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="link-content">
+                                <h4>Deal Statistics</h4>
+                                <p>View total deals, average discounts, and category breakdown</p>
+                                <a href="/api/deal-discovery/stats" target="_blank" class="btn btn-outline">
+                                    <i class="fas fa-external-link-alt"></i> View Stats
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="database-link-card">
+                            <div class="link-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="link-content">
+                                <h4>Recent Deals</h4>
+                                <p>See the latest deals discovered and stored in the database</p>
+                                <a href="/api/deal-discovery/recent" target="_blank" class="btn btn-outline">
+                                    <i class="fas fa-external-link-alt"></i> View Recent
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="database-link-card">
+                            <div class="link-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="link-content">
+                                <h4>System Status</h4>
+                                <p>Check deal discovery system status and configuration</p>
+                                <a href="/api/deal-discovery/status" target="_blank" class="btn btn-outline">
+                                    <i class="fas fa-external-link-alt"></i> View Status
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="database-link-card">
+                            <div class="link-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="link-content">
+                                <h4>User Analytics</h4>
+                                <p>View user data, signups, and engagement metrics</p>
+                                <a href="/api/admin/analytics" target="_blank" class="btn btn-outline">
+                                    <i class="fas fa-external-link-alt"></i> View Analytics
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="database-link-card">
+                            <div class="link-icon">
+                                <i class="fas fa-mouse-pointer"></i>
+                            </div>
+                            <div class="link-content">
+                                <h4>Click Analytics</h4>
+                                <p>Track sponsored product clicks and conversion data</p>
+                                <a href="/api/admin/clicks" target="_blank" class="btn btn-outline">
+                                    <i class="fas fa-external-link-alt"></i> View Clicks
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="database-link-card">
+                            <div class="link-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="link-content">
+                                <h4>Sponsored Products</h4>
+                                <p>View active sponsored products and their performance</p>
+                                <a href="/api/sponsored-products" target="_blank" class="btn btn-outline">
+                                    <i class="fas fa-external-link-alt"></i> View Products
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="database-actions">
+                        <h4>Quick Actions</h4>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="run-deal-discovery">
+                                <i class="fas fa-play"></i> Run Deal Discovery
+                            </button>
+                            <button class="btn btn-secondary" id="test-scraper">
+                                <i class="fas fa-flask"></i> Test Scraper
+                            </button>
+                            <button class="btn btn-info" id="refresh-database">
+                                <i class="fas fa-sync"></i> Refresh Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Product</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="product-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-title">Product Title *</label>
+                        <input type="text" id="product-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-retailer">Retailer *</label>
+                        <input type="text" id="product-retailer" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-original-price">Original Price *</label>
+                        <input type="number" id="product-original-price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-sale-price">Sale Price *</label>
+                        <input type="number" id="product-sale-price" step="0.01" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-category">Category *</label>
+                        <select id="product-category" required>
+                            <option value="">Select category</option>
+                            <option value="tech-electronics">Tech & Electronics</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="home-garden">Home & Garden</option>
+                            <option value="health-beauty">Health & Beauty</option>
+                            <option value="sports-outdoors">Sports & Outdoors</option>
+                            <option value="kids-family">Kids & Family</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="automotive">Automotive</option>
+                            <option value="books-media">Books & Media</option>
+                            <option value="pets">Pet Supplies</option>
+                            <option value="office-education">Office & Education</option>
+                            <option value="food-dining">Food & Dining</option>
+                            <option value="travel">Travel</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-monthly-fee">Monthly Fee *</label>
+                        <input type="number" id="product-monthly-fee" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="product-description">Description *</label>
+                    <textarea id="product-description" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-image">Image URL</label>
+                        <input type="url" id="product-image" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-url">Product URL *</label>
+                        <input type="url" id="product-url" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-start-date">Start Date *</label>
+                        <input type="date" id="product-start-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-end-date">End Date *</label>
+                        <input type="date" id="product-end-date" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="product-active" checked>
+                        <span class="checkmark"></span>
+                        Active
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-product-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-product-btn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
