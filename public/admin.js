@@ -325,29 +325,8 @@ class AdminDashboard {
     }
 
     loadUsersTable() {
-        const tbody = document.getElementById('users-table-body');
-        tbody.innerHTML = '';
-
-        this.users.forEach(user => {
-            const row = document.createElement('tr');
-            const signupDate = new Date(user.timestamp || user.id).toLocaleDateString();
-            
-            row.innerHTML = `
-                <td>${user.email}</td>
-                <td>${user.firstName || 'Anonymous'}</td>
-                <td>${user.categories ? user.categories.join(', ') : 'None'}</td>
-                <td>${signupDate}</td>
-                <td>
-                    <span class="status-badge status-active">Active</span>
-                </td>
-                <td>
-                    <button class="action-btn edit-btn" onclick="adminDashboard.viewUser('${user.email}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        // Call the proper loadUsers method that fetches data and renders the table with delete buttons
+        this.loadUsers();
     }
 
     loadRevenueData() {
