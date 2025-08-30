@@ -212,7 +212,19 @@ app.get('/api/admin/clicks', async (req, res) => {
 app.get('/api/admin/analytics', async (req, res) => {
   try {
     const analytics = await db.getAnalyticsSummary();
-    res.json(analytics);
+    const users = await db.getAllUsers();
+    
+    // Add Mailchimp status to users and transform data for frontend
+    const usersWithStatus = users.map(user => ({
+      ...user,
+      categories: user.preferences?.categories || [],
+      mailchimpStatus: user.mailchimpStatus || 'subscribed'
+    }));
+    
+    res.json({
+      ...analytics,
+      users: usersWithStatus
+    });
   } catch (error) {
     console.error('Error fetching analytics summary:', error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
@@ -490,33 +502,7 @@ app.delete('/api/admin/users/:id', async (req, res) => {
   }
 });
 
-// Get user analytics with Mailchimp status
-app.get('/api/admin/analytics', async (req, res) => {
-  try {
-    const users = await db.getAllUsers();
-    const totalUsers = users.length;
-    
-    // Add Mailchimp status to users (mock for now)
-    const usersWithStatus = users.map(user => ({
-      ...user,
-      mailchimpStatus: 'subscribed' // This would be checked against Mailchimp API
-    }));
-    
-    res.json({
-      success: true,
-      totalUsers,
-      users: usersWithStatus,
-      message: 'Analytics data retrieved successfully'
-    });
-  } catch (error) {
-    console.error('Error fetching analytics:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching analytics',
-      error: error.message
-    });
-  }
-});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
