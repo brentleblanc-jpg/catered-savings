@@ -9,7 +9,10 @@
     "build": "webpack --mode production",
     "dev-build": "webpack --mode development --watch",
     "automate": "node run_automation.js",
-    "weekly": "node weekly_update.js"
+    "weekly": "node weekly_update.js",
+    "weekly-automation": "node weekly-automation.js",
+    "refresh-deals": "curl -X POST http://localhost:3000/api/weekly-automation/refresh-deals",
+    "update-mailchimp": "curl -X POST http://localhost:3000/api/weekly-automation/update-mailchimp"
   },
   "dependencies": {
     "@mailchimp/mailchimp_marketing": "^3.0.80",

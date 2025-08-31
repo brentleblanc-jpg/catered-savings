@@ -62,6 +62,10 @@
                     <i class="fas fa-database"></i>
                     <span>Database Views</span>
                 </li>
+                <li class="nav-item" data-tab="automation">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Weekly Automation</span>
+                </li>
                 <li class="nav-item" data-tab="settings">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -319,6 +323,92 @@
                 </div>
             </div>
 
+            <!-- Weekly Automation Tab -->
+            <div id="automation" class="tab-content">
+                <div class="automation-section">
+                    <div class="automation-header">
+                        <h3>Weekly Email Automation</h3>
+                        <p>Follow these steps in order to send fresh deals to your subscribers</p>
+                    </div>
+                    
+                    <div class="automation-status">
+                        <h4>System Status</h4>
+                        <div id="automation-status" class="status-card">
+                            <i class="fas fa-spinner fa-spin"></i> Loading status...
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-steps">
+                        <div class="workflow-step">
+                            <div class="step-header">
+                                <span class="step-number">1</span>
+                                <div class="step-info">
+                                    <h4>Test Your Scrapers</h4>
+                                    <p>Verify that your deal scrapers are working before running the full discovery</p>
+                                </div>
+                            </div>
+                            <div class="step-action">
+                                <button class="btn btn-outline" id="test-scraper">
+                                    <i class="fas fa-flask"></i> Test Scraper
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="workflow-step">
+                            <div class="step-header">
+                                <span class="step-number">2</span>
+                                <div class="step-info">
+                                    <h4>Find Fresh Deals</h4>
+                                    <p>Scrape all retailers to discover new 50%+ off deals and update your database</p>
+                                </div>
+                            </div>
+                            <div class="step-action">
+                                <button class="btn btn-secondary" id="run-deal-discovery">
+                                    <i class="fas fa-search"></i> Run Deal Discovery
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="workflow-step">
+                            <div class="step-header">
+                                <span class="step-number">3</span>
+                                <div class="step-info">
+                                    <h4>Update Mailchimp</h4>
+                                    <p>Send fresh deal data to Mailchimp and update user tokens (optional step)</p>
+                                </div>
+                            </div>
+                            <div class="step-action">
+                                <button class="btn btn-warning" id="update-mailchimp-only">
+                                    <i class="fas fa-sync"></i> Update Mailchimp
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="workflow-step primary-step">
+                            <div class="step-header">
+                                <span class="step-number">4</span>
+                                <div class="step-info">
+                                    <h4>Send Weekly Emails</h4>
+                                    <p>Complete automation: refresh deals, update Mailchimp, and send to all subscribers</p>
+                                </div>
+                            </div>
+                            <div class="step-action">
+                                <button class="btn btn-primary btn-large" id="run-weekly-automation">
+                                    <i class="fas fa-paper-plane"></i> Send Weekly Emails
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="automation-logs">
+                        <h4>Recent Activity</h4>
+                        <div id="automation-logs" class="logs-container">
+                            <p>No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Settings Tab -->
             <div id="settings" class="tab-content">
                 <div class="settings-section">
@@ -441,12 +531,6 @@
                     <div class="database-actions">
                         <h4>Quick Actions</h4>
                         <div class="action-buttons">
-                            <button class="btn btn-primary" id="run-deal-discovery">
-                                <i class="fas fa-play"></i> Run Deal Discovery
-                            </button>
-                            <button class="btn btn-secondary" id="test-scraper">
-                                <i class="fas fa-flask"></i> Test Scraper
-                            </button>
                             <button class="btn btn-info" id="refresh-database">
                                 <i class="fas fa-sync"></i> Refresh Data
                             </button>
@@ -682,3 +766,4 @@
     <script src="admin.js"></script>
 </body>
 </html>
+

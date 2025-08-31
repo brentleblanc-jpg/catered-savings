@@ -13,6 +13,8 @@ async function loadSponsoredProducts() {
             displaySponsoredProducts(data.products);
         } else {
             console.log('⚠️ No sponsored products found or API error');
+            console.log('Data success:', data.success);
+            console.log('Products length:', data.products ? data.products.length : 'products is undefined');
         }
     } catch (error) {
         console.error('❌ Error loading sponsored products:', error);
@@ -25,28 +27,41 @@ function displaySponsoredProducts(products) {
     
     if (!container) {
         console.error('❌ Could not find sponsoredProductsList container!');
+        console.log('Available elements with "sponsored" in ID:', document.querySelectorAll('[id*="sponsored"]'));
         return;
     }
     
+    console.log('✅ Found container:', container);
     console.log('📝 Updating container HTML...');
-    container.innerHTML = products.map(product => `
+    
+    const htmlContent = products.map(product => {
+        // Calculate discount percentage
+        const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+        console.log(`Processing product: ${product.title} - ${discount}% off`);
+        
+        return `
         <div class="sponsored-product" data-product-id="${product.id}">
             <div class="sponsored-badge">Sponsored</div>
-            <img src="${product.image}" alt="${product.title}" class="product-image" 
+            <img src="${product.imageUrl}" alt="${product.title}" class="product-image" 
                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+IiU2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
             <div class="product-title">${product.title}</div>
-            <div class="product-retailer">from ${product.retailer}</div>
+            <div class="product-retailer">from Amazon</div>
             <div class="product-pricing">
-                <span class="sale-price">$${product.salePrice.toFixed(2)}</span>
+                <span class="sale-price">$${product.price.toFixed(2)}</span>
                 <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
-                <span class="discount-badge">${product.discount}% OFF</span>
+                <span class="discount-badge">${discount}% OFF</span>
             </div>
             <div class="product-description">${product.description}</div>
-            <button class="sponsored-cta" onclick="handleSponsoredClick(${product.id}, '${product.url}')">
+            <button class="sponsored-cta" onclick="handleSponsoredClick('${product.id}', '${product.affiliateUrl}')">
                 <i class="fas fa-external-link-alt"></i> Shop Now
             </button>
         </div>
-    `).join('');
+        `;
+    }).join('');
+    
+    console.log('📄 Generated HTML length:', htmlContent.length);
+    container.innerHTML = htmlContent;
+    console.log('✅ Container updated with', products.length, 'products');
 }
 
 // Catered Savings Form Handler
@@ -100,8 +115,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 successMessage.style.display = 'block';
                 
                 console.log('🔄 Loading sponsored products...');
-                // Load sponsored products
-                loadSponsoredProducts();
+                // Load sponsored products with a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    loadSponsoredProducts();
+                }, 100);
                 
                 // Reset form for potential reuse
                 form.reset();

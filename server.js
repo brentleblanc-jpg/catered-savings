@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
+const cron = require('node-cron');
 const db = require('./services/database');
 const dealDiscovery = require('./services/deal-discovery-manager');
+const weeklyAutomation = require('./services/weekly-email-automation');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +14,12 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Routes (must be before static middleware)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index-modern.html'));
+});
+
 app.use(express.static('public'));
 
 // Store questionnaire responses (in production, use a database)
@@ -79,9 +87,6 @@ async function sendPersonalizedWelcomeEmail(email, firstName, categories) {
 
 
 // Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
@@ -139,13 +144,20 @@ app.post('/api/submit-savings', async (req, res) => {
         // Add subscriber to Mailchimp audience
     if (response.email) {
       try {
+        // Get the user's access token from database
+        const user = await db.getUserByEmail(response.email);
+        const personalizedUrl = user?.accessToken ? 
+          `${process.env.BASE_URL || 'http://localhost:3000'}/deals/${user.accessToken}` : 
+          `${process.env.BASE_URL || 'http://localhost:3000'}/deals/pending`;
+
         const mailchimpResult = await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
           email_address: response.email,
           status: 'subscribed',
           merge_fields: {
             FNAME: response.firstName.trim(),
             CATEGORIES: response.categories.join(', '),
-            EXCLUSIVE_DEALS: response.exclusiveDeals ? 'Yes' : 'No'
+            EXCLUSIVE_DEALS: response.exclusiveDeals ? 'Yes' : 'No',
+            PERSONALIZ: personalizedUrl
           },
           tags: response.categories
         });
@@ -477,6 +489,11 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Personalized deals page
+app.get('/deals/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals.html'));
+});
+
 // Mailchimp users endpoint
 app.get('/api/mailchimp/users', async (req, res) => {
   try {
@@ -499,7 +516,8 @@ app.get('/api/mailchimp/users', async (req, res) => {
       members: response.members.map(member => ({
         email: member.email_address,
         status: member.status,
-        subscribedAt: member.timestamp_opt
+        subscribedAt: member.timestamp_opt,
+        merge_fields: member.merge_fields
       })),
       message: 'Mailchimp data retrieved successfully'
     });
@@ -535,9 +553,203 @@ app.delete('/api/admin/users/:id', async (req, res) => {
   }
 });
 
+// Email Automation System - Personalized Deals
 
+// Get personalized deals for user (by token)
+app.get('/api/deals/personalized/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const deals = await db.getPersonalizedDeals(token);
+    
+    res.json({
+      success: true,
+      deals
+    });
+  } catch (error) {
+    console.error('Error getting personalized deals:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired access token'
+    });
+  }
+});
+
+// Track deal clicks
+app.post('/api/deals/click/:token/:dealId', async (req, res) => {
+  try {
+    const { token, dealId } = req.params;
+    const metadata = {
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      timestamp: new Date()
+    };
+    
+    // Verify token is valid
+    const user = await db.getUserByToken(token);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired access token'
+      });
+    }
+    
+    // Track the click (you can expand this to store in analytics_events table)
+    console.log(`Deal click tracked: User ${user.email}, Deal ${dealId}`, metadata);
+    
+    res.json({
+      success: true,
+      message: 'Click tracked successfully'
+    });
+  } catch (error) {
+    console.error('Error tracking deal click:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error tracking click'
+    });
+  }
+});
+
+// Generate new access token for user
+app.post('/api/user/generate-token', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    const user = await db.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Generate new token
+    const accessToken = db.generateAccessToken();
+    const tokenExpiresAt = new Date();
+    tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
+    
+    // Update user with new token
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    await prisma.user.update({
+      where: { email },
+      data: { accessToken, tokenExpiresAt }
+    });
+    
+    res.json({
+      success: true,
+      accessToken,
+      tokenExpiresAt,
+      personalizedDealsUrl: `/deals/${accessToken}`
+    });
+  } catch (error) {
+    console.error('Error generating token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating access token'
+    });
+  }
+});
+
+
+
+// Weekly Email Automation Endpoints
+
+// Run weekly automation (refresh deals + send emails)
+app.post('/api/weekly-automation/run', async (req, res) => {
+  try {
+    console.log('🚀 Manual weekly automation triggered');
+    const result = await weeklyAutomation.runWeeklyAutomation();
+    
+    res.json({
+      success: result.success,
+      message: result.success ? 'Weekly automation completed successfully' : 'Weekly automation failed',
+      details: result
+    });
+  } catch (error) {
+    console.error('Error running weekly automation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error running weekly automation',
+      error: error.message
+    });
+  }
+});
+
+// Get automation status
+app.get('/api/weekly-automation/status', async (req, res) => {
+  try {
+    const status = await weeklyAutomation.getAutomationStatus();
+    res.json({
+      success: true,
+      status
+    });
+  } catch (error) {
+    console.error('Error getting automation status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting automation status',
+      error: error.message
+    });
+  }
+});
+
+// Refresh deals only (without sending emails)
+app.post('/api/weekly-automation/refresh-deals', async (req, res) => {
+  try {
+    console.log('🔄 Refreshing deals only...');
+    const result = await weeklyAutomation.refreshWeeklyDeals();
+    
+    res.json({
+      success: true,
+      message: 'Deals refreshed successfully',
+      stats: result
+    });
+  } catch (error) {
+    console.error('Error refreshing deals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error refreshing deals',
+      error: error.message
+    });
+  }
+});
+
+// Update Mailchimp with fresh data (without sending emails)
+app.post('/api/weekly-automation/update-mailchimp', async (req, res) => {
+  try {
+    console.log('📧 Updating Mailchimp with fresh data...');
+    const result = await weeklyAutomation.updateMailchimpWithFreshDeals();
+    
+    res.json({
+      success: true,
+      message: 'Mailchimp updated with fresh deal data',
+      deals: result
+    });
+  } catch (error) {
+    console.error('Error updating Mailchimp:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating Mailchimp',
+      error: error.message
+    });
+  }
+});
+
+// Manual Weekly Automation (MVP Approach)
+// No automatic scheduling - you control when to send emails
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Open http://localhost:${PORT} in your browser`);
+  console.log('🎯 Manual Weekly Automation Ready:');
+  console.log('   - Run: npm run weekly-automation');
+  console.log('   - Or: curl -X POST http://localhost:3000/api/weekly-automation/run');
 });

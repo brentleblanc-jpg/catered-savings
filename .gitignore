@@ -89,7 +89,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public (commented out - we need our public files in git)
 
 # Storybook build outputs
 .out

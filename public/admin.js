@@ -65,16 +65,26 @@ class AdminDashboard {
         });
 
         // Database action buttons
+        document.getElementById('refresh-database').addEventListener('click', () => {
+            this.refreshDatabase();
+        });
+
+        // Weekly automation buttons
+        document.getElementById('run-weekly-automation').addEventListener('click', () => {
+            this.runWeeklyAutomation();
+        });
+
+        document.getElementById('update-mailchimp-only').addEventListener('click', () => {
+            this.updateMailchimpOnly();
+        });
+
+        // Deal discovery buttons (moved from database tab)
         document.getElementById('run-deal-discovery').addEventListener('click', () => {
             this.runDealDiscovery();
         });
 
         document.getElementById('test-scraper').addEventListener('click', () => {
             this.testScraper();
-        });
-
-        document.getElementById('refresh-database').addEventListener('click', () => {
-            this.refreshDatabase();
         });
 
         // User management buttons
@@ -130,6 +140,8 @@ class AdminDashboard {
             analytics: 'Analytics',
             users: 'User Management',
             revenue: 'Revenue Tracking',
+            database: 'Database Views',
+            automation: 'Weekly Automation',
             settings: 'Settings'
         };
 
@@ -139,6 +151,8 @@ class AdminDashboard {
             analytics: 'View detailed performance metrics',
             users: 'Monitor user signups and preferences',
             revenue: 'Track monthly and projected revenue',
+            database: 'Quick access to all database information and API endpoints',
+            automation: 'Send fresh deals to all subscribers with one click',
             settings: 'Configure Mailchimp and site settings'
         };
 
@@ -209,6 +223,9 @@ class AdminDashboard {
                 break;
             case 'settings':
                 this.loadSettings();
+                break;
+            case 'automation':
+                this.loadAutomationStatus();
                 break;
         }
     }
@@ -647,6 +664,122 @@ class AdminDashboard {
         } finally {
             button.innerHTML = originalText;
             button.disabled = false;
+        }
+    }
+
+    // Weekly Automation Methods
+    async runWeeklyAutomation() {
+        const button = document.getElementById('run-weekly-automation');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Emails...';
+            button.disabled = true;
+            
+            this.addLog('🚀 Starting weekly automation...');
+            
+            const response = await fetch('/api/weekly-automation/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.addLog('✅ Weekly automation completed successfully!');
+                this.addLog(`📧 Emails sent to all subscribers`);
+                this.showNotification('Weekly emails sent successfully!', 'success');
+                await this.loadAutomationStatus();
+            } else {
+                throw new Error(result.message || 'Weekly automation failed');
+            }
+        } catch (error) {
+            this.addLog(`❌ Error: ${error.message}`);
+            this.showNotification('Error sending weekly emails: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    async updateMailchimpOnly() {
+        const button = document.getElementById('update-mailchimp-only');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            button.disabled = true;
+            
+            this.addLog('📧 Updating Mailchimp with fresh data...');
+            
+            const response = await fetch('/api/weekly-automation/update-mailchimp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.addLog('✅ Mailchimp updated successfully!');
+                this.addLog('📊 Fresh deal data sent to Mailchimp');
+                this.showNotification('Mailchimp updated successfully!', 'success');
+            } else {
+                throw new Error(result.message || 'Mailchimp update failed');
+            }
+        } catch (error) {
+            this.addLog(`❌ Error: ${error.message}`);
+            this.showNotification('Error updating Mailchimp: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    async loadAutomationStatus() {
+        try {
+            const response = await fetch('/api/weekly-automation/status');
+            const result = await response.json();
+            
+            if (result.success) {
+                const status = result.status;
+                const statusElement = document.getElementById('automation-status');
+                
+                statusElement.innerHTML = `
+                    <div class="status-item">
+                        <i class="fas fa-users"></i>
+                        <span>Subscribers: ${status.listMembers}</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Campaigns: ${status.recentCampaigns}</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Last Send: ${status.lastCampaign ? new Date(status.lastCampaign).toLocaleDateString() : 'Never'}</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Status: ${status.status}</span>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading automation status:', error);
+        }
+    }
+
+    addLog(message) {
+        const logsContainer = document.getElementById('automation-logs');
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        logEntry.innerHTML = `<span class="log-time">${timestamp}</span> ${message}`;
+        
+        logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+        
+        // Keep only last 10 log entries
+        while (logsContainer.children.length > 10) {
+            logsContainer.removeChild(logsContainer.lastChild);
         }
     }
 

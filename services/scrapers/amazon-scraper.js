@@ -63,10 +63,22 @@ class AmazonScraper extends BaseScraper {
     const deals = [];
     
     try {
-      // Wait for deals container
-      await this.waitForElement('[data-testid="deal-card"]', 10000);
+      // Wait for deals container - try multiple selectors
+      let dealElements = [];
+      const selectors = ['.a-cardui', '.a-carousel-card', '[data-testid="deal-card"]'];
       
-      const dealElements = await this.getElements('[data-testid="deal-card"]');
+      for (const selector of selectors) {
+        try {
+          await this.waitForElement(selector, 5000);
+          dealElements = await this.getElements(selector);
+          if (dealElements.length > 0) {
+            console.log(`✅ Found ${dealElements.length} deals using selector: ${selector}`);
+            break;
+          }
+        } catch (error) {
+          console.log(`❌ Selector ${selector} not found, trying next...`);
+        }
+      }
       
       for (const element of dealElements.slice(0, 10)) { // Limit to first 10 deals
         try {
@@ -91,25 +103,47 @@ class AmazonScraper extends BaseScraper {
    */
   async extractGoldBoxDeal(element) {
     try {
-      // Extract deal information
-      const title = await this.page.evaluate(el => {
-        const titleEl = el.querySelector('[data-testid="deal-title"]');
-        return titleEl ? titleEl.textContent.trim() : null;
-      }, element);
-      
-      const price = await this.page.evaluate(el => {
-        const priceEl = el.querySelector('[data-testid="deal-price"]');
-        return priceEl ? priceEl.textContent.trim() : null;
-      }, element);
-      
-      const originalPrice = await this.page.evaluate(el => {
-        const origPriceEl = el.querySelector('[data-testid="deal-original-price"]');
-        return origPriceEl ? origPriceEl.textContent.trim() : null;
-      }, element);
-      
-      const discount = await this.page.evaluate(el => {
-        const discountEl = el.querySelector('[data-testid="deal-discount"]');
-        return discountEl ? discountEl.textContent.trim() : null;
+      // Extract deal information with flexible selectors
+      const dealData = await this.page.evaluate(el => {
+        // Try multiple selectors for each field
+        const titleSelectors = [
+          '[data-testid="deal-title"]',
+          '.a-truncate-full',
+          '.a-size-base-plus',
+          'h3',
+          '.a-link-normal'
+        ];
+        
+        const priceSelectors = [
+          '[data-testid="deal-price"]',
+          '.a-price-whole',
+          '.a-price .a-offscreen',
+          '.a-price-range'
+        ];
+        
+        const discountSelectors = [
+          '[data-testid="deal-discount"]',
+          '.a-badge-text',
+          '.a-size-small',
+          '.a-color-price'
+        ];
+        
+        // Helper function to find text with multiple selectors
+        function findText(selectors) {
+          for (const selector of selectors) {
+            const element = el.querySelector(selector);
+            if (element && element.textContent.trim()) {
+              return element.textContent.trim();
+            }
+          }
+          return null;
+        }
+        
+        return {
+          title: findText(titleSelectors),
+          price: findText(priceSelectors),
+          discount: findText(discountSelectors)
+        };
       }, element);
       
       const imageUrl = await this.page.evaluate(el => {
@@ -122,27 +156,20 @@ class AmazonScraper extends BaseScraper {
         return linkEl ? linkEl.href : null;
       }, element);
       
-      if (!title || !price) return null;
-      
-      const salePrice = this.extractPrice(price);
-      const origPrice = this.extractPrice(originalPrice);
-      const discountPercentage = this.extractPrice(discount) || 
-        this.calculateDiscount(origPrice, salePrice);
+      // Only return deal if we have essential information
+      if (!dealData.title) {
+        return null;
+      }
       
       return {
-        title: title.substring(0, 200), // Limit title length
-        description: `Amazon Gold Box Deal - ${discountPercentage}% off`,
-        salePrice,
-        originalPrice: origPrice || salePrice,
-        discountPercentage,
-        imageUrl,
-        dealUrl: dealUrl ? `${this.baseUrl}${dealUrl}` : null,
-        retailer: this.retailerName,
-        category: this.categorizeDeal(title),
-        inStock: true,
-        limitedStock: discountPercentage > 50,
-        foundAt: Date.now(),
-        source: 'amazon_goldbox'
+        name: dealData.title,
+        price: dealData.price || 'Price not available',
+        originalPrice: dealData.originalPrice || null,
+        discount: dealData.discount || null,
+        url: dealUrl || 'https://www.amazon.com',
+        imageUrl: imageUrl || null,
+        retailer: 'Amazon',
+        category: 'tech-electronics' // Default category, could be improved with ML
       };
       
     } catch (error) {

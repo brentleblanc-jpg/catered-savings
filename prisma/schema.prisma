@@ -60,6 +60,8 @@ model User {
   name            String?
   preferences     Json? // Store category preferences, email frequency, etc.
   mailchimpStatus String @default("pending") // pending, subscribed, unsubscribed
+  accessToken     String? @unique // For personalized deals access
+  tokenExpiresAt  DateTime? // Token expiration date
   isActive        Boolean @default(true)
   lastActiveAt    DateTime?
   createdAt       DateTime @default(now())

@@ -88,20 +88,84 @@ class DatabaseService {
 
   // Users
   async createUser(email, name, preferences = {}) {
+    // Generate secure access token
+    const accessToken = this.generateAccessToken();
+    const tokenExpiresAt = new Date();
+    tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7); // 7 days from now
+    
     return await prisma.user.create({
       data: {
         email,
         name,
         preferences,
-        mailchimpStatus: 'pending'
+        mailchimpStatus: 'pending',
+        accessToken,
+        tokenExpiresAt
       }
     });
+  }
+
+  generateAccessToken() {
+    const crypto = require('crypto');
+    return crypto.randomBytes(32).toString('hex');
   }
 
   async getUserByEmail(email) {
     return await prisma.user.findUnique({
       where: { email }
     });
+  }
+
+  async getUserByToken(token) {
+    return await prisma.user.findUnique({
+      where: { 
+        accessToken: token,
+        tokenExpiresAt: {
+          gt: new Date() // Token not expired
+        }
+      }
+    });
+  }
+
+  async getPersonalizedDeals(userToken) {
+    const user = await this.getUserByToken(userToken);
+    if (!user) {
+      throw new Error('Invalid or expired token');
+    }
+
+    const userCategories = user.preferences?.categories || [];
+    
+    // Get retailers from user's preferred categories
+    const retailers = await prisma.retailer.findMany({
+      where: {
+        category: {
+          slug: {
+            in: userCategories
+          }
+        },
+        isActive: true
+      },
+      include: {
+        category: true
+      },
+      orderBy: [
+        { hasActiveSale: 'desc' },
+        { clickCount: 'desc' }
+      ]
+    });
+
+    // Get sponsored products
+    const sponsoredProducts = await this.getActiveSponsoredProducts(4);
+
+    return {
+      user: {
+        name: user.name,
+        email: user.email,
+        categories: userCategories
+      },
+      retailers,
+      sponsoredProducts
+    };
   }
 
   async updateUserMailchimpStatus(email, status) {
