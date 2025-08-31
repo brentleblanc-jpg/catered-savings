@@ -58,7 +58,7 @@ model User {
   id              String @id @default(cuid())
   email           String @unique
   name            String?
-  preferences     Json? // Store category preferences, email frequency, etc.
+  preferences     String? // Store category preferences as JSON string
   mailchimpStatus String @default("pending") // pending, subscribed, unsubscribed
   accessToken     String? @unique // For personalized deals access
   tokenExpiresAt  DateTime? // Token expiration date
@@ -103,7 +103,7 @@ model AnalyticsEvent {
   eventType         String // "retailer_click", "product_click", "signup", "email_open"
   ipAddress         String?
   userAgent         String?
-  metadata          Json? // Additional event data
+  metadata          String? // Additional event data as JSON string
   createdAt         DateTime @default(now())
   
   // Foreign Keys (optional)
