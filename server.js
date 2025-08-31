@@ -11,9 +11,22 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Production environment detection
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Health check endpoint for production monitoring
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0'
+  });
+});
 
 // Routes (must be before static middleware)
 app.get('/', (req, res) => {
@@ -747,9 +760,14 @@ app.post('/api/weekly-automation/update-mailchimp', async (req, res) => {
 // No automatic scheduling - you control when to send emails
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Open http://localhost:${PORT} in your browser`);
-  console.log('🎯 Manual Weekly Automation Ready:');
-  console.log('   - Run: npm run weekly-automation');
-  console.log('   - Or: curl -X POST http://localhost:3000/api/weekly-automation/run');
+  console.log(`🚀 Server running on port ${PORT}`);
+  if (isProduction) {
+    console.log(`🌐 Production server is live!`);
+    console.log(`📧 Weekly automation ready for production use`);
+  } else {
+    console.log(`💻 Development server - Open http://localhost:${PORT} in your browser`);
+    console.log('🎯 Manual Weekly Automation Ready:');
+    console.log('   - Run: npm run weekly-automation');
+    console.log('   - Or: curl -X POST http://localhost:3000/api/weekly-automation/run');
+  }
 });
