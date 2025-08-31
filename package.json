@@ -6,10 +6,9 @@
   "scripts": {
     "start": "node server-minimal.js",
     "dev": "nodemon server.js",
-    "build": "npx prisma generate",
+    "build": "echo 'No build step needed'",
     "weekly-automation": "node weekly-automation.js",
-    "test": "echo \"No tests specified\" && exit 0",
-    "railway:build": "npm install && npx prisma generate"
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
     "deals",
