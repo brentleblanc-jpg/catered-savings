@@ -5,7 +5,7 @@ const path = require('path');
 // const cron = require('node-cron');
 const db = require('./services/database');
 // const dealDiscovery = require('./services/deal-discovery-manager');
-const weeklyAutomation = require('./services/weekly-email-automation');
+// const weeklyAutomation = require('./services/weekly-email-automation');
 require('dotenv').config();
 
 const app = express();
