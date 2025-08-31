@@ -3,7 +3,7 @@ const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
 // const cron = require('node-cron');
-const db = require('./services/database');
+// const db = require('./services/database');
 // const dealDiscovery = require('./services/deal-discovery-manager');
 const weeklyAutomation = require('./services/weekly-email-automation');
 require('dotenv').config();
@@ -24,7 +24,8 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0'
+    version: '1.0.0',
+    message: 'Catered Savers API is running'
   });
 });
 

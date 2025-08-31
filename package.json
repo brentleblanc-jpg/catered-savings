@@ -4,7 +4,7 @@
   "description": "Personalized weekly deals platform with email automation",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-simple.js",
     "dev": "nodemon server.js",
     "build": "npx prisma generate",
     "weekly-automation": "node weekly-automation.js",
