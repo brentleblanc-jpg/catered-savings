@@ -13,7 +13,7 @@ RUN npm install --timeout=300000 --retry=3 --no-optional
 # Copy source code
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client (after copying source code)
 RUN npx prisma generate
 
 # Expose port
