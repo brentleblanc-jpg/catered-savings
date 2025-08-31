@@ -2,9 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
-const cron = require('node-cron');
+// const cron = require('node-cron');
 const db = require('./services/database');
-const dealDiscovery = require('./services/deal-discovery-manager');
+// const dealDiscovery = require('./services/deal-discovery-manager');
 const weeklyAutomation = require('./services/weekly-email-automation');
 require('dotenv').config();
 
