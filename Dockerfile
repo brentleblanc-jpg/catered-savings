@@ -4,13 +4,16 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy everything at once
+# Copy package files first
+COPY package*.json ./
+
+# Install dependencies without running any scripts
+RUN npm install --timeout=300000 --retry=3 --no-optional --ignore-scripts
+
+# Copy source code
 COPY . .
 
-# Install dependencies
-RUN npm install --timeout=300000 --retry=3 --no-optional
-
-# Generate Prisma client
+# Generate Prisma client manually
 RUN npx prisma generate
 
 # Expose port
