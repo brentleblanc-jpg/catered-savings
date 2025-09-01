@@ -1,1 +1,1 @@
-web: node server-minimal-railway.js
+web: node server-working.js
