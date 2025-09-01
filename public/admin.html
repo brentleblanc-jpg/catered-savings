@@ -176,6 +176,7 @@
                                 <th>Retailer</th>
                                 <th>Price</th>
                                 <th>Monthly Fee</th>
+                                <th>Affiliate ID</th>
                                 <th>Status</th>
                                 <th>Clicks</th>
                                 <th>Actions</th>
@@ -185,6 +186,39 @@
                             <!-- Products will be loaded here -->
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Affiliate ID Edit Modal -->
+                <div id="affiliate-modal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Edit Affiliate ID</h3>
+                            <span class="close">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="affiliate-form">
+                                <input type="hidden" id="edit-product-id">
+                                <div class="form-group">
+                                    <label for="edit-affiliate-id">Affiliate ID:</label>
+                                    <input type="text" id="edit-affiliate-id" placeholder="Enter your affiliate ID">
+                                    <small>Example: For Amazon, enter your Associates tag (e.g., "cateredsavers-20")</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-tracking-id">Tracking ID (Optional):</label>
+                                    <input type="text" id="edit-tracking-id" placeholder="Enter tracking ID if needed">
+                                    <small>Additional tracking parameter for some affiliate programs</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Current Affiliate URL:</label>
+                                    <div id="current-affiliate-url" class="url-display"></div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" id="cancel-affiliate-btn">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="save-affiliate-btn">Save Changes</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

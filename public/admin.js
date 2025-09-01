@@ -109,6 +109,24 @@ class AdminDashboard {
             e.preventDefault();
             this.saveUser();
         });
+
+        // Affiliate modal events
+        document.querySelectorAll('#affiliate-modal .close, #cancel-affiliate-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.closeAffiliateModal();
+            });
+        });
+
+        document.getElementById('save-affiliate-btn').addEventListener('click', () => {
+            this.saveAffiliateChanges();
+        });
+
+        // Close affiliate modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.id === 'affiliate-modal') {
+                this.closeAffiliateModal();
+            }
+        });
     }
 
     switchTab(tabName) {
@@ -278,6 +296,14 @@ class AdminDashboard {
                     </div>
                 </td>
                 <td>$${product.monthlyFee}/month</td>
+                <td>
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <span style="font-size: 0.8rem; color: #6b7280;">${product.affiliateId || 'Not set'}</span>
+                        <button class="action-btn edit-btn" onclick="adminDashboard.editAffiliate(${product.id})" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                            <i class="fas fa-link"></i> Edit
+                        </button>
+                    </div>
+                </td>
                 <td>
                     <span class="status-badge ${product.active ? 'status-active' : 'status-inactive'}">
                         ${product.active ? 'Active' : 'Inactive'}
@@ -482,6 +508,90 @@ class AdminDashboard {
             this.updateDashboardStats();
             this.loadRevenueData();
             this.showNotification('Product deleted successfully!', 'success');
+        }
+    }
+
+    // Affiliate Management Functions
+    editAffiliate(productId) {
+        const product = this.products.find(p => p.id === productId);
+        if (!product) return;
+
+        // Populate the affiliate modal
+        document.getElementById('edit-product-id').value = product.id;
+        document.getElementById('edit-affiliate-id').value = product.affiliateId || '';
+        document.getElementById('edit-tracking-id').value = product.trackingId || '';
+        
+        // Show current affiliate URL
+        const currentUrl = product.affiliateUrl || product.url;
+        document.getElementById('current-affiliate-url').textContent = currentUrl;
+        
+        // Show the modal
+        document.getElementById('affiliate-modal').style.display = 'block';
+    }
+
+    async saveAffiliateChanges() {
+        const productId = parseInt(document.getElementById('edit-product-id').value);
+        const affiliateId = document.getElementById('edit-affiliate-id').value;
+        const trackingId = document.getElementById('edit-tracking-id').value;
+
+        try {
+            const response = await fetch('/api/admin/update-affiliate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    productId,
+                    affiliateId,
+                    trackingId
+                })
+            });
+
+            if (response.ok) {
+                // Update local product data
+                const product = this.products.find(p => p.id === productId);
+                if (product) {
+                    product.affiliateId = affiliateId;
+                    product.trackingId = trackingId;
+                    // Refresh the affiliate URL
+                    product.affiliateUrl = this.buildAffiliateUrl(product);
+                }
+
+                this.closeAffiliateModal();
+                this.loadProductsTable();
+                this.showNotification('Affiliate ID updated successfully!', 'success');
+            } else {
+                throw new Error('Failed to update affiliate ID');
+            }
+        } catch (error) {
+            console.error('Error updating affiliate ID:', error);
+            this.showNotification('Error updating affiliate ID', 'error');
+        }
+    }
+
+    closeAffiliateModal() {
+        document.getElementById('affiliate-modal').style.display = 'none';
+        document.getElementById('affiliate-form').reset();
+    }
+
+    buildAffiliateUrl(product) {
+        if (!product.affiliateId) {
+            return product.url;
+        }
+        
+        const baseUrl = product.url;
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        
+        switch (product.affiliateProgram) {
+            case 'amazon':
+                return `${baseUrl}${separator}tag=${product.affiliateId}`;
+            case 'bestbuy':
+            case 'nike':
+            case 'williams-sonoma':
+            case 'carters':
+                return `${baseUrl}${separator}affiliate=${product.affiliateId}`;
+            default:
+                return baseUrl;
         }
     }
 
