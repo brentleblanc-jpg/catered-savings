@@ -147,14 +147,19 @@ app.get('/api/admin/users', async (req, res) => {
 app.post('/api/migrate', async (req, res) => {
   try {
     console.log('🔄 Running database migration...');
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
     
     // Use direct PostgreSQL connection instead of Prisma
     const { Client } = require('pg');
+    console.log('pg package loaded successfully');
+    
     const client = new Client({
       connectionString: process.env.DATABASE_URL
     });
     
+    console.log('Attempting to connect to database...');
     await client.connect();
+    console.log('Database connected successfully');
     
     // Create all tables
     await client.query(`
@@ -284,9 +289,11 @@ app.post('/api/migrate', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Migration failed:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error.message || 'Unknown error occurred',
+      stack: error.stack
     });
   }
 });
