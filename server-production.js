@@ -149,12 +149,13 @@ app.get('/api/categories', async (req, res) => {
 // Get sponsored products
 app.get('/api/sponsored-products', async (req, res) => {
   try {
-    const products = await db.getActiveSponsoredProducts();
+    const { getActiveSponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
+    const products = getActiveSponsoredProducts();
     
     // Add affiliate URLs to each product
     const productsWithAffiliateUrls = products.map(product => ({
       ...product,
-      affiliateUrl: db.buildAffiliateUrl(product)
+      affiliateUrl: buildAffiliateUrl(product)
     }));
     
     res.json({ success: true, products: productsWithAffiliateUrls });
