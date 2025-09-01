@@ -162,6 +162,68 @@ app.get('/api/admin/users', async (req, res) => {
   }
 });
 
+// Admin analytics endpoint
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    const sponsoredProducts = await db.getActiveSponsoredProducts();
+    
+    // Calculate basic stats
+    const totalUsers = users.length;
+    const activeUsers = users.filter(user => user.isActive).length;
+    const totalProducts = sponsoredProducts.length;
+    
+    // Get category distribution
+    const categoryCounts = {};
+    users.forEach(user => {
+      try {
+        const categories = JSON.parse(user.preferences || '[]');
+        categories.forEach(cat => {
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+      } catch (e) {
+        // Skip invalid preferences
+      }
+    });
+    
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        activeUsers,
+        totalProducts,
+        categoryDistribution: categoryCounts
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Admin clicks endpoint
+app.get('/api/admin/clicks', async (req, res) => {
+  try {
+    const sponsoredProducts = await db.getAllSponsoredProducts();
+    const totalClicks = sponsoredProducts.reduce((sum, product) => sum + (product.clickCount || 0), 0);
+    
+    res.json({
+      success: true,
+      stats: {
+        totalClicks,
+        products: sponsoredProducts.map(p => ({
+          id: p.id,
+          title: p.title,
+          clicks: p.clickCount || 0
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching clicks:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Database migration endpoint (run once to create tables)
 app.post('/api/migrate', async (req, res) => {
   try {
