@@ -181,9 +181,13 @@ class AdminDashboard {
     async loadDashboardData() {
         try {
             // Load sponsored products
+            console.log('Loading sponsored products...');
             const productsResponse = await fetch('/api/sponsored-products');
+            console.log('Products response status:', productsResponse.status);
             const productsData = await productsResponse.json();
+            console.log('Products data:', productsData);
             this.products = productsData.products || [];
+            console.log('Loaded products count:', this.products.length);
 
             // Load users
             const usersResponse = await fetch('/api/admin/users');
@@ -268,8 +272,24 @@ class AdminDashboard {
     }
 
     loadProductsTable() {
+        console.log('Loading products table...');
+        console.log('Products array:', this.products);
+        
         const tbody = document.getElementById('products-table-body');
         tbody.innerHTML = '';
+
+        if (this.products.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem; color: #6b7280;">
+                        <i class="fas fa-box" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                        <p>No sponsored products found</p>
+                        <small>Products are loading from the server...</small>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
         this.products.forEach(product => {
             const row = document.createElement('tr');
