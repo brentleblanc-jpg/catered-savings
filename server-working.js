@@ -84,6 +84,9 @@ app.get('/deals', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'deals.html'));
 });
 
+// Serve static files (CSS, JS, images)
+app.use(express.static('public'));
+
 // API Routes (only if dependencies are available)
 app.get('/api/sponsored-products', (req, res) => {
   try {
