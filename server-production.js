@@ -95,9 +95,12 @@ app.post('/api/submit-savings', async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false, 
-      message: 'Error processing signup' 
+      message: 'Error processing signup',
+      error: error.message,
+      stack: error.stack
     });
   }
 });
