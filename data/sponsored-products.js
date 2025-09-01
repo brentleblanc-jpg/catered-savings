@@ -12,6 +12,11 @@ const sponsoredProducts = [
         discount: 24,
         image: "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6418/6418599_sd.jpg",
         url: "https://www.bestbuy.com/site/apple-airpods-pro-2nd-generation-with-magsafe-case-usbc-white/6418599.p",
+        // Affiliate tracking fields
+        affiliateProgram: "bestbuy",
+        affiliateId: "", // Add your Best Buy affiliate ID here
+        trackingId: "", // Add your tracking ID if needed
+        // End affiliate fields
         description: "Active Noise Cancellation, Transparency mode, Spatial audio",
         category: "tech-electronics",
         isSponsored: true,
@@ -30,6 +35,11 @@ const sponsoredProducts = [
         discount: 29,
         image: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/fd17b420-b388-4c8a-aaaa-e0a98ddf175f/air-max-90-mens-shoes-6n7J06.png",
         url: "https://www.nike.com/w/sale-3yaep",
+        // Affiliate tracking fields
+        affiliateProgram: "nike",
+        affiliateId: "", // Add your Nike affiliate ID here
+        trackingId: "", // Add your tracking ID if needed
+        // End affiliate fields
         description: "Classic comfort meets iconic style",
         category: "fashion",
         isSponsored: true,
@@ -48,6 +58,11 @@ const sponsoredProducts = [
         discount: 30,
         image: "https://assets.wsimgs.com/wsimgs/rk/images/dp/wcm/202347/0070/kitchenaid-artisan-series-5-qt-stand-mixer-o.jpg",
         url: "https://www.williams-sonoma.com/shop/sale-special-offer/",
+        // Affiliate tracking fields
+        affiliateProgram: "williams-sonoma",
+        affiliateId: "", // Add your Williams Sonoma affiliate ID here
+        trackingId: "", // Add your tracking ID if needed
+        // End affiliate fields
         description: "5-quart capacity, 10 speeds, includes 3 attachments",
         category: "home-garden",
         isSponsored: true,
@@ -66,6 +81,11 @@ const sponsoredProducts = [
         discount: 50,
         image: "https://www.carters.com/dw/image/v2/AAMK_PRD/on/demandware.static/-/Sites-carters_master_catalog/default/dw8c4a14cd/hi-res/V_126G770_MULTI.jpg",
         url: "https://www.carters.com/c/deals",
+        // Affiliate tracking fields
+        affiliateProgram: "carters",
+        affiliateId: "", // Add your Carter's affiliate ID here
+        trackingId: "", // Add your tracking ID if needed
+        // End affiliate fields
         description: "3-piece cotton outfit set, sizes newborn-24 months",
         category: "kids-family",
         isSponsored: true,
@@ -84,6 +104,11 @@ const sponsoredProducts = [
         discount: 25,
         image: "https://m.media-amazon.com/images/I/61ZjlBOp+rL._AC_SL1500_.jpg",
         url: "https://www.amazon.com/gp/goldbox",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "", // Add your Amazon Associates ID here (e.g., "cateredsavers-20")
+        trackingId: "", // Add your tracking ID if needed
+        // End affiliate fields
         description: "Advanced fitness & health tracker with built-in GPS",
         category: "sports-outdoors",
         isSponsored: true,
@@ -102,6 +127,11 @@ const sponsoredProducts = [
         discount: 31,
         image: "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6428/6428300_sd.jpg",
         url: "https://www.bestbuy.com/site/samsung-65-class-q60c-qled-4k-uhd-tizen-tv/6428300.p",
+        // Affiliate tracking fields
+        affiliateProgram: "bestbuy",
+        affiliateId: "", // Add your Best Buy affiliate ID here
+        trackingId: "", // Add your tracking ID if needed
+        // End affiliate fields
         description: "Quantum HDR, Dual LED, Gaming Mode, Alexa Built-in",
         category: "tech-electronics",
         isSponsored: true,
@@ -112,6 +142,41 @@ const sponsoredProducts = [
         endDate: "2025-12-31"
     }
 ];
+
+// Function to build affiliate URLs with tracking
+function buildAffiliateUrl(product) {
+    if (!product.affiliateId) {
+        return product.url; // Return original URL if no affiliate ID
+    }
+    
+    const baseUrl = product.url;
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    
+    switch (product.affiliateProgram) {
+        case 'amazon':
+            // Amazon format: ?tag=YOUR_ID
+            return `${baseUrl}${separator}tag=${product.affiliateId}`;
+            
+        case 'bestbuy':
+            // Best Buy format: ?affiliate=YOUR_ID
+            return `${baseUrl}${separator}affiliate=${product.affiliateId}`;
+            
+        case 'nike':
+            // Nike format: ?affiliate=YOUR_ID
+            return `${baseUrl}${separator}affiliate=${product.affiliateId}`;
+            
+        case 'williams-sonoma':
+            // Williams Sonoma format: ?affiliate=YOUR_ID
+            return `${baseUrl}${separator}affiliate=${product.affiliateId}`;
+            
+        case 'carters':
+            // Carter's format: ?affiliate=YOUR_ID
+            return `${baseUrl}${separator}affiliate=${product.affiliateId}`;
+            
+        default:
+            return baseUrl;
+    }
+}
 
 // Function to get active sponsored products sorted by priority
 function getActiveSponsoredProducts(limit = 4) {
@@ -140,7 +205,8 @@ function trackSponsoredClick(productId, userId = null) {
         productId,
         userId,
         timestamp: new Date().toISOString(),
-        type: 'sponsored_click'
+        type: 'sponsored_click',
+        affiliateProgram: sponsoredProducts.find(p => p.id === productId)?.affiliateProgram || 'unknown'
     };
     // In production, send this to analytics service
     console.log('Sponsored product click tracked:', clickData);
@@ -151,5 +217,6 @@ module.exports = {
     sponsoredProducts,
     getActiveSponsoredProducts,
     getSponsoredProductsByCategory,
-    trackSponsoredClick
+    trackSponsoredClick,
+    buildAffiliateUrl
 };

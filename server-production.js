@@ -126,7 +126,14 @@ app.get('/api/categories', async (req, res) => {
 app.get('/api/sponsored-products', async (req, res) => {
   try {
     const products = await db.getActiveSponsoredProducts();
-    res.json({ success: true, products });
+    
+    // Add affiliate URLs to each product
+    const productsWithAffiliateUrls = products.map(product => ({
+      ...product,
+      affiliateUrl: db.buildAffiliateUrl(product)
+    }));
+    
+    res.json({ success: true, products: productsWithAffiliateUrls });
   } catch (error) {
     console.error('Error fetching sponsored products:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -150,6 +157,15 @@ app.get('/api/deals/personalized/:token', async (req, res) => {
   try {
     const { token } = req.params;
     const deals = await db.getPersonalizedDeals(token);
+    
+    // Add affiliate URLs to sponsored products
+    if (deals.sponsoredProducts) {
+      deals.sponsoredProducts = deals.sponsoredProducts.map(product => ({
+        ...product,
+        affiliateUrl: db.buildAffiliateUrl(product)
+      }));
+    }
+    
     res.json({ success: true, deals });
   } catch (error) {
     console.error('Error fetching personalized deals:', error);
@@ -195,6 +211,49 @@ app.delete('/api/admin/users/:userId', async (req, res) => {
       success: false, 
       error: error.message 
     });
+  }
+});
+
+// Update affiliate ID for a product
+app.post('/api/admin/update-affiliate', async (req, res) => {
+  try {
+    const { productId, affiliateId, trackingId } = req.body;
+    
+    // Import the sponsored products module
+    const { sponsoredProducts } = require('./data/sponsored-products');
+    
+    // Find and update the product
+    const product = sponsoredProducts.find(p => p.id === parseInt(productId));
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    // Update affiliate fields
+    if (affiliateId !== undefined) product.affiliateId = affiliateId;
+    if (trackingId !== undefined) product.trackingId = trackingId;
+    
+    res.json({ success: true, message: 'Affiliate ID updated successfully' });
+  } catch (error) {
+    console.error('Error updating affiliate ID:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all sponsored products for admin management
+app.get('/api/admin/sponsored-products', async (req, res) => {
+  try {
+    const { sponsoredProducts } = require('./data/sponsored-products');
+    
+    // Add affiliate URLs to each product
+    const productsWithAffiliateUrls = sponsoredProducts.map(product => ({
+      ...product,
+      affiliateUrl: require('./data/sponsored-products').buildAffiliateUrl(product)
+    }));
+    
+    res.json({ success: true, products: productsWithAffiliateUrls });
+  } catch (error) {
+    console.error('Error fetching sponsored products:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
