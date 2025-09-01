@@ -77,9 +77,6 @@ app.get('/deals', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'deals.html'));
 });
 
-// Serve static files
-app.use(express.static('public'));
-
 // API Routes
 app.post('/api/submit-savings', async (req, res) => {
   try {
@@ -529,6 +526,9 @@ app.post('/api/migrate', async (req, res) => {
     });
   }
 });
+
+// Serve static files (must be AFTER all routes)
+app.use(express.static('public'));
 
 // Start server
 app.listen(PORT, () => {
