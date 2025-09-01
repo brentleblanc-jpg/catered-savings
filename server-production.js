@@ -102,7 +102,7 @@ app.get('/api/categories', async (req, res) => {
 // Get sponsored products
 app.get('/api/sponsored-products', async (req, res) => {
   try {
-    const products = await db.getSponsoredProducts();
+    const products = await db.getActiveSponsoredProducts();
     res.json({ success: true, products });
   } catch (error) {
     console.error('Error fetching sponsored products:', error);
