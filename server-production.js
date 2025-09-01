@@ -162,6 +162,36 @@ app.get('/api/admin/users', async (req, res) => {
   }
 });
 
+// Delete user endpoint
+app.delete('/api/admin/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Check if user exists
+    const user = await db.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    // Delete user from database
+    await db.deleteUser(userId);
+    
+    res.json({ 
+      success: true, 
+      message: 'User deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Admin analytics endpoint
 app.get('/api/admin/analytics', async (req, res) => {
   try {

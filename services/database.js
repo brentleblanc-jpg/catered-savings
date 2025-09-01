@@ -127,6 +127,12 @@ class DatabaseService {
     });
   }
 
+  async getUserById(userId) {
+    return await prisma.user.findUnique({
+      where: { id: userId }
+    });
+  }
+
   async getPersonalizedDeals(userToken) {
     const user = await this.getUserByToken(userToken);
     if (!user) {
