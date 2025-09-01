@@ -53,7 +53,7 @@ app.use(express.static('public'));
 // API Routes
 app.post('/api/submit-savings', async (req, res) => {
   try {
-    const { email, name, categories } = req.body;
+    const { email, firstName, categories } = req.body;
     
     if (!email || !categories || categories.length === 0) {
       return res.status(400).json({ 
@@ -65,7 +65,7 @@ app.post('/api/submit-savings', async (req, res) => {
     // Create user in database
     const user = await db.createUser({
       email,
-      name: name || null,
+      name: firstName || null,
       preferences: JSON.stringify(categories)
     });
 
@@ -75,7 +75,7 @@ app.post('/api/submit-savings', async (req, res) => {
         email_address: email,
         status: 'subscribed',
         merge_fields: {
-          FNAME: name || '',
+          FNAME: firstName || '',
           PERSONALIZ: `${process.env.BASE_URL || 'https://your-app.railway.app'}/deals?token=${user.accessToken}`
         }
       });
