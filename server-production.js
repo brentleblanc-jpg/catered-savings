@@ -148,11 +148,16 @@ app.post('/api/migrate', async (req, res) => {
   try {
     console.log('🔄 Running database migration...');
     
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
+    // Use direct PostgreSQL connection instead of Prisma
+    const { Client } = require('pg');
+    const client = new Client({
+      connectionString: process.env.DATABASE_URL
+    });
+    
+    await client.connect();
     
     // Create all tables
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "categories" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "name" TEXT NOT NULL UNIQUE,
@@ -163,9 +168,9 @@ app.post('/api/migrate', async (req, res) => {
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL
       );
-    `;
+    `);
     
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "retailers" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "name" TEXT NOT NULL,
@@ -183,9 +188,9 @@ app.post('/api/migrate', async (req, res) => {
         "categoryId" TEXT NOT NULL,
         FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE
       );
-    `;
+    `);
     
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "users" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "email" TEXT NOT NULL UNIQUE,
@@ -199,9 +204,9 @@ app.post('/api/migrate', async (req, res) => {
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL
       );
-    `;
+    `);
     
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "sponsored_products" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "title" TEXT NOT NULL,
@@ -219,9 +224,9 @@ app.post('/api/migrate', async (req, res) => {
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL
       );
-    `;
+    `);
     
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "analytics_events" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "eventType" TEXT NOT NULL,
@@ -236,9 +241,9 @@ app.post('/api/migrate', async (req, res) => {
         FOREIGN KEY ("retailerId") REFERENCES "retailers"("id") ON DELETE SET NULL ON UPDATE CASCADE,
         FOREIGN KEY ("sponsoredProductId") REFERENCES "sponsored_products"("id") ON DELETE SET NULL ON UPDATE CASCADE
       );
-    `;
+    `);
     
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "email_campaigns" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "name" TEXT NOT NULL,
@@ -254,9 +259,9 @@ app.post('/api/migrate', async (req, res) => {
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL
       );
-    `;
+    `);
     
-    await prisma.$executeRaw`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "admin_users" (
         "id" TEXT NOT NULL PRIMARY KEY,
         "email" TEXT NOT NULL UNIQUE,
@@ -267,9 +272,9 @@ app.post('/api/migrate', async (req, res) => {
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL
       );
-    `;
+    `);
     
-    await prisma.$disconnect();
+    await client.end();
     
     console.log('✅ Database migration completed successfully!');
     res.json({ 
