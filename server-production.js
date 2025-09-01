@@ -47,6 +47,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index-modern.html'));
 });
 
+// Personalized deals page
+app.get('/deals', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals.html'));
+});
+
 // Serve static files
 app.use(express.static('public'));
 

@@ -11,325 +11,366 @@
         .deals-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 40px 20px;
         }
         
         .deals-header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 40px;
         }
         
-        .deals-header h1 {
-            color: #1e3a5f;
+        .deals-title {
             font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
         }
         
-        .deals-header p {
-            color: #6b7280;
-            font-size: 1.1rem;
+        .deals-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
         }
         
         .deals-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
+            gap: 24px;
+            margin-bottom: 40px;
         }
         
         .deal-card {
             background: white;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 24px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         
         .deal-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
         
-        .deal-category {
-            background: #667eea;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            display: inline-block;
-            margin-bottom: 1rem;
+        .deal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
         }
         
         .deal-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #1e3a5f;
-            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .deal-price {
+            text-align: right;
+        }
+        
+        .deal-original-price {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .deal-sale-price {
+            color: #dc2626;
+            font-size: 1.3rem;
+            font-weight: 700;
         }
         
         .deal-description {
-            color: #6b7280;
-            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
             line-height: 1.5;
         }
         
         .deal-cta {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: block;
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--primary-blue);
             color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s;
             text-decoration: none;
-            display: inline-block;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
         }
         
         .deal-cta:hover {
-            transform: translateY(-2px);
-        }
-        
-        .sponsored-section {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 2px solid #e5e7eb;
-        }
-        
-        .sponsored-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .sponsored-header h2 {
-            color: #1e3a5f;
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .sponsored-products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .sponsored-product {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .sponsored-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: #ffd700;
-            color: #333;
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        
-        .product-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-        
-        .product-title {
-            font-weight: 600;
-            color: #1e3a5f;
-            margin-bottom: 0.5rem;
-        }
-        
-        .product-pricing {
-            margin-bottom: 1rem;
-        }
-        
-        .sale-price {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #059669;
-        }
-        
-        .original-price {
-            text-decoration: line-through;
-            color: #6b7280;
-            margin-left: 0.5rem;
-        }
-        
-        .discount-badge {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
+            background: #1e40af;
         }
         
         .loading {
             text-align: center;
-            padding: 3rem;
-            color: #6b7280;
+            padding: 60px 20px;
         }
         
-        .error {
+        .loading-spinner {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 16px;
+        }
+        
+        .error-message {
             text-align: center;
-            padding: 3rem;
+            padding: 60px 20px;
             color: #dc2626;
         }
         
-        @media (max-width: 768px) {
-            .deals-container {
-                padding: 1rem;
-            }
-            
-            .deals-header h1 {
-                font-size: 2rem;
-            }
-            
-            .deals-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        
+        .back-home {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: var(--primary-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        
+        .back-home:hover {
+            background: #1e40af;
+        }
+        
+        .no-deals {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .no-deals-icon {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="deals-container">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    Catered Savers
+                </a>
+                <nav class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/#how-it-works" class="nav-link">How It Works</a>
+                    <a href="/#categories" class="nav-link">Categories</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="deals-container">
         <div class="deals-header">
-            <h1><i class="fas fa-star"></i> Your Personalized Deals</h1>
-            <p>Hand-picked deals based on your preferences</p>
+            <h1 class="deals-title">Your Personalized Deals</h1>
+            <p class="deals-subtitle">Hand-picked offers based on your interests</p>
         </div>
-        
+
+        <!-- Loading State -->
         <div id="loading" class="loading">
-            <i class="fas fa-spinner fa-spin"></i> Loading your deals...
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <p>Loading your personalized deals...</p>
         </div>
-        
-        <div id="error" class="error" style="display: none;">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h3>Unable to load your deals</h3>
-            <p>This link may have expired or is invalid. Please check your email for a fresh link.</p>
+
+        <!-- Error State -->
+        <div id="error" class="error-message" style="display: none;">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>Oops! Something went wrong</h2>
+            <p id="error-text">We couldn't load your personalized deals.</p>
+            <a href="/" class="back-home">Back to Home</a>
         </div>
-        
-        <div id="deals-content" style="display: none;">
-            <!-- Personalized deals will be loaded here -->
+
+        <!-- No Deals State -->
+        <div id="no-deals" class="no-deals" style="display: none;">
+            <div class="no-deals-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <h2>No Deals Available Right Now</h2>
+            <p>We're working on finding great deals for you. Check back soon!</p>
+            <a href="/" class="back-home">Back to Home</a>
         </div>
-    </div>
+
+        <!-- Deals Grid -->
+        <div id="deals-grid" class="deals-grid" style="display: none;">
+            <!-- Deals will be loaded here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">Catered Savers</div>
+                <p class="footer-description">
+                    The smart way to save money on the brands you love. 
+                    Join thousands of savvy shoppers who never miss a deal.
+                </p>
+                <div class="footer-links">
+                    <a href="/" class="footer-link">Privacy Policy</a>
+                    <a href="/" class="footer-link">Terms of Service</a>
+                    <a href="/" class="footer-link">Contact Us</a>
+                    <a href="/" class="footer-link">Unsubscribe</a>
+                </div>
+                <div class="footer-bottom">
+                    © 2025 Catered Savers. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // Get token from URL
-        const pathParts = window.location.pathname.split('/');
-        const token = pathParts[pathParts.length - 1];
-        
-        if (!token || token === 'deals.html') {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-        } else {
-            loadPersonalizedDeals(token);
-        }
-        
-        async function loadPersonalizedDeals(token) {
-            try {
-                const response = await fetch(`/api/deals/personalized/${token}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayDeals(data.deals);
-                } else {
-                    throw new Error(data.message);
+        class PersonalizedDeals {
+            constructor() {
+                this.token = this.getTokenFromUrl();
+                this.init();
+            }
+
+            getTokenFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('token');
+            }
+
+            async init() {
+                if (!this.token) {
+                    this.showError('Invalid or missing access token.');
+                    return;
                 }
-            } catch (error) {
-                console.error('Error loading deals:', error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
+
+                await this.loadDeals();
             }
-        }
-        
-        function displayDeals(deals) {
-            const content = document.getElementById('deals-content');
-            const loading = document.getElementById('loading');
-            
-            loading.style.display = 'none';
-            content.style.display = 'block';
-            
-            // Display user info
-            const userInfo = `
-                <div style="text-align: center; margin-bottom: 2rem; padding: 1rem; background: #f0f4ff; border-radius: 8px;">
-                    <h3>Welcome back, ${deals.user.name}!</h3>
-                    <p>Here are your personalized deals in: ${deals.user.categories.join(', ')}</p>
-                </div>
-            `;
-            
-            // Display retailers
-            const retailersHtml = deals.retailers.map(retailer => `
-                <div class="deal-card">
-                    <div class="deal-category">${retailer.category.name}</div>
-                    <div class="deal-title">${retailer.name}</div>
-                    <div class="deal-description">${retailer.description}</div>
-                    <a href="${retailer.url}" class="deal-cta" onclick="trackDealClick('${retailer.id}')" target="_blank">
-                        <i class="fas fa-external-link-alt"></i> Shop Now
-                    </a>
-                </div>
-            `).join('');
-            
-            // Display sponsored products
-            const sponsoredHtml = deals.sponsoredProducts.map(product => {
-                const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-                return `
-                    <div class="sponsored-product">
-                        <div class="sponsored-badge">Sponsored</div>
-                        <img src="${product.imageUrl}" alt="${product.title}" class="product-image" 
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
-                        <div class="product-title">${product.title}</div>
-                        <div class="product-pricing">
-                            <span class="sale-price">$${product.price.toFixed(2)}</span>
-                            <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
-                            <span class="discount-badge">${discount}% OFF</span>
-                        </div>
-                        <a href="${product.affiliateUrl}" class="deal-cta" onclick="trackDealClick('${product.id}')" target="_blank">
-                            <i class="fas fa-shopping-cart"></i> Buy Now
-                        </a>
-                    </div>
-                `;
-            }).join('');
-            
-            content.innerHTML = `
-                ${userInfo}
-                <div class="deals-grid">
-                    ${retailersHtml}
-                </div>
-                <div class="sponsored-section">
-                    <div class="sponsored-header">
-                        <h2><i class="fas fa-star"></i> Featured Products</h2>
-                        <p>Hand-picked deals from our retail partners</p>
-                    </div>
-                    <div class="sponsored-products-grid">
-                        ${sponsoredHtml}
-                    </div>
-                </div>
-            `;
-        }
-        
-        async function trackDealClick(dealId) {
-            try {
-                await fetch(`/api/deals/click/${token}/${dealId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+
+            async loadDeals() {
+                try {
+                    const response = await fetch(`/api/deals/personalized/${this.token}`);
+                    const data = await response.json();
+
+                    if (data.success && data.deals) {
+                        this.displayDeals(data.deals);
+                    } else {
+                        this.showNoDeals();
                     }
-                });
-            } catch (error) {
-                console.error('Error tracking click:', error);
+                } catch (error) {
+                    console.error('Error loading deals:', error);
+                    this.showError('Failed to load your personalized deals. Please try again later.');
+                }
+            }
+
+            displayDeals(deals) {
+                const loading = document.getElementById('loading');
+                const dealsGrid = document.getElementById('deals-grid');
+                
+                loading.style.display = 'none';
+                dealsGrid.style.display = 'grid';
+
+                dealsGrid.innerHTML = '';
+
+                if (deals.sponsoredProducts && deals.sponsoredProducts.length > 0) {
+                    deals.sponsoredProducts.forEach(product => {
+                        const dealCard = this.createDealCard(product);
+                        dealsGrid.appendChild(dealCard);
+                    });
+                }
+
+                if (deals.retailers && deals.retailers.length > 0) {
+                    deals.retailers.forEach(retailer => {
+                        const dealCard = this.createRetailerCard(retailer);
+                        dealsGrid.appendChild(dealCard);
+                    });
+                }
+
+                if (dealsGrid.children.length === 0) {
+                    this.showNoDeals();
+                }
+            }
+
+            createDealCard(product) {
+                const card = document.createElement('div');
+                card.className = 'deal-card';
+                
+                const discount = product.originalPrice && product.price 
+                    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+                    : 0;
+
+                card.innerHTML = `
+                    <div class="deal-header">
+                        <h3 class="deal-title">${product.title}</h3>
+                        <div class="deal-price">
+                            ${product.originalPrice ? `<div class="deal-original-price">$${product.originalPrice}</div>` : ''}
+                            <div class="deal-sale-price">$${product.price}</div>
+                        </div>
+                    </div>
+                    <p class="deal-description">${product.description || 'Great deal on this product!'}</p>
+                    ${discount > 0 ? `<p style="color: #dc2626; font-weight: 600; margin-bottom: 16px;">${discount}% OFF!</p>` : ''}
+                    <a href="${product.affiliateUrl}" class="deal-cta" target="_blank" rel="noopener">
+                        Shop Now <i class="fas fa-external-link-alt"></i>
+                    </a>
+                `;
+
+                return card;
+            }
+
+            createRetailerCard(retailer) {
+                const card = document.createElement('div');
+                card.className = 'deal-card';
+                
+                card.innerHTML = `
+                    <div class="deal-header">
+                        <h3 class="deal-title">${retailer.name}</h3>
+                        ${retailer.salePercentage ? `<div class="deal-price"><div class="deal-sale-price">${retailer.salePercentage}% OFF</div></div>` : ''}
+                    </div>
+                    <p class="deal-description">${retailer.description || 'Great deals available at this retailer!'}</p>
+                    <a href="${retailer.url}" class="deal-cta" target="_blank" rel="noopener">
+                        Visit Store <i class="fas fa-external-link-alt"></i>
+                    </a>
+                `;
+
+                return card;
+            }
+
+            showError(message) {
+                const loading = document.getElementById('loading');
+                const error = document.getElementById('error');
+                const errorText = document.getElementById('error-text');
+                
+                loading.style.display = 'none';
+                errorText.textContent = message;
+                error.style.display = 'block';
+            }
+
+            showNoDeals() {
+                const loading = document.getElementById('loading');
+                const noDeals = document.getElementById('no-deals');
+                
+                loading.style.display = 'none';
+                noDeals.style.display = 'block';
             }
         }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PersonalizedDeals();
+        });
     </script>
 </body>
 </html>
