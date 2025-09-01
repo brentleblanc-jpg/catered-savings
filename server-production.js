@@ -5,6 +5,17 @@ const path = require('path');
 const db = require('./services/database');
 require('dotenv').config();
 
+// Configure Mailchimp
+if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
+  mailchimp.setConfig({
+    apiKey: process.env.MAILCHIMP_API_KEY,
+    server: process.env.MAILCHIMP_SERVER,
+  });
+  console.log('✅ Mailchimp configured successfully');
+} else {
+  console.log('⚠️  Mailchimp not configured - missing API key or server');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -24,7 +35,10 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     message: 'Catered Savers API is running',
     database_url_exists: !!process.env.DATABASE_URL,
-    database_url_preview: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'Not set'
+    database_url_preview: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'Not set',
+    mailchimp_api_key_exists: !!process.env.MAILCHIMP_API_KEY,
+    mailchimp_server_exists: !!process.env.MAILCHIMP_SERVER,
+    mailchimp_list_id_exists: !!process.env.MAILCHIMP_LIST_ID
   });
 });
 
