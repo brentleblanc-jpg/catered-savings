@@ -110,6 +110,56 @@ app.get('/api/sponsored-products', (req, res) => {
   }
 });
 
+// Admin routes (only if database service is available)
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database service not available' 
+      });
+    }
+    
+    const users = await dbService.getAllUsers();
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database service not available' 
+      });
+    }
+    
+    const users = await dbService.getAllUsers();
+    const totalUsers = users.length;
+    const activeUsers = users.filter(user => user.isActive).length;
+    
+    res.json({
+      success: true,
+      analytics: {
+        totalUsers,
+        activeUsers,
+        totalProducts: sponsoredProducts ? sponsoredProducts.getActiveSponsoredProducts().length : 0,
+        categoryDistribution: {}
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on 0.0.0.0:${PORT}`);
