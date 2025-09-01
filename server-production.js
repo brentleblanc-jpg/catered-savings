@@ -81,7 +81,7 @@ app.post('/api/submit-savings', async (req, res) => {
         status: 'subscribed',
         merge_fields: {
           FNAME: firstName || '',
-          PERSONALIZ: `${process.env.BASE_URL || 'https://your-app.railway.app'}/deals?token=${user.accessToken}`
+          PERSONALIZ: `https://web-production-5315.up.railway.app/deals?token=${user.accessToken}`
         }
       });
     } catch (mailchimpError) {
