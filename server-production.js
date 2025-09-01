@@ -18,7 +18,7 @@ if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Add startup logging
 console.log('🚀 Starting Catered Savers server (ROUTING FIXED)...');
