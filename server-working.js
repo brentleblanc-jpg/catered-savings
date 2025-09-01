@@ -160,6 +160,84 @@ app.get('/api/admin/analytics', async (req, res) => {
   }
 });
 
+// Mailchimp sync endpoint
+app.post('/api/admin/sync-mailchimp', async (req, res) => {
+  try {
+    if (!mailchimp || !dbService) {
+      return res.status(500).json({
+        success: false,
+        error: 'Mailchimp or database service not available'
+      });
+    }
+
+    console.log('🔄 Starting Mailchimp sync...');
+    
+    // Get all users from database
+    const users = await dbService.getAllUsers();
+    console.log(`📊 Found ${users.length} users in database`);
+    
+    let syncedCount = 0;
+    let errors = [];
+
+    for (const user of users) {
+      try {
+        // Check if user already exists in Mailchimp
+        const existingMember = await mailchimp.lists.getListMember(
+          process.env.MAILCHIMP_AUDIENCE_ID,
+          user.email
+        );
+        
+        if (existingMember) {
+          console.log(`✅ User ${user.email} already exists in Mailchimp`);
+          syncedCount++;
+          continue;
+        }
+      } catch (error) {
+        // User doesn't exist, add them
+        if (error.status === 404) {
+          try {
+            await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+              email_address: user.email,
+              status: 'subscribed',
+              merge_fields: {
+                FNAME: user.firstName || '',
+                LNAME: user.lastName || '',
+                PERSONALIZ: user.personalizedDealsUrl || ''
+              }
+            });
+            
+            console.log(`✅ Added user ${user.email} to Mailchimp`);
+            syncedCount++;
+          } catch (addError) {
+            console.error(`❌ Failed to add user ${user.email}:`, addError.message);
+            errors.push(`${user.email}: ${addError.message}`);
+          }
+        } else {
+          console.error(`❌ Error checking user ${user.email}:`, error.message);
+          errors.push(`${user.email}: ${error.message}`);
+        }
+      }
+    }
+
+    console.log(`🎯 Mailchimp sync completed. Synced: ${syncedCount}, Errors: ${errors.length}`);
+    
+    res.json({
+      success: true,
+      message: `Mailchimp sync completed. Synced: ${syncedCount}, Errors: ${errors.length}`,
+      syncedCount,
+      errorCount: errors.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+
+  } catch (error) {
+    console.error('🚨 Mailchimp sync error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on 0.0.0.0:${PORT}`);
