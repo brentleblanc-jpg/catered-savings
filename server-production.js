@@ -34,6 +34,7 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     version: '1.0.0',
     message: 'Catered Savers API is running',
+    domain: 'cateredsavers.com',
     database_url_exists: !!process.env.DATABASE_URL,
     database_url_preview: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'Not set',
     mailchimp_api_key_exists: !!process.env.MAILCHIMP_API_KEY,
@@ -81,7 +82,7 @@ app.post('/api/submit-savings', async (req, res) => {
         status: 'subscribed',
         merge_fields: {
           FNAME: firstName || '',
-          PERSONALIZ: `https://web-production-5315.up.railway.app/deals?token=${user.accessToken}`
+          PERSONALIZ: `https://cateredsavers.com/deals?token=${user.accessToken}`
         }
       });
     } catch (mailchimpError) {
