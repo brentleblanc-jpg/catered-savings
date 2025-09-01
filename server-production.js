@@ -3,6 +3,7 @@ const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
 const db = require('./services/database');
+const { sponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
 require('dotenv').config();
 
 // Configure Mailchimp
@@ -18,6 +19,12 @@ if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Add startup logging
+console.log('🚀 Starting Catered Savers server...');
+console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🔑 Mailchimp configured: ${!!(process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER)}`);
+console.log(`🗄️  Database configured: ${!!process.env.DATABASE_URL}`);
 
 // Force HTTPS in production
 app.use((req, res, next) => {
@@ -236,8 +243,7 @@ app.post('/api/admin/update-affiliate', async (req, res) => {
   try {
     const { productId, affiliateId, trackingId } = req.body;
     
-    // Import the sponsored products module
-    const { sponsoredProducts } = require('./data/sponsored-products');
+    // Use imported sponsored products module
     
     // Find and update the product
     const product = sponsoredProducts.find(p => p.id === parseInt(productId));
@@ -259,12 +265,10 @@ app.post('/api/admin/update-affiliate', async (req, res) => {
 // Get all sponsored products for admin management
 app.get('/api/admin/sponsored-products', async (req, res) => {
   try {
-    const { sponsoredProducts } = require('./data/sponsored-products');
-    
     // Add affiliate URLs to each product
     const productsWithAffiliateUrls = sponsoredProducts.map(product => ({
       ...product,
-      affiliateUrl: require('./data/sponsored-products').buildAffiliateUrl(product)
+      affiliateUrl: buildAffiliateUrl(product)
     }));
     
     res.json({ success: true, products: productsWithAffiliateUrls });
