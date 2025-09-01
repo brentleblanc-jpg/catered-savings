@@ -52,6 +52,8 @@ app.use((req, res, next) => {
 
 // Health check endpoint for production monitoring
 app.get('/health', (req, res) => {
+  console.log(`🔍 Health check request received from ${req.ip}`);
+  console.log(`🔍 Request headers:`, req.headers);
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -531,11 +533,13 @@ app.post('/api/migrate', async (req, res) => {
 app.use(express.static('public'));
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Server bound to 0.0.0.0:${PORT}`);
   if (isProduction) {
     console.log(`🌐 Production server is live!`);
     console.log(`📧 Ready for production use`);
+    console.log(`🔍 Health endpoint available at: http://0.0.0.0:${PORT}/health`);
   } else {
     console.log(`💻 Development server - Open http://localhost:${PORT} in your browser`);
   }
