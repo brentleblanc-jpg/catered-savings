@@ -63,11 +63,11 @@ app.post('/api/submit-savings', async (req, res) => {
     }
 
     // Create user in database
-    const user = await db.createUser({
+    const user = await db.createUser(
       email,
-      name: firstName || null,
-      preferences: JSON.stringify(categories)
-    });
+      firstName || null,
+      JSON.stringify(categories)
+    );
 
     // Add to Mailchimp
     try {
