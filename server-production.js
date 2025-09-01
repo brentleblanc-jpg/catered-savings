@@ -3,7 +3,7 @@ const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
 const db = require('./services/database');
-const { sponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
+const { getActiveSponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
 require('dotenv').config();
 
 // Configure Mailchimp
@@ -247,7 +247,8 @@ app.post('/api/admin/update-affiliate', async (req, res) => {
     // Use imported sponsored products module
     
     // Find and update the product
-    const product = sponsoredProducts.find(p => p.id === parseInt(productId));
+    const products = getActiveSponsoredProducts();
+    const product = products.find(p => p.id === parseInt(productId));
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
@@ -267,7 +268,8 @@ app.post('/api/admin/update-affiliate', async (req, res) => {
 app.get('/api/admin/sponsored-products', async (req, res) => {
   try {
     // Add affiliate URLs to each product
-    const productsWithAffiliateUrls = sponsoredProducts.map(product => ({
+    const products = getActiveSponsoredProducts();
+    const productsWithAffiliateUrls = products.map(product => ({
       ...product,
       affiliateUrl: buildAffiliateUrl(product)
     }));
