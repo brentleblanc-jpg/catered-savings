@@ -21,7 +21,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Add startup logging
-console.log('🚀 Starting Catered Savers server...');
+console.log('🚀 Starting Catered Savers server (ROUTING FIXED)...');
 console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`🔑 Mailchimp configured: ${!!(process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER)}`);
 console.log(`🗄️  Database configured: ${!!process.env.DATABASE_URL}`);
