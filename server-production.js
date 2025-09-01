@@ -224,6 +224,38 @@ app.get('/api/admin/clicks', async (req, res) => {
   }
 });
 
+// Mailchimp users endpoint for sync comparison
+app.get('/api/mailchimp/users', async (req, res) => {
+  try {
+    if (!process.env.MAILCHIMP_API_KEY || !process.env.MAILCHIMP_LIST_ID) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Mailchimp not configured' 
+      });
+    }
+
+    // Get Mailchimp list members
+    const response = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID);
+    
+    res.json({
+      success: true,
+      totalSubscribers: response.total_items,
+      members: response.members.map(member => ({
+        email: member.email_address,
+        status: member.status,
+        firstName: member.merge_fields?.FNAME || '',
+        subscribedAt: member.timestamp_signup
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching Mailchimp users:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to fetch Mailchimp users' 
+    });
+  }
+});
+
 // Database migration endpoint (run once to create tables)
 app.post('/api/migrate', async (req, res) => {
   try {

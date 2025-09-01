@@ -168,9 +168,9 @@ class AdminDashboard {
             this.products = productsData.products || [];
 
             // Load users
-            const usersResponse = await fetch('/api/savings-responses');
+            const usersResponse = await fetch('/api/admin/users');
             const usersData = await usersResponse.json();
-            this.users = usersData || [];
+            this.users = usersData.users || [];
 
             // Load clicks (if available)
             try {
@@ -846,18 +846,18 @@ class AdminDashboard {
             syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Comparing user lists...';
 
             // Get our database users
-            const dbResponse = await fetch('/api/admin/analytics');
+            const dbResponse = await fetch('/api/admin/users');
             const dbData = await dbResponse.json();
             
-            // Get Mailchimp users (this would need to be implemented in the backend)
+            // Get Mailchimp users
             const mailchimpResponse = await fetch('/api/mailchimp/users');
             const mailchimpData = await mailchimpResponse.json();
 
             // Update comparison cards
-            document.getElementById('db-user-count').textContent = dbData.totalUsers || 0;
+            document.getElementById('db-user-count').textContent = dbData.users ? dbData.users.length : 0;
             document.getElementById('mailchimp-user-count').textContent = mailchimpData.totalSubscribers || 0;
             
-            const discrepancy = Math.abs((dbData.totalUsers || 0) - (mailchimpData.totalSubscribers || 0));
+            const discrepancy = Math.abs((dbData.users ? dbData.users.length : 0) - (mailchimpData.totalSubscribers || 0));
             document.getElementById('discrepancy-count').textContent = discrepancy;
 
             // Update sync status
@@ -910,10 +910,9 @@ class AdminDashboard {
 
     async loadUsers() {
         try {
-            const response = await fetch('/api/admin/analytics');
+            const response = await fetch('/api/admin/users');
             const data = await response.json();
             
-            // The analytics endpoint doesn't return a success field
             this.users = data.users || [];
             this.renderUsersTable();
         } catch (error) {
