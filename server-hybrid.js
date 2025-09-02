@@ -344,6 +344,7 @@ const server = http.createServer(async (req, res) => {
         
         // Get user's categories (stored in preferences field)
         const userCategories = JSON.parse(user.preferences || '[]');
+        console.log('🔍 User categories:', userCategories);
         
         // Get sponsored products
         const productsModule = getSponsoredProducts();
@@ -354,11 +355,13 @@ const server = http.createServer(async (req, res) => {
         }
         
         const allProducts = productsModule.getActiveSponsoredProducts();
+        console.log('🔍 All products:', allProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Filter products by user's categories
         const personalizedProducts = allProducts.filter(product => 
           userCategories.includes(product.category)
         );
+        console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Add affiliate URLs
         const productsWithUrls = personalizedProducts.map(product => ({
