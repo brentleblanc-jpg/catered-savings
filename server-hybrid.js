@@ -431,8 +431,19 @@ const server = http.createServer(async (req, res) => {
         console.log('✅ User found:', user.email);
         
         // Get user's categories (stored in preferences field)
-        const preferences = JSON.parse(user.preferences || '{}');
-        let userCategories = preferences.categories || [];
+        let userCategories = [];
+        try {
+          const preferences = JSON.parse(user.preferences || '[]');
+          // Check if preferences is an array (new format) or object with categories (old format)
+          if (Array.isArray(preferences)) {
+            userCategories = preferences;
+          } else if (preferences.categories && Array.isArray(preferences.categories)) {
+            userCategories = preferences.categories;
+          }
+        } catch (error) {
+          console.log('⚠️ Error parsing user preferences:', error.message);
+          userCategories = [];
+        }
         
         // Ensure userCategories is always an array
         if (!Array.isArray(userCategories)) {
