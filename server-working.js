@@ -82,6 +82,8 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   try {
     console.log('🔍 Health check received!');
+    console.log(`🔍 Request from: ${req.ip}`);
+    console.log(`🔍 Request headers:`, req.headers);
     
     // Basic health check - don't test services that might fail
     res.status(200).json({
@@ -96,6 +98,8 @@ app.get('/health', (req, res) => {
         mailchimp: !!getMailchimp()
       }
     });
+    
+    console.log('✅ Health check response sent successfully');
   } catch (error) {
     console.error('🚨 Health check error:', error);
     // Even if health check fails, return 200 to keep Railway happy
