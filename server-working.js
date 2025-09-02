@@ -91,9 +91,9 @@ app.get('/health', (req, res) => {
       version: '1.0.0',
       message: 'Working Catered Savers API is running',
       services: {
-        database_service: !!dbService,
-        sponsored_products: !!sponsoredProducts,
-        mailchimp: !!mailchimp
+        database_service: !!getDatabaseService(),
+        sponsored_products: !!getSponsoredProducts(),
+        mailchimp: !!getMailchimp()
       }
     });
   } catch (error) {
@@ -123,17 +123,18 @@ app.use(express.static('public'));
 // API Routes (only if dependencies are available)
 app.get('/api/sponsored-products', (req, res) => {
   try {
-    if (!sponsoredProducts) {
+    const productsModule = getSponsoredProducts();
+    if (!productsModule) {
       return res.status(500).json({ 
         success: false, 
         error: 'Sponsored products not loaded' 
       });
     }
     
-    const products = sponsoredProducts.getActiveSponsoredProducts();
+    const products = productsModule.getActiveSponsoredProducts();
     const productsWithUrls = products.map(product => ({
       ...product,
-      affiliateUrl: sponsoredProducts.buildAffiliateUrl(product)
+      affiliateUrl: productsModule.buildAffiliateUrl(product)
     }));
     
     res.json({ success: true, products: productsWithUrls });
