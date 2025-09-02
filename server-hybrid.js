@@ -202,16 +202,10 @@ const server = http.createServer(async (req, res) => {
               // Create personalized deals URL
               const personalizedUrl = `https://cateredsavers.com/deals?token=${user.accessToken}`;
               
-              await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
-                email_address: email,
-                status: 'subscribed',
-                merge_fields: {
-                  FNAME: firstName || '',
-                  PERSONALIZ: personalizedUrl,
-                  CATEGORIES: categories.join(', ')
-                },
-                tags: categories // Add categories as tags
-              });
+                              await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
+                  email_address: email,
+                  status: 'subscribed'
+                });
               console.log(`✅ User added to Mailchimp: ${email} with personalized URL: ${personalizedUrl}`);
             } catch (mailchimpError) {
               console.error(`⚠️ Failed to add user to Mailchimp: ${email}`, mailchimpError.message);
@@ -1354,13 +1348,7 @@ const server = http.createServer(async (req, res) => {
                 
                 await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                   email_address: user.email,
-                  status: 'subscribed',
-                  merge_fields: {
-                    FNAME: user.name || '',
-                    PERSONALIZ: personalizedUrl,
-                    CATEGORIES: userCategories.join(', ')
-                  },
-                  tags: userCategories // Add categories as tags
+                  status: 'subscribed'
                 });
                 
                 console.log(`✅ Added user ${user.email} to Mailchimp`);
