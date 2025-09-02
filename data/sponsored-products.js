@@ -106,14 +106,106 @@ const sponsoredProducts = [
         url: "https://www.amazon.com/gp/goldbox",
         // Affiliate tracking fields
         affiliateProgram: "amazon",
-        affiliateId: "", // Add your Amazon Associates ID here (e.g., "cateredsavers-20")
-        trackingId: "", // Add your tracking ID if needed
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
         // End affiliate fields
         description: "Advanced fitness & health tracker with built-in GPS",
         category: "sports-outdoors",
         isSponsored: true,
         priority: 5,
         monthlyFee: 600,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 7,
+        title: "Apple MacBook Air M2",
+        retailer: "Amazon",
+        originalPrice: 1199.00,
+        salePrice: 899.00,
+        discount: 25,
+        image: "https://m.media-amazon.com/images/I/71jG+e7roXL._AC_SL1500_.jpg",
+        url: "https://www.amazon.com/Apple-MacBook-13-inch-256GB-Storage/dp/B0B3C2Q5ZP",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "13-inch MacBook Air with M2 chip, 8GB RAM, 256GB SSD",
+        category: "tech-electronics",
+        isSponsored: true,
+        priority: 7,
+        monthlyFee: 1000,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 8,
+        title: "Instant Pot Duo 7-in-1",
+        retailer: "Amazon",
+        originalPrice: 99.95,
+        salePrice: 49.95,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
+        url: "https://www.amazon.com/Instant-Pot-Duo-Evo-Plus/dp/B07W55DDFB",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "7-in-1 Electric Pressure Cooker, Slow Cooker, Rice Cooker, Steamer, Sauté, Yogurt Maker & Warmer",
+        category: "home-garden",
+        isSponsored: true,
+        priority: 8,
+        monthlyFee: 400,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 9,
+        title: "Sony WH-1000XM4 Headphones",
+        retailer: "Amazon",
+        originalPrice: 349.99,
+        salePrice: 174.99,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
+        url: "https://www.amazon.com/Sony-WH-1000XM4-Canceling-Headphones-phonecall/dp/B0863TXGM3",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "Industry Leading Noise Canceling Wireless Headphones with 30-hour Battery Life",
+        category: "tech-electronics",
+        isSponsored: true,
+        priority: 9,
+        monthlyFee: 700,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 10,
+        title: "Ninja Foodi Personal Blender",
+        retailer: "Amazon",
+        originalPrice: 79.99,
+        salePrice: 39.99,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/71YqZ8jWmmL._AC_SL1500_.jpg",
+        url: "https://www.amazon.com/Ninja-PB1000-Personal-Blender-Smoothies/dp/B07ZPKN6YR",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "Personal Blender for Shakes, Smoothies, Food Prep, and Frozen Drinks with 18-Oz. BPA-Free Cup",
+        category: "home-garden",
+        isSponsored: true,
+        priority: 10,
+        monthlyFee: 300,
         active: true,
         startDate: "2025-01-01",
         endDate: "2025-12-31"

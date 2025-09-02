@@ -366,7 +366,25 @@ const server = http.createServer(async (req, res) => {
           affiliateUrl: productsModule.buildAffiliateUrl(product)
         }));
         
-        // Generate personalized deals page
+        // Get category display names
+        const categoryNames = {
+          'tech-electronics': 'Tech & Electronics',
+          'fashion': 'Fashion',
+          'home-garden': 'Home & Garden',
+          'sports-outdoors': 'Sports & Outdoors',
+          'health-beauty': 'Health & Beauty',
+          'food-dining': 'Food & Dining',
+          'travel': 'Travel',
+          'kids-family': 'Kids & Family',
+          'automotive': 'Automotive',
+          'books-media': 'Books & Media',
+          'entertainment': 'Entertainment',
+          'office-education': 'Office & Education',
+          'pets': 'Pets',
+          'other': 'Other'
+        };
+
+        // Generate personalized deals page with category filtering
         const dealsHtml = `
           <!DOCTYPE html>
           <html lang="en">
@@ -380,16 +398,26 @@ const server = http.createServer(async (req, res) => {
               .header { text-align: center; margin-bottom: 40px; }
               .header h1 { color: #2c3e50; margin-bottom: 10px; }
               .header p { color: #7f8c8d; font-size: 18px; }
+              .categories { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 30px; }
+              .category-tag { background: #3498db; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; }
+              .category-tag.active { background: #e74c3c; }
+              .filter-section { text-align: center; margin-bottom: 30px; }
+              .filter-btn { background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 6px; margin: 0 5px; cursor: pointer; transition: background 0.3s; }
+              .filter-btn:hover { background: #7f8c8d; }
+              .filter-btn.active { background: #e74c3c; }
               .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-              .product { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              .product { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.3s; }
+              .product:hover { transform: translateY(-5px); }
               .product img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
               .product h3 { color: #2c3e50; margin: 0 0 10px 0; }
               .product p { color: #7f8c8d; margin: 0 0 15px 0; line-height: 1.5; }
               .product .price { font-size: 24px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
+              .product .discount { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
               .product .category { background: #3498db; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 15px; }
               .product .btn { background: #e74c3c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: bold; transition: background 0.3s; }
               .product .btn:hover { background: #c0392b; }
               .no-products { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+              .stats { text-align: center; margin-bottom: 30px; color: #7f8c8d; }
             </style>
           </head>
           <body>
@@ -399,16 +427,34 @@ const server = http.createServer(async (req, res) => {
                 <p>Hi ${user.firstName || 'there'}! Here are deals tailored to your interests:</p>
               </div>
               
+              <div class="categories">
+                ${userCategories.map(cat => `
+                  <div class="category-tag active">${categoryNames[cat] || cat}</div>
+                `).join('')}
+              </div>
+              
+              <div class="filter-section">
+                <button class="filter-btn active" onclick="filterProducts('all')">All Categories</button>
+                ${userCategories.map(cat => `
+                  <button class="filter-btn" onclick="filterProducts('${cat}')">${categoryNames[cat] || cat}</button>
+                `).join('')}
+              </div>
+              
+              <div class="stats">
+                <p>Showing ${productsWithUrls.length} deals across ${userCategories.length} categories</p>
+              </div>
+              
               ${productsWithUrls.length > 0 ? `
-                <div class="products">
+                <div class="products" id="products-container">
                   ${productsWithUrls.map(product => `
-                    <div class="product">
+                    <div class="product" data-category="${product.category}">
                       <img src="${product.imageUrl}" alt="${product.name}">
-                      <div class="category">${product.category}</div>
+                      <div class="discount">${product.discount}% OFF</div>
+                      <div class="category">${categoryNames[product.category] || product.category}</div>
                       <h3>${product.name}</h3>
                       <p>${product.description}</p>
-                      <div class="price">$${product.price}</div>
-                      <a href="${product.affiliateUrl}" class="btn" target="_blank">View Deal</a>
+                      <div class="price">$${product.salePrice} <span style="text-decoration: line-through; color: #bdc3c7; font-size: 16px;">$${product.originalPrice}</span></div>
+                      <a href="${product.affiliateUrl}" class="btn" target="_blank" onclick="trackClick(${product.id})">View Deal</a>
                     </div>
                   `).join('')}
                 </div>
@@ -419,6 +465,35 @@ const server = http.createServer(async (req, res) => {
                 </div>
               `}
             </div>
+            
+            <script>
+              function filterProducts(category) {
+                const products = document.querySelectorAll('.product');
+                const buttons = document.querySelectorAll('.filter-btn');
+                
+                // Update button states
+                buttons.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // Filter products
+                products.forEach(product => {
+                  if (category === 'all' || product.dataset.category === category) {
+                    product.style.display = 'block';
+                  } else {
+                    product.style.display = 'none';
+                  }
+                });
+              }
+              
+              function trackClick(productId) {
+                // Track affiliate click for analytics
+                fetch('/api/track-sponsored-click', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ productId: productId })
+                }).catch(err => console.log('Click tracking failed:', err));
+              }
+            </script>
           </body>
           </html>
         `;
@@ -431,6 +506,36 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Internal server error' }));
       }
+      return;
+    }
+    
+    // Click tracking endpoint
+    if (req.url === '/api/track-sponsored-click' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        try {
+          const { productId } = JSON.parse(body);
+          
+          const db = getDatabaseService();
+          if (db) {
+            // Log the click for analytics
+            await db.logAnalyticsEvent('sponsored_click', {
+              productId: productId,
+              timestamp: new Date().toISOString(),
+              type: 'affiliate_click'
+            });
+            console.log(`📊 Sponsored product click tracked: Product ${productId}`);
+          }
+          
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true }));
+        } catch (error) {
+          console.error('🚨 Click tracking error:', error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Tracking failed' }));
+        }
+      });
       return;
     }
     
