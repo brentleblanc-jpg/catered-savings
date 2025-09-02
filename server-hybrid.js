@@ -363,9 +363,11 @@ const server = http.createServer(async (req, res) => {
         );
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
-        // Add affiliate URLs
+        // Add affiliate URLs and fix field names
         const productsWithUrls = personalizedProducts.map(product => ({
           ...product,
+          name: product.title, // Map title to name
+          imageUrl: product.image, // Map image to imageUrl
           affiliateUrl: productsModule.buildAffiliateUrl(product)
         }));
         
