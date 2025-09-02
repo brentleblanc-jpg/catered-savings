@@ -427,6 +427,7 @@ const server = http.createServer(async (req, res) => {
         // Get user's categories (stored in preferences field)
         const userCategories = JSON.parse(user.preferences || '[]');
         console.log('🔍 User categories:', userCategories);
+        console.log('🔍 User preferences raw:', user.preferences);
         
         // Get sponsored products
         const productsModule = getSponsoredProducts();
@@ -439,7 +440,10 @@ const server = http.createServer(async (req, res) => {
         // Get products by user's categories (more efficient)
         let allProducts;
         try {
+          console.log('🔍 Available functions:', Object.keys(productsModule));
+          
           if (productsModule.getProductsByCategories) {
+            console.log('✅ Using getProductsByCategories function');
             allProducts = productsModule.getProductsByCategories(userCategories, 100);
           } else {
             // Fallback to old method if new function doesn't exist
@@ -451,6 +455,7 @@ const server = http.createServer(async (req, res) => {
           }
         } catch (error) {
           console.error('🚨 Error getting products by categories:', error);
+          console.error('🚨 Error stack:', error.stack);
           // Fallback to old method
           const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
           allProducts = allProductsTemp.filter(product => 
