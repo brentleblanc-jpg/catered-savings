@@ -1003,6 +1003,39 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Test Mailchimp API key endpoint
+    if (req.url === '/api/test-mailchimp-key' && req.method === 'GET') {
+      try {
+        const mailchimpService = getMailchimp();
+        
+        if (!mailchimpService) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Mailchimp service not available' }));
+          return;
+        }
+        
+        // Test basic API access
+        const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_LIST_ID);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          success: true, 
+          message: 'API key is working correctly',
+          listName: listInfo.name,
+          memberCount: listInfo.stats.member_count,
+          listId: process.env.MAILCHIMP_LIST_ID ? 'Set' : 'Not set'
+        }));
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          success: false, 
+          error: error.message,
+          errorType: error.constructor.name
+        }));
+      }
+      return;
+    }
+    
     // Add products to production database endpoint
     if (req.url === '/api/admin/add-products' && req.method === 'POST') {
       try {
