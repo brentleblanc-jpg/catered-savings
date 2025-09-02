@@ -901,13 +901,14 @@ class AdminDashboard {
     }
 
     async loadAutomationStatus() {
+        const statusElement = document.getElementById('automation-status');
+        
         try {
             const response = await fetch('/api/weekly-automation/status');
             const result = await response.json();
             
             if (result.success) {
                 const status = result.status;
-                const statusElement = document.getElementById('automation-status');
                 
                 statusElement.innerHTML = `
                     <div class="status-item">
@@ -919,17 +920,25 @@ class AdminDashboard {
                         <span>Campaigns: ${status.recentCampaigns}</span>
                     </div>
                     <div class="status-item">
-                        <i class="fas fa-clock"></i>
-                        <span>Last Send: ${status.lastCampaign ? new Date(status.lastCampaign).toLocaleDateString() : 'Never'}</span>
+                        <i class="fas fa-database"></i>
+                        <span>Database Users: ${status.userCount}</span>
                     </div>
                     <div class="status-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Status: ${status.status}</span>
+                        <i class="fas fa-clock"></i>
+                        <span>Last Updated: ${new Date(status.lastUpdated).toLocaleTimeString()}</span>
                     </div>
                 `;
+            } else {
+                throw new Error(result.error || 'Failed to load status');
             }
         } catch (error) {
             console.error('Error loading automation status:', error);
+            statusElement.innerHTML = `
+                <div class="status-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Failed to load status: ${error.message}</span>
+                </div>
+            `;
         }
     }
 

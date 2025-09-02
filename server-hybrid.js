@@ -562,6 +562,54 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // System status endpoint for admin panel
+    if (req.url === '/api/weekly-automation/status' && req.method === 'GET') {
+      try {
+        const mailchimpService = getMailchimp();
+        const db = getDatabaseService();
+        
+        if (!mailchimpService || !db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Services not available' }));
+          return;
+        }
+        
+        // Get user counts
+        const users = await db.getAllUsers();
+        const userCount = users.length;
+        
+        // Get Mailchimp stats
+        let listMembers = 0;
+        let recentCampaigns = 0;
+        
+        try {
+          const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_AUDIENCE_ID);
+          listMembers = listInfo.stats.member_count;
+          
+          const campaigns = await mailchimpService.campaigns.list({ count: 10 });
+          recentCampaigns = campaigns.campaigns.length;
+        } catch (mailchimpError) {
+          console.log('⚠️ Mailchimp stats unavailable:', mailchimpError.message);
+        }
+        
+        const status = {
+          userCount,
+          listMembers,
+          recentCampaigns,
+          lastUpdated: new Date().toISOString()
+        };
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, status }));
+        
+      } catch (error) {
+        console.error('🚨 System status error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to get system status' }));
+      }
+      return;
+    }
+    
     // Mailchimp sync endpoint
     if (req.url === '/api/admin/sync-mailchimp' && req.method === 'POST') {
       try {

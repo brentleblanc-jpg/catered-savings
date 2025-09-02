@@ -1252,6 +1252,23 @@
     width: 20px;
 }
 
+.status-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    color: #c33;
+    font-weight: 500;
+}
+
+.status-error i {
+    color: #c33;
+    width: 20px;
+}
+
 /* Workflow Steps */
 .workflow-steps {
     display: flex;
