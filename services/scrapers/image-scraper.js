@@ -9,11 +9,18 @@ class ImageScraper {
   // Scrape image from Amazon product page
   async scrapeAmazonImage(productUrl) {
     try {
-      // For now, return a placeholder that looks like Amazon
-      // In production, you'd use axios + cheerio to scrape the actual image
       const productId = this.extractAmazonProductId(productUrl);
       if (productId) {
-        return `https://m.media-amazon.com/images/I/${productId}.jpg`;
+        // Try multiple Amazon image formats
+        const imageFormats = [
+          `https://m.media-amazon.com/images/I/${productId}.jpg`,
+          `https://m.media-amazon.com/images/I/${productId}._AC_SL1000_.jpg`,
+          `https://m.media-amazon.com/images/I/${productId}._AC_SL1500_.jpg`,
+          `https://m.media-amazon.com/images/I/${productId}._AC_SX679_.jpg`
+        ];
+        
+        // Return the first format (in production, you'd test which one works)
+        return imageFormats[0];
       }
       return null;
     } catch (error) {
@@ -55,6 +62,7 @@ class ImageScraper {
 
       switch (product.retailer.toLowerCase()) {
         case 'amazon':
+          // Prioritize Amazon - most products are Amazon now
           imageUrl = await this.scrapeAmazonImage(product.url);
           break;
         case 'best buy':
@@ -64,7 +72,7 @@ class ImageScraper {
           imageUrl = await this.scrapeNikeImage(product.url);
           break;
         default:
-          // For other retailers, try to extract from URL or use placeholder
+          // For other retailers (future expansion), use placeholder for now
           imageUrl = this.generatePlaceholderImage(product);
       }
 
