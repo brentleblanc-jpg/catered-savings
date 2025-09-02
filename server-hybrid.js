@@ -1043,6 +1043,100 @@ const server = http.createServer(async (req, res) => {
       }
       return;
     }
+
+    // Test signup endpoint that allows reusing the same email
+    if (req.url === '/api/test-signup' && req.method === 'POST') {
+      try {
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        
+        req.on('end', async () => {
+          try {
+            const { email, firstName, categories } = JSON.parse(body);
+            
+            if (!email || !categories || !Array.isArray(categories)) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Email and categories are required' }));
+              return;
+            }
+
+            // Check if user already exists
+            let user = await db.getUserByEmail(email);
+            
+            if (user) {
+              // Update existing user instead of creating new one
+              user = await db.updateUser(user.id, {
+                name: firstName || user.name,
+                preferences: JSON.stringify(categories)
+              });
+              console.log(`🔄 Updated existing test user: ${email}`);
+            } else {
+              // Create new user
+              user = await db.createUser(email, firstName || null, JSON.stringify(categories));
+              console.log(`✅ Created new test user: ${email}`);
+            }
+
+            // Add/Update in Mailchimp
+            const mailchimpService = getMailchimp();
+            if (mailchimpService && process.env.MAILCHIMP_LIST_ID) {
+              try {
+                // Create personalized deals URL
+                const personalizedUrl = `https://cateredsavers.com/deals?token=${user.accessToken}`;
+                
+                // Try to update existing member first
+                try {
+                  await mailchimpService.lists.updateListMember(process.env.MAILCHIMP_LIST_ID, email, {
+                    merge_fields: {
+                      FNAME: firstName || user.name || '',
+                      PERSONALIZ: personalizedUrl,
+                      CATEGORIES: categories.join(', ')
+                    },
+                    tags: categories
+                  });
+                  console.log(`🔄 Updated Mailchimp member: ${email}`);
+                } catch (updateError) {
+                  // If update fails, try to add as new member
+                  await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
+                    email_address: email,
+                    status: 'subscribed',
+                    merge_fields: {
+                      FNAME: firstName || user.name || '',
+                      PERSONALIZ: personalizedUrl,
+                      CATEGORIES: categories.join(', ')
+                    },
+                    tags: categories
+                  });
+                  console.log(`✅ Added new Mailchimp member: ${email}`);
+                }
+              } catch (mailchimpError) {
+                console.error(`⚠️ Failed to sync with Mailchimp: ${email}`, mailchimpError.message);
+              }
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: 'Test signup successful!',
+              user: {
+                id: user.id,
+                email: user.email,
+                accessToken: user.accessToken,
+                personalizedUrl: `https://cateredsavers.com/deals?token=${user.accessToken}`
+              }
+            }));
+          } catch (parseError) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          }
+        });
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+      return;
+    }
     
     // Test Mailchimp API key endpoint
     if (req.url === '/api/test-mailchimp-key' && req.method === 'GET') {
