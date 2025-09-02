@@ -469,10 +469,13 @@ const server = http.createServer(async (req, res) => {
         
         // Use the working method for now
         const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
+        console.log('🔍 Total products found:', allProductsTemp.length);
         const allProducts = allProductsTemp.filter(product => 
           userCategories.includes(product.category)
         );
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
+        console.log('🔍 User categories for filtering:', userCategories);
+        console.log('🔍 All product categories:', allProductsTemp.map(p => p.category));
         
         // Filter products to ensure 50%+ off (all products are live Amazon products)
         const personalizedProducts = allProducts.filter(product => {
