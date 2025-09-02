@@ -403,9 +403,7 @@ const server = http.createServer(async (req, res) => {
               .header { text-align: center; margin-bottom: 40px; }
               .header h1 { color: #2c3e50; margin-bottom: 10px; }
               .header p { color: #7f8c8d; font-size: 18px; }
-              .categories { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 30px; }
-              .category-tag { background: #3498db; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; }
-              .category-tag.active { background: #e74c3c; }
+
               .filter-section { text-align: center; margin-bottom: 30px; }
               .filter-btn { background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 6px; margin: 0 5px; cursor: pointer; transition: background 0.3s; }
               .filter-btn:hover { background: #7f8c8d; }
@@ -430,12 +428,6 @@ const server = http.createServer(async (req, res) => {
               <div class="header">
                 <h1>🎯 Your Personalized Deals</h1>
                 <p>Hi ${user.firstName || 'there'}! Here are deals tailored to your interests:</p>
-              </div>
-              
-              <div class="categories">
-                ${userCategories.map(cat => `
-                  <div class="category-tag active">${categoryNames[cat] || cat}</div>
-                `).join('')}
               </div>
               
               <div class="filter-section">
