@@ -238,6 +238,90 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
   }
 });
 
+// User signup endpoint
+app.post('/api/signup', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database service not available'
+      });
+    }
+
+    const { email, firstName, lastName, categories } = req.body;
+    
+    if (!email || !categories || categories.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and at least one category are required'
+      });
+    }
+
+    console.log(`📝 Processing signup for ${email} with categories:`, categories);
+
+    // Check if user already exists
+    const existingUser = await dbService.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: 'User already exists with this email'
+      });
+    }
+
+    // Generate personalized deals URL
+    const token = require('crypto').randomBytes(32).toString('hex');
+    const personalizedDealsUrl = `${req.protocol}://${req.get('host')}/deals?token=${token}`;
+
+    // Create user in database
+    const user = await dbService.createUser({
+      email,
+      firstName: firstName || '',
+      lastName: lastName || '',
+      categories: JSON.stringify(categories),
+      personalizedDealsUrl,
+      isActive: true
+    });
+
+    console.log(`✅ User created: ${email}`);
+
+    // Add to Mailchimp if available
+    if (mailchimp && process.env.MAILCHIMP_AUDIENCE_ID) {
+      try {
+        await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+          email_address: email,
+          status: 'subscribed',
+          merge_fields: {
+            FNAME: firstName || '',
+            LNAME: lastName || '',
+            PERSONALIZ: personalizedDealsUrl
+          }
+        });
+        console.log(`✅ User added to Mailchimp: ${email}`);
+      } catch (mailchimpError) {
+        console.error(`⚠️ Failed to add user to Mailchimp: ${email}`, mailchimpError.message);
+        // Don't fail the signup if Mailchimp fails
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Signup successful! Check your email for personalized deals.',
+      user: {
+        id: user.id,
+        email: user.email,
+        personalizedDealsUrl
+      }
+    });
+
+  } catch (error) {
+    console.error('🚨 Signup error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on 0.0.0.0:${PORT}`);
