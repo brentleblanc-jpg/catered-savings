@@ -83,6 +83,10 @@ class AdminDashboard {
             this.runDealDiscovery();
         });
 
+        document.getElementById('scrape-amazon-deals').addEventListener('click', () => {
+            this.scrapeAmazonDeals();
+        });
+
         document.getElementById('test-scraper').addEventListener('click', () => {
             this.testScraper();
         });
@@ -742,6 +746,37 @@ class AdminDashboard {
             }
         } catch (error) {
             this.showNotification('Error running deal discovery: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    async scrapeAmazonDeals() {
+        const button = document.getElementById('scrape-amazon-deals');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scraping...';
+            button.disabled = true;
+            
+            const response = await fetch('/api/admin/scrape-amazon-deals', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification(`Found ${result.count} Amazon deals with 50%+ off!`, 'success');
+                console.log('Amazon deals:', result.deals);
+            } else {
+                this.showNotification('Amazon scraping failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Amazon scraping error: ' + error.message, 'error');
         } finally {
             button.innerHTML = originalText;
             button.disabled = false;

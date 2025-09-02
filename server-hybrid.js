@@ -509,6 +509,32 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Amazon deals scraping endpoint
+    if (req.url === '/api/admin/scrape-amazon-deals' && req.method === 'POST') {
+      try {
+        const AmazonDealsScraper = require('./services/scrapers/amazon-deals-scraper');
+        const scraper = new AmazonDealsScraper('820cf-20');
+        
+        console.log('🔄 Starting Amazon deals scraping...');
+        const deals = await scraper.scrapeDeals();
+        
+        console.log(`🎯 Found ${deals.length} Amazon deals with 50%+ off`);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Found ${deals.length} Amazon deals with 50%+ off`,
+          deals: deals,
+          count: deals.length
+        }));
+      } catch (error) {
+        console.error('🚨 Amazon scraping error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: error.message }));
+      }
+      return;
+    }
+    
     // Click tracking endpoint
     if (req.url === '/api/track-sponsored-click' && req.method === 'POST') {
       let body = '';
