@@ -92,21 +92,20 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
-    // Basic route
+    // Basic route - serve main page directly
     if (req.url === '/') {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Catered Savers</title>
-          <meta http-equiv="refresh" content="0; url=/index-modern.html">
-        </head>
-        <body>
-          <p>Redirecting to Catered Savers...</p>
-        </body>
-        </html>
-      `);
+      const fs = require('fs');
+      const path = require('path');
+      const indexPath = path.join(__dirname, 'public', 'index-modern.html');
+      
+      try {
+        const content = fs.readFileSync(indexPath);
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(content);
+      } catch (error) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Main page not found' }));
+      }
       return;
     }
     
@@ -929,7 +928,7 @@ const server = http.createServer(async (req, res) => {
         let recentCampaigns = 0;
         
         try {
-          const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_AUDIENCE_ID);
+          const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_LIST_ID);
           listMembers = listInfo.stats.member_count;
           
           const campaigns = await mailchimpService.campaigns.list({ count: 10 });
@@ -972,7 +971,7 @@ const server = http.createServer(async (req, res) => {
         }
         
         try {
-          const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_AUDIENCE_ID);
+          const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_LIST_ID);
           const totalSubscribers = listInfo.stats.member_count;
           
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -1164,7 +1163,7 @@ const server = http.createServer(async (req, res) => {
         for (const user of users) {
           try {
             const existingMember = await mailchimpService.lists.getListMember(
-              process.env.MAILCHIMP_AUDIENCE_ID,
+              process.env.MAILCHIMP_LIST_ID,
               user.email
             );
             
@@ -1176,7 +1175,7 @@ const server = http.createServer(async (req, res) => {
           } catch (error) {
             if (error.status === 404) {
               try {
-                await mailchimpService.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+                await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                   email_address: user.email,
                   status: 'subscribed',
                   merge_fields: {
@@ -1202,7 +1201,7 @@ const server = http.createServer(async (req, res) => {
         // Step 2: Get Mailchimp users and add any missing ones to database
         try {
           const mailchimpMembers = await mailchimpService.lists.getAllListMembers(
-            process.env.MAILCHIMP_AUDIENCE_ID,
+            process.env.MAILCHIMP_LIST_ID,
             { count: 1000 }
           );
           
