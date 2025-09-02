@@ -1019,8 +1019,8 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        // Test adding a simple user
-        const testEmail = `test-${Date.now()}@example.com`;
+        // Test adding a simple user with real-looking email
+        const testEmail = `john.doe.${Date.now()}@gmail.com`;
         await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
           email_address: testEmail,
           status: 'subscribed'
