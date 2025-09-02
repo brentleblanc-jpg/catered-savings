@@ -91,6 +91,10 @@ class AdminDashboard {
             this.testScraper();
         });
 
+        document.getElementById('update-product-images').addEventListener('click', () => {
+            this.updateProductImages();
+        });
+
         // User management buttons
         document.getElementById('add-user-btn').addEventListener('click', () => {
             this.openUserModal();
@@ -961,6 +965,42 @@ class AdminDashboard {
         } catch (error) {
             this.addLog(`❌ Deal discovery error: ${error.message}`);
             this.showNotification('Deal discovery error: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    async updateProductImages() {
+        const button = document.getElementById('update-product-images');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating Images...';
+            button.disabled = true;
+            
+            this.addLog('🖼️ Starting product image update...');
+            
+            const response = await fetch('/api/admin/update-product-images', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.addLog(`✅ Updated ${result.updatedCount} product images successfully!`);
+                this.showNotification(`Updated ${result.updatedCount} product images!`, 'success');
+                console.log('Image update results:', result);
+            } else {
+                this.addLog(`❌ Image update failed: ${result.error}`);
+                this.showNotification('Image update failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            this.addLog(`❌ Image update error: ${error.message}`);
+            this.showNotification('Image update error: ' + error.message, 'error');
         } finally {
             button.innerHTML = originalText;
             button.disabled = false;

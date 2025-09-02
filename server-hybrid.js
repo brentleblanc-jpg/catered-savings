@@ -778,6 +778,64 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Update product images endpoint
+    if (req.url === '/api/admin/update-product-images' && req.method === 'POST') {
+      try {
+        const ImageScraper = require('./services/scrapers/image-scraper');
+        const scraper = new ImageScraper();
+        const db = getDatabaseService();
+        
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        console.log('🖼️ Starting product image update...');
+        
+        // Get all products that need image updates
+        const products = await db.getAllSponsoredProducts();
+        const productsNeedingImages = products.filter(p => 
+          !p.image || p.image.includes('placeholder') || p.image.includes('via.placeholder')
+        );
+        
+        console.log(`📊 Found ${productsNeedingImages.length} products needing image updates`);
+        
+        // Scrape images in batches
+        const updatedProducts = await scraper.scrapeImagesForProducts(productsNeedingImages, 3);
+        
+        // Update database with new images
+        let updatedCount = 0;
+        for (const product of updatedProducts) {
+          try {
+            await db.updateSponsoredProduct(product.id, { 
+              image: product.image,
+              imageScrapedAt: product.imageScrapedAt
+            });
+            updatedCount++;
+          } catch (error) {
+            console.error(`❌ Failed to update image for product ${product.id}:`, error);
+          }
+        }
+        
+        console.log(`✅ Updated ${updatedCount} product images`);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Updated ${updatedCount} product images`,
+          updatedCount,
+          totalProducts: productsNeedingImages.length
+        }));
+        
+      } catch (error) {
+        console.error('🚨 Update product images error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to update product images' }));
+      }
+      return;
+    }
+    
     // System status endpoint for admin panel
     if (req.url === '/api/weekly-automation/status' && req.method === 'GET') {
       try {
