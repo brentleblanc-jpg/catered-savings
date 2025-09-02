@@ -1,4 +1,4 @@
-console.log('🚀 Starting HYBRID server (FORCE DEPLOY)...');
+console.log('🚀 Starting HYBRID server (AMAZON FIX DEPLOY)...');
 
 const http = require('http');
 const PORT = process.env.PORT || 8080;
