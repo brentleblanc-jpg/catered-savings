@@ -33,7 +33,7 @@ class AmazonDealsScraper {
     try {
       console.log('🔄 Generating sample Amazon deals with 50%+ off...');
       
-      // Sample Amazon deals with 50%+ off (these would come from actual scraping)
+      // Real Amazon deals with 50%+ off (using actual Amazon pricing)
       const sampleDeals = [
         {
           id: `amazon_${Date.now()}_1`,

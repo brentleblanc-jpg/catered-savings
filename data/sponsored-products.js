@@ -283,9 +283,9 @@ const sponsoredProducts = [
         id: 14,
         title: "KitchenAid Stand Mixer",
         retailer: "Amazon",
-        originalPrice: 429.95,
-        salePrice: 214.97,
-        discount: 50,
+        originalPrice: 419.95,
+        salePrice: 399.95,
+        discount: 5,
         image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
         url: "https://www.amazon.com/KitchenAid-KSM150PSER-Artisan-Mixer/dp/B00005UP2P",
         // Affiliate tracking fields
@@ -293,12 +293,12 @@ const sponsoredProducts = [
         affiliateId: "820cf-20", // Amazon Associates tracking ID
         trackingId: "820cf-20", // Store ID
         // End affiliate fields
-        description: "5-quart stand mixer with 10 speeds - 50% off",
+        description: "5-quart stand mixer with 10 speeds - 5% off (Amazon's current price)",
         category: "home-garden",
         isSponsored: true,
         priority: 14,
         monthlyFee: 400,
-        active: true,
+        active: false, // Disabled since it's not 50%+ off
         startDate: "2025-01-01",
         endDate: "2025-12-31"
     },

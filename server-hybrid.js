@@ -357,9 +357,9 @@ const server = http.createServer(async (req, res) => {
         const allProducts = productsModule.getActiveSponsoredProducts();
         console.log('🔍 All products:', allProducts.map(p => ({ title: p.title, category: p.category })));
         
-        // Filter products by user's categories
+        // Filter products by user's categories AND ensure 50%+ off
         const personalizedProducts = allProducts.filter(product => 
-          userCategories.includes(product.category)
+          userCategories.includes(product.category) && product.discount >= 50
         );
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
