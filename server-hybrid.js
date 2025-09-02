@@ -48,7 +48,7 @@ function getMailchimp() {
     try {
       if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
         console.log('🔄 Lazy loading Mailchimp...');
-        mailchimp = require('@mailchimp/marketing');
+        mailchimp = require('@mailchimp/mailchimp_marketing');
         mailchimp.setConfig({
           apiKey: process.env.MAILCHIMP_API_KEY,
           server: process.env.MAILCHIMP_SERVER,
