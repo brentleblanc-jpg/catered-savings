@@ -352,6 +352,29 @@ class DatabaseService {
     }
   }
 
+  async getAnalyticsEvents() {
+    return await prisma.analyticsEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+  }
+
+  async updateSponsoredProductAffiliate(productId, affiliateId) {
+    return await prisma.sponsoredProduct.update({
+      where: { id: productId },
+      data: { 
+        affiliateId,
+        updatedAt: new Date()
+      }
+    });
+  }
+
+  async deleteUser(userId) {
+    return await prisma.user.delete({
+      where: { id: parseInt(userId) }
+    });
+  }
+
   async disconnect() {
     await prisma.$disconnect();
   }

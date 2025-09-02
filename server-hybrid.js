@@ -315,6 +315,88 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Admin clicks API
+    if (req.url === '/api/admin/clicks' && req.method === 'GET') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        const clicks = await db.getAnalyticsEvents();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, clicks }));
+      } catch (error) {
+        console.error('🚨 Clicks error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to get clicks' }));
+      }
+      return;
+    }
+    
+    // Admin update affiliate API
+    if (req.url === '/api/admin/update-affiliate' && req.method === 'POST') {
+      try {
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        req.on('end', async () => {
+          try {
+            const { productId, affiliateId } = JSON.parse(body);
+            const db = getDatabaseService();
+            
+            if (!db) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+              return;
+            }
+            
+            // Update affiliate ID in database
+            await db.updateSponsoredProductAffiliate(productId, affiliateId);
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Affiliate ID updated successfully' }));
+          } catch (error) {
+            console.error('🚨 Update affiliate error:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Failed to update affiliate ID' }));
+          }
+        });
+      } catch (error) {
+        console.error('🚨 Update affiliate error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to update affiliate ID' }));
+      }
+      return;
+    }
+    
+    // Admin delete user API
+    if (req.url.startsWith('/api/admin/users/') && req.method === 'DELETE') {
+      try {
+        const userId = req.url.split('/').pop();
+        const db = getDatabaseService();
+        
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        await db.deleteUser(userId);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'User deleted successfully' }));
+      } catch (error) {
+        console.error('🚨 Delete user error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to delete user' }));
+      }
+      return;
+    }
+    
     // Personalized deals endpoint
     if (req.url.startsWith('/deals') && req.method === 'GET') {
       try {
@@ -509,8 +591,23 @@ const server = http.createServer(async (req, res) => {
     // Amazon deals scraping endpoint
     if (req.url === '/api/admin/scrape-amazon-deals' && req.method === 'POST') {
       try {
-        const AmazonDealsScraper = require('./services/scrapers/amazon-deals-scraper');
-        const scraper = new AmazonDealsScraper('820cf-20');
+        // Lazy load the scraper
+        const getAmazonScraper = () => {
+          try {
+            const AmazonDealsScraper = require('./services/scrapers/amazon-deals-scraper');
+            return new AmazonDealsScraper('820cf-20');
+          } catch (error) {
+            console.error('🚨 Failed to load Amazon scraper:', error);
+            return null;
+          }
+        };
+        
+        const scraper = getAmazonScraper();
+        if (!scraper) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Failed to load Amazon scraper' }));
+          return;
+        }
         
         console.log('🔄 Starting Amazon deals scraping...');
         const deals = await scraper.scrapeDeals();
