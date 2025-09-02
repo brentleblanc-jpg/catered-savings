@@ -342,8 +342,8 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        // Get user's categories
-        const userCategories = JSON.parse(user.categories || '[]');
+        // Get user's categories (stored in preferences field)
+        const userCategories = JSON.parse(user.preferences || '[]');
         
         // Get sponsored products
         const productsModule = getSponsoredProducts();
