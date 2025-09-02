@@ -49,9 +49,14 @@ function getMailchimp() {
       if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
         console.log('🔄 Lazy loading Mailchimp...');
         mailchimp = require('@mailchimp/mailchimp_marketing');
+        // Extract server prefix from API key and use clean key
+        const apiKey = process.env.MAILCHIMP_API_KEY;
+        const serverPrefix = apiKey.split('-').pop(); // Extract 'us13' from API key
+        const cleanApiKey = apiKey.replace(`-${serverPrefix}`, ''); // Remove server prefix from key
+        
         mailchimp.setConfig({
-          apiKey: process.env.MAILCHIMP_API_KEY,
-          server: process.env.MAILCHIMP_SERVER,
+          apiKey: cleanApiKey,
+          server: serverPrefix,
         });
         console.log('✅ Mailchimp loaded successfully');
       } else {
