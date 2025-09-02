@@ -582,6 +582,7 @@ const server = http.createServer(async (req, res) => {
         let syncedCount = 0;
         let errors = [];
         
+        // Step 1: Add database users to Mailchimp
         for (const user of users) {
           try {
             const existingMember = await mailchimpService.lists.getListMember(
@@ -618,6 +619,39 @@ const server = http.createServer(async (req, res) => {
               errors.push(`${user.email}: ${error.message}`);
             }
           }
+        }
+        
+        // Step 2: Get Mailchimp users and add any missing ones to database
+        try {
+          const mailchimpMembers = await mailchimpService.lists.getAllListMembers(
+            process.env.MAILCHIMP_AUDIENCE_ID,
+            { count: 1000 }
+          );
+          
+          console.log(`📊 Found ${mailchimpMembers.members.length} users in Mailchimp`);
+          
+          for (const member of mailchimpMembers.members) {
+            try {
+              const existingUser = await db.getUserByEmail(member.email_address);
+              
+              if (!existingUser) {
+                // Add Mailchimp user to database
+                await db.createUser(
+                  member.email_address,
+                  member.merge_fields?.FNAME || null,
+                  JSON.stringify(['tech-electronics', 'home-garden']) // Default categories
+                );
+                console.log(`✅ Added Mailchimp user ${member.email_address} to database`);
+                syncedCount++;
+              }
+            } catch (dbError) {
+              console.error(`❌ Failed to add Mailchimp user ${member.email_address} to database:`, dbError.message);
+              errors.push(`DB: ${member.email_address}: ${dbError.message}`);
+            }
+          }
+        } catch (mailchimpError) {
+          console.error(`❌ Failed to get Mailchimp members:`, mailchimpError.message);
+          errors.push(`Mailchimp API: ${mailchimpError.message}`);
         }
         
         console.log(`🎯 Mailchimp sync completed. Synced: ${syncedCount}, Errors: ${errors.length}`);

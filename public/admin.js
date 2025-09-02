@@ -1008,13 +1008,26 @@ class AdminDashboard {
             button.disabled = true;
             
             syncStatus.className = 'sync-status';
-            syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Comparing user lists...';
+            syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing users...';
 
-            // Get our database users
+            // Actually perform the sync (this will add database users to Mailchimp)
+            const syncResponse = await fetch('/api/admin/sync-mailchimp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const syncResult = await syncResponse.json();
+            
+            if (!syncResult.success) {
+                throw new Error(syncResult.error || 'Sync failed');
+            }
+
+            // Get updated user counts after sync
             const dbResponse = await fetch('/api/admin/users');
             const dbData = await dbResponse.json();
             
-            // Get Mailchimp users
             const mailchimpResponse = await fetch('/api/mailchimp/users');
             const mailchimpData = await mailchimpResponse.json();
 
@@ -1037,7 +1050,7 @@ class AdminDashboard {
                 syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Significant discrepancy: ${discrepancy} users differ`;
             }
 
-            this.showNotification('Mailchimp sync completed', 'success');
+            this.showNotification(`Mailchimp sync completed: ${syncResult.syncedCount} users synced`, 'success');
             
         } catch (error) {
             syncStatus.className = 'sync-status error';
