@@ -6759,10 +6759,26 @@ function getAllProductsByCategory(category) {
         .sort((a, b) => b.priority - a.priority);
 }
 
+// Function to get products by multiple categories (for personalized deals)
+function getProductsByCategories(categories, limit = 100) {
+    const now = new Date();
+    return sponsoredProducts
+        .filter(product => {
+            if (!product.active) return false;
+            if (!categories.includes(product.category)) return false;
+            const start = new Date(product.startDate);
+            const end = new Date(product.endDate);
+            return now >= start && now <= end;
+        })
+        .sort((a, b) => b.priority - a.priority)
+        .slice(0, limit);
+}
+
 module.exports = {
     sponsoredProducts,
     buildAffiliateUrl,
     getActiveSponsoredProducts,
     getSponsoredProductsByCategory,
-    getAllProductsByCategory
+    getAllProductsByCategory,
+    getProductsByCategories
 };

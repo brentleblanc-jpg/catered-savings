@@ -436,12 +436,13 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        const allProducts = productsModule.getActiveSponsoredProducts();
-        console.log('🔍 All products:', allProducts.map(p => ({ title: p.title, category: p.category })));
+        // Get products by user's categories (more efficient)
+        const allProducts = productsModule.getProductsByCategories(userCategories, 100); // Get up to 100 products per user
+        console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         
-        // Filter products by user's categories AND ensure 50%+ off
+        // Filter products to ensure 50%+ off
         const personalizedProducts = allProducts.filter(product => 
-          userCategories.includes(product.category) && product.discount >= 50
+          product.discount >= 50
         );
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
