@@ -999,6 +999,147 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Add products to production database endpoint
+    if (req.url === '/api/admin/add-products' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        console.log('🔄 Adding products to production database...');
+        
+        // Real Amazon products with categories
+        const products = [
+          {
+            title: "Echo Dot (5th Gen, 2022 release) | Smart speaker with Alexa",
+            description: "Smart speaker with Alexa - Charcoal",
+            imageUrl: "https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg",
+            affiliateUrl: "https://www.amazon.com/Echo-Dot/dp/B09B8V1LZ3?tag=820cf-20",
+            price: 24.99,
+            originalPrice: 49.99,
+            category: "tech-electronics",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Fire TV Stick 4K Max streaming device",
+            description: "4K streaming device with Alexa Voice Remote",
+            imageUrl: "https://m.media-amazon.com/images/I/51TjJOTfslL._AC_SL1000_.jpg",
+            affiliateUrl: "https://www.amazon.com/Fire-TV-Stick-4K-Max/dp/B08MQZXN1X?tag=820cf-20",
+            price: 27.49,
+            originalPrice: 54.99,
+            category: "tech-electronics",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Instant Pot Duo 7-in-1 Electric Pressure Cooker",
+            description: "7-in-1 Electric Pressure Cooker, 6 Quart",
+            imageUrl: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
+            affiliateUrl: "https://www.amazon.com/Instant-Pot-Duo-Evo-Plus/dp/B07W55DDFB?tag=820cf-20",
+            price: 49.97,
+            originalPrice: 99.95,
+            category: "home-garden",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Kindle Paperwhite (11th Generation)",
+            description: "Waterproof e-reader with 6.8\" display",
+            imageUrl: "https://m.media-amazon.com/images/I/51QnuLIY3FL._AC_SL1000_.jpg",
+            affiliateUrl: "https://www.amazon.com/Kindle-Paperwhite-11th-generation/dp/B08NQPW8X4?tag=820cf-20",
+            price: 69.99,
+            originalPrice: 139.99,
+            category: "books-media",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Ring Video Doorbell Wired",
+            description: "1080p HD video doorbell with two-way talk",
+            imageUrl: "https://m.media-amazon.com/images/I/51QnuLIY3FL._AC_SL1000_.jpg",
+            affiliateUrl: "https://www.amazon.com/Ring-Video-Doorbell-Wired/dp/B08N5WRWNW?tag=820cf-20",
+            price: 49.99,
+            originalPrice: 99.99,
+            category: "home-garden",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Apple AirPods (3rd Generation)",
+            description: "Wireless earbuds with spatial audio",
+            imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+            affiliateUrl: "https://www.amazon.com/Apple-AirPods-3rd-Generation/dp/B0BDHB9Y8H?tag=820cf-20",
+            price: 89.50,
+            originalPrice: 179.00,
+            category: "tech-electronics",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Ninja Foodi Personal Blender",
+            description: "Personal blender with 18-oz. cup",
+            imageUrl: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
+            affiliateUrl: "https://www.amazon.com/Ninja-Foodi-Personal-Blender/dp/B07W55DDFB?tag=820cf-20",
+            price: 39.99,
+            originalPrice: 79.99,
+            category: "home-garden",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          },
+          {
+            title: "Sony WH-1000XM4 Wireless Headphones",
+            description: "Industry-leading noise canceling with 30-hour battery life",
+            imageUrl: "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
+            affiliateUrl: "https://www.amazon.com/Sony-WH-1000XM4-Wireless-Noise-Canceling-Headphones/dp/B0863TXGM3?tag=820cf-20",
+            price: 174.99,
+            originalPrice: 349.99,
+            category: "tech-electronics",
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          }
+        ];
+        
+        // Clear existing products first
+        await db.clearSponsoredProducts();
+        console.log('🗑️ Cleared existing products');
+        
+        // Add new products
+        let addedCount = 0;
+        for (const product of products) {
+          await db.createSponsoredProduct(product);
+          addedCount++;
+        }
+        
+        console.log(`✅ Added ${addedCount} products to production database`);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Successfully added ${addedCount} products to production database`,
+          addedCount
+        }));
+        
+      } catch (error) {
+        console.error('🚨 Error adding products:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to add products' }));
+      }
+      return;
+    }
+    
     // Mailchimp sync endpoint
     if (req.url === '/api/admin/sync-mailchimp' && req.method === 'POST') {
       try {

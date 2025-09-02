@@ -217,6 +217,10 @@ class DatabaseService {
     return await prisma.sponsoredProduct.create({ data });
   }
 
+  async clearSponsoredProducts() {
+    return await prisma.sponsoredProduct.deleteMany({});
+  }
+
   async updateSponsoredProduct(id, data) {
     return await prisma.sponsoredProduct.update({
       where: { id },
