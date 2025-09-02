@@ -199,11 +199,20 @@ const server = http.createServer(async (req, res) => {
           const mailchimpService = getMailchimp();
           if (mailchimpService && process.env.MAILCHIMP_LIST_ID) {
             try {
+              // Create personalized deals URL
+              const personalizedUrl = `https://cateredsavers.com/deals?token=${user.accessToken}`;
+              
               await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                 email_address: email,
-                status: 'subscribed'
+                status: 'subscribed',
+                merge_fields: {
+                  FNAME: firstName || '',
+                  PERSONALIZ: personalizedUrl,
+                  CATEGORIES: categories.join(', ')
+                },
+                tags: categories // Add categories as tags
               });
-              console.log(`✅ User added to Mailchimp: ${email}`);
+              console.log(`✅ User added to Mailchimp: ${email} with personalized URL: ${personalizedUrl}`);
             } catch (mailchimpError) {
               console.error(`⚠️ Failed to add user to Mailchimp: ${email}`, mailchimpError.message);
             }
@@ -1245,9 +1254,19 @@ const server = http.createServer(async (req, res) => {
           } catch (error) {
             if (error.status === 404) {
               try {
+                // Create personalized deals URL
+                const personalizedUrl = `https://cateredsavers.com/deals?token=${user.accessToken}`;
+                const userCategories = JSON.parse(user.preferences || '[]');
+                
                 await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                   email_address: user.email,
-                  status: 'subscribed'
+                  status: 'subscribed',
+                  merge_fields: {
+                    FNAME: user.name || '',
+                    PERSONALIZ: personalizedUrl,
+                    CATEGORIES: userCategories.join(', ')
+                  },
+                  tags: userCategories // Add categories as tags
                 });
                 
                 console.log(`✅ Added user ${user.email} to Mailchimp`);
