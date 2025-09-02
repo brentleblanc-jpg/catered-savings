@@ -450,10 +450,24 @@ const server = http.createServer(async (req, res) => {
         );
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         
-        // Filter products to ensure 50%+ off
-        const personalizedProducts = allProducts.filter(product => 
-          product.discount >= 50
-        );
+        // Filter products to ensure 50%+ off and handle expired deals
+        const personalizedProducts = allProducts.filter(product => {
+          // Check if deal is expired
+          if (product.isExpired) {
+            const expiredAt = new Date(product.expiredAt);
+            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            
+            // If expired more than 7 days ago, remove from results
+            if (expiredAt < sevenDaysAgo) {
+              return false;
+            }
+            // If expired within 7 days, show as expired
+            return true;
+          }
+          
+          // Active deals must be 50%+ off
+          return product.discount >= 50;
+        });
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Add affiliate URLs and fix field names
@@ -505,6 +519,10 @@ const server = http.createServer(async (req, res) => {
               .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
               .product { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.3s; }
               .product:hover { transform: translateY(-5px); }
+              .product.expired { opacity: 0.7; background: #f8f9fa; }
+              .expired-badge { background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+              .expired-message { color: #6c757d; font-style: italic; margin: 10px 0; }
+              .btn-disabled { background: #6c757d; color: white; cursor: not-allowed; opacity: 0.6; }
               .product img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
               .product h3 { color: #2c3e50; margin: 0 0 10px 0; }
               .product p { color: #7f8c8d; margin: 0 0 15px 0; line-height: 1.5; }
@@ -536,19 +554,28 @@ const server = http.createServer(async (req, res) => {
               </div>
               
               ${productsWithUrls.length > 0 ? `
-                <div class="products" id="products-container">
-                  ${productsWithUrls.map(product => `
-                    <div class="product" data-category="${product.category}">
-                      <img src="${product.imageUrl}" alt="${product.name}">
-                      <div class="discount">${product.discount}% OFF</div>
-                      <div class="category">${categoryNames[product.category] || product.category}</div>
-                      <h3>${product.name}</h3>
-                      <p>${product.description}</p>
-                      <div class="price">$${product.salePrice} <span style="text-decoration: line-through; color: #bdc3c7; font-size: 16px;">$${product.originalPrice}</span></div>
-                      <a href="${product.affiliateUrl}" class="btn" target="_blank" onclick="trackClick(${product.id})">View Deal</a>
-                    </div>
-                  `).join('')}
-                </div>
+                                        <div class="products" id="products-container">
+                          ${productsWithUrls.map(product => `
+                            <div class="product ${product.isExpired ? 'expired' : ''}" data-category="${product.category}">
+                              <img src="${product.imageUrl}" alt="${product.name}">
+                              ${product.isExpired ? 
+                                '<div class="expired-badge">DEAL EXPIRED</div>' : 
+                                `<div class="discount">${product.discount}% OFF</div>`
+                              }
+                              <div class="category">${categoryNames[product.category] || product.category}</div>
+                              <h3>${product.name}</h3>
+                              <p>${product.description}</p>
+                              ${product.isExpired ? 
+                                '<div class="expired-message">This deal is no longer available at 50%+ off</div>' :
+                                `<div class="price">$${product.salePrice} <span style="text-decoration: line-through; color: #bdc3c7; font-size: 16px;">$${product.originalPrice}</span></div>`
+                              }
+                              ${product.isExpired ? 
+                                '<button class="btn btn-disabled" disabled>Deal Expired</button>' :
+                                `<a href="${product.affiliateUrl}" class="btn" target="_blank" onclick="trackClick(${product.id})">View Deal</a>`
+                              }
+                            </div>
+                          `).join('')}
+                        </div>
               ` : `
                 <div class="no-products">
                   <h2>No deals available for your categories yet</h2>
@@ -774,6 +801,61 @@ const server = http.createServer(async (req, res) => {
         console.error('🚨 Deal discovery error:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Deal discovery failed: ' + error.message }));
+      }
+      return;
+    }
+    
+    // Validate deal endpoint
+    if (req.url.startsWith('/api/validate-deal/') && req.method === 'GET') {
+      try {
+        const productId = req.url.split('/').pop();
+        const db = getDatabaseService();
+        
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        // Get product from database
+        const product = await db.getSponsoredProductById(productId);
+        if (!product) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Product not found' }));
+          return;
+        }
+        
+        // Validate the deal
+        const RealAmazonScraper = require('./services/scrapers/real-amazon-scraper');
+        const scraper = new RealAmazonScraper();
+        const validation = await scraper.validateDeal(product);
+        
+        // Update product status based on validation
+        if (!validation.isValid) {
+          // Mark as expired but keep for 7 days
+          await db.updateSponsoredProduct(productId, {
+            isExpired: true,
+            expiredAt: new Date().toISOString(),
+            lastValidated: new Date().toISOString()
+          });
+        } else {
+          // Update validation timestamp
+          await db.updateSponsoredProduct(productId, {
+            lastValidated: new Date().toISOString()
+          });
+        }
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          product: product,
+          validation: validation
+        }));
+        
+      } catch (error) {
+        console.error('🚨 Deal validation error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to validate deal' }));
       }
       return;
     }

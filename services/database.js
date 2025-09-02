@@ -375,6 +375,12 @@ class DatabaseService {
     });
   }
 
+  async getSponsoredProductById(id) {
+    return await prisma.sponsoredProduct.findUnique({
+      where: { id: parseInt(id) }
+    });
+  }
+
   async disconnect() {
     await prisma.$disconnect();
   }
