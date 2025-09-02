@@ -123,8 +123,8 @@ const sponsoredProducts = [
         title: "Apple MacBook Air M2",
         retailer: "Amazon",
         originalPrice: 1199.00,
-        salePrice: 899.00,
-        discount: 25,
+        salePrice: 599.00,
+        discount: 50,
         image: "https://m.media-amazon.com/images/I/71jG+e7roXL._AC_SL1500_.jpg",
         url: "https://www.amazon.com/Apple-MacBook-13-inch-256GB-Storage/dp/B0B3C2Q5ZP",
         // Affiliate tracking fields
@@ -132,7 +132,7 @@ const sponsoredProducts = [
         affiliateId: "820cf-20", // Amazon Associates tracking ID
         trackingId: "820cf-20", // Store ID
         // End affiliate fields
-        description: "13-inch MacBook Air with M2 chip, 8GB RAM, 256GB SSD",
+        description: "13-inch MacBook Air with M2 chip, 8GB RAM, 256GB SSD - 50% off",
         category: "tech-electronics",
         isSponsored: true,
         priority: 7,
@@ -206,6 +206,167 @@ const sponsoredProducts = [
         isSponsored: true,
         priority: 10,
         monthlyFee: 300,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 11,
+        title: "Echo Show 8 (2nd Gen)",
+        retailer: "Amazon",
+        originalPrice: 129.99,
+        salePrice: 64.99,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/Echo-Show-8/dp/B08N5WRWNW",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "8-inch HD smart display with Alexa - 50% off",
+        category: "tech-electronics",
+        isSponsored: true,
+        priority: 11,
+        monthlyFee: 400,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 12,
+        title: "Dyson V8 Cordless Vacuum",
+        retailer: "Amazon",
+        originalPrice: 399.99,
+        salePrice: 199.99,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/Dyson-V8-Cordless-Vacuum/dp/B01LSUQSB0",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "Cordless stick vacuum with powerful suction - 50% off",
+        category: "home-garden",
+        isSponsored: true,
+        priority: 12,
+        monthlyFee: 500,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 13,
+        title: "Nintendo Switch OLED",
+        retailer: "Amazon",
+        originalPrice: 349.99,
+        salePrice: 174.99,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/Nintendo-Switch-OLED/dp/B098RKWHHZ",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "Nintendo Switch with 7-inch OLED screen - 50% off",
+        category: "entertainment",
+        isSponsored: true,
+        priority: 13,
+        monthlyFee: 600,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 14,
+        title: "KitchenAid Stand Mixer",
+        retailer: "Amazon",
+        originalPrice: 429.95,
+        salePrice: 214.97,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/KitchenAid-KSM150PSER-Artisan-Mixer/dp/B00005UP2P",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "5-quart stand mixer with 10 speeds - 50% off",
+        category: "home-garden",
+        isSponsored: true,
+        priority: 14,
+        monthlyFee: 400,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 15,
+        title: "iPad Air (5th Generation)",
+        retailer: "Amazon",
+        originalPrice: 599.00,
+        salePrice: 299.00,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/Apple-iPad-Air/dp/B09V3HN1KC",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "10.9-inch iPad Air with M1 chip - 50% off",
+        category: "tech-electronics",
+        isSponsored: true,
+        priority: 15,
+        monthlyFee: 700,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 16,
+        title: "Nike Air Max 270",
+        retailer: "Amazon",
+        originalPrice: 150.00,
+        salePrice: 75.00,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/Nike-Air-Max-270/dp/B07KZQZQZQ",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "Men's Air Max 270 running shoes - 50% off",
+        category: "fashion",
+        isSponsored: true,
+        priority: 16,
+        monthlyFee: 300,
+        active: true,
+        startDate: "2025-01-01",
+        endDate: "2025-12-31"
+    },
+    {
+        id: 17,
+        title: "Vitamix A3500 Blender",
+        retailer: "Amazon",
+        originalPrice: 599.95,
+        salePrice: 299.97,
+        discount: 50,
+        image: "https://m.media-amazon.com/images/I/61jKI2O8rVL._AC_SL1000_.jpg",
+        url: "https://www.amazon.com/Vitamix-A3500-Ascent-Series/dp/B07H8QMZPV",
+        // Affiliate tracking fields
+        affiliateProgram: "amazon",
+        affiliateId: "820cf-20", // Amazon Associates tracking ID
+        trackingId: "820cf-20", // Store ID
+        // End affiliate fields
+        description: "Professional-grade blender with 5 programs - 50% off",
+        category: "home-garden",
+        isSponsored: true,
+        priority: 17,
+        monthlyFee: 500,
         active: true,
         startDate: "2025-01-01",
         endDate: "2025-12-31"
