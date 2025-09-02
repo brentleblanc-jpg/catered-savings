@@ -315,6 +315,125 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Personalized deals endpoint
+    if (req.url.startsWith('/deals') && req.method === 'GET') {
+      try {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const token = url.searchParams.get('token');
+        
+        if (!token) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Token is required' }));
+          return;
+        }
+        
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        // Get user by token
+        const user = await db.getUserByToken(token);
+        if (!user) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid or expired token' }));
+          return;
+        }
+        
+        // Get user's categories
+        const userCategories = JSON.parse(user.categories || '[]');
+        
+        // Get sponsored products
+        const productsModule = getSponsoredProducts();
+        if (!productsModule) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Sponsored products not available' }));
+          return;
+        }
+        
+        const allProducts = productsModule.getActiveSponsoredProducts();
+        
+        // Filter products by user's categories
+        const personalizedProducts = allProducts.filter(product => 
+          userCategories.includes(product.category)
+        );
+        
+        // Add affiliate URLs
+        const productsWithUrls = personalizedProducts.map(product => ({
+          ...product,
+          affiliateUrl: productsModule.buildAffiliateUrl(product)
+        }));
+        
+        // Generate personalized deals page
+        const dealsHtml = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Your Personalized Deals - Catered Savers</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+              .container { max-width: 1200px; margin: 0 auto; }
+              .header { text-align: center; margin-bottom: 40px; }
+              .header h1 { color: #2c3e50; margin-bottom: 10px; }
+              .header p { color: #7f8c8d; font-size: 18px; }
+              .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+              .product { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              .product img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
+              .product h3 { color: #2c3e50; margin: 0 0 10px 0; }
+              .product p { color: #7f8c8d; margin: 0 0 15px 0; line-height: 1.5; }
+              .product .price { font-size: 24px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
+              .product .category { background: #3498db; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 15px; }
+              .product .btn { background: #e74c3c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: bold; transition: background 0.3s; }
+              .product .btn:hover { background: #c0392b; }
+              .no-products { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🎯 Your Personalized Deals</h1>
+                <p>Hi ${user.firstName || 'there'}! Here are deals tailored to your interests:</p>
+              </div>
+              
+              ${productsWithUrls.length > 0 ? `
+                <div class="products">
+                  ${productsWithUrls.map(product => `
+                    <div class="product">
+                      <img src="${product.imageUrl}" alt="${product.name}">
+                      <div class="category">${product.category}</div>
+                      <h3>${product.name}</h3>
+                      <p>${product.description}</p>
+                      <div class="price">$${product.price}</div>
+                      <a href="${product.affiliateUrl}" class="btn" target="_blank">View Deal</a>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `
+                <div class="no-products">
+                  <h2>No deals available for your categories yet</h2>
+                  <p>Check back soon for personalized offers!</p>
+                </div>
+              `}
+            </div>
+          </body>
+          </html>
+        `;
+        
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(dealsHtml);
+        
+      } catch (error) {
+        console.error('🚨 Personalized deals error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+      return;
+    }
+    
     // Mailchimp sync endpoint
     if (req.url === '/api/admin/sync-mailchimp' && req.method === 'POST') {
       try {
@@ -386,7 +505,7 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         console.error('🚨 Mailchimp sync error:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: error.message }));
+        res.end(JSON.stringify({ error: 'Internal server error' }));
       }
       return;
     }
