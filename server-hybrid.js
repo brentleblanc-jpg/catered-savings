@@ -1027,7 +1027,9 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ 
           success: false, 
           error: error.message,
-          errorType: error.constructor.name
+          errorType: error.constructor.name,
+          errorDetails: error.response ? error.response.body : null,
+          statusCode: error.status || error.statusCode
         }));
       }
       return;
