@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-console.log('🚀 Starting ULTRA ROBUST Catered Savers server...');
+console.log('🚀 Starting ULTRA ROBUST Catered Savers server (FORCE DEPLOY)...');
 console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`🔑 PORT: ${PORT}`);
 
