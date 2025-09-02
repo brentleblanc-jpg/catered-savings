@@ -437,31 +437,14 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        // Get products by user's categories (more efficient)
-        let allProducts;
-        try {
-          console.log('🔍 Available functions:', Object.keys(productsModule));
-          
-          if (productsModule.getProductsByCategories) {
-            console.log('✅ Using getProductsByCategories function');
-            allProducts = productsModule.getProductsByCategories(userCategories, 100);
-          } else {
-            // Fallback to old method if new function doesn't exist
-            console.log('⚠️ Using fallback method - getProductsByCategories not available');
-            const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
-            allProducts = allProductsTemp.filter(product => 
-              userCategories.includes(product.category)
-            );
-          }
-        } catch (error) {
-          console.error('🚨 Error getting products by categories:', error);
-          console.error('🚨 Error stack:', error.stack);
-          // Fallback to old method
-          const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
-          allProducts = allProductsTemp.filter(product => 
-            userCategories.includes(product.category)
-          );
-        }
+        // Get products by user's categories (temporary fix)
+        console.log('🔍 Available functions:', Object.keys(productsModule));
+        
+        // Use the working method for now
+        const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
+        const allProducts = allProductsTemp.filter(product => 
+          userCategories.includes(product.category)
+        );
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Filter products to ensure 50%+ off
