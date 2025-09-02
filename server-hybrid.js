@@ -417,12 +417,15 @@ const server = http.createServer(async (req, res) => {
         }
         
         // Get user by token
+        console.log('🔍 Looking up user with token:', token.substring(0, 10) + '...');
         const user = await db.getUserByToken(token);
         if (!user) {
+          console.log('❌ User not found for token');
           res.writeHead(404, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Invalid or expired token' }));
           return;
         }
+        console.log('✅ User found:', user.email);
         
         // Get user's categories (stored in preferences field)
         const userCategories = JSON.parse(user.preferences || '[]');
@@ -480,6 +483,7 @@ const server = http.createServer(async (req, res) => {
         };
 
         // Generate personalized deals page with category filtering
+        console.log('🔍 About to generate HTML for', productsWithUrls.length, 'products');
         const dealsHtml = `
           <!DOCTYPE html>
           <html lang="en">
