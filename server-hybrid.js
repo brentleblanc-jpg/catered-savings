@@ -946,6 +946,49 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Mailchimp users endpoint
+    if (req.url === '/api/mailchimp/users' && req.method === 'GET') {
+      try {
+        const mailchimpService = getMailchimp();
+        
+        if (!mailchimpService) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: true, 
+            totalSubscribers: 0, 
+            message: 'Mailchimp not configured' 
+          }));
+          return;
+        }
+        
+        try {
+          const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_AUDIENCE_ID);
+          const totalSubscribers = listInfo.stats.member_count;
+          
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: true, 
+            totalSubscribers,
+            listName: listInfo.name
+          }));
+        } catch (mailchimpError) {
+          console.log('⚠️ Mailchimp API error:', mailchimpError.message);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: true, 
+            totalSubscribers: 0, 
+            message: 'Mailchimp API error: ' + mailchimpError.message 
+          }));
+        }
+        
+      } catch (error) {
+        console.error('🚨 Mailchimp users endpoint error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to get Mailchimp users' }));
+      }
+      return;
+    }
+    
     // Mailchimp sync endpoint
     if (req.url === '/api/admin/sync-mailchimp' && req.method === 'POST') {
       try {
