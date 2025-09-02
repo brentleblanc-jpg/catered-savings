@@ -1003,6 +1003,40 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Test adding user to Mailchimp endpoint
+    if (req.url === '/api/test-add-user' && req.method === 'POST') {
+      try {
+        const mailchimpService = getMailchimp();
+        
+        if (!mailchimpService) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Mailchimp service not available' }));
+          return;
+        }
+        
+        // Test adding a simple user
+        const testEmail = `test-${Date.now()}@example.com`;
+        await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
+          email_address: testEmail,
+          status: 'subscribed'
+        });
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          success: true, 
+          message: `Test user ${testEmail} added successfully`
+        }));
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          success: false, 
+          error: error.message,
+          errorType: error.constructor.name
+        }));
+      }
+      return;
+    }
+    
     // Test Mailchimp API key endpoint
     if (req.url === '/api/test-mailchimp-key' && req.method === 'GET') {
       try {
