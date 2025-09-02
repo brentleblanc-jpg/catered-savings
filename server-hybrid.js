@@ -429,8 +429,17 @@ const server = http.createServer(async (req, res) => {
         
         // Get user's categories (stored in preferences field)
         const preferences = JSON.parse(user.preferences || '{}');
-        const userCategories = preferences.categories || [];
+        let userCategories = preferences.categories || [];
+        
+        // Ensure userCategories is always an array
+        if (!Array.isArray(userCategories)) {
+          console.log('⚠️ userCategories is not an array, converting...');
+          userCategories = [];
+        }
+        
         console.log('🔍 User categories:', userCategories);
+        console.log('🔍 User categories type:', typeof userCategories);
+        console.log('🔍 User categories is array:', Array.isArray(userCategories));
         console.log('🔍 User preferences raw:', user.preferences);
         
         // Get sponsored products
