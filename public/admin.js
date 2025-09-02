@@ -900,6 +900,73 @@ class AdminDashboard {
         }
     }
 
+    async testScraper() {
+        const button = document.getElementById('test-scraper');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            button.disabled = true;
+            
+            const response = await fetch('/api/admin/test-scraper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification(`Scraper test successful! Found ${result.count} test deals`, 'success');
+                console.log('Test results:', result.deals);
+            } else {
+                this.showNotification('Scraper test failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Scraper test error: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    async runDealDiscovery() {
+        const button = document.getElementById('run-deal-discovery');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Discovering...';
+            button.disabled = true;
+            
+            this.addLog('🔍 Starting deal discovery...');
+            
+            const response = await fetch('/api/admin/run-deal-discovery', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.addLog(`✅ Deal discovery completed! Found ${result.count} new deals`);
+                this.showNotification(`Found ${result.count} new deals!`, 'success');
+                console.log('New deals:', result.deals);
+            } else {
+                this.addLog(`❌ Deal discovery failed: ${result.error}`);
+                this.showNotification('Deal discovery failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            this.addLog(`❌ Deal discovery error: ${error.message}`);
+            this.showNotification('Deal discovery error: ' + error.message, 'error');
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
     async loadAutomationStatus() {
         const statusElement = document.getElementById('automation-status');
         

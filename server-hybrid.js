@@ -659,6 +659,108 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Test scraper endpoint
+    if (req.url === '/api/admin/test-scraper' && req.method === 'POST') {
+      try {
+        // Lazy load the scraper
+        const getAmazonScraper = () => {
+          try {
+            const AmazonDealsScraper = require('./services/scrapers/amazon-deals-scraper');
+            return new AmazonDealsScraper('820cf-20');
+          } catch (error) {
+            console.error('🚨 Failed to load Amazon scraper:', error);
+            return null;
+          }
+        };
+        
+        const scraper = getAmazonScraper();
+        if (!scraper) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Failed to load Amazon scraper' }));
+          return;
+        }
+        
+        console.log('🧪 Testing Amazon scraper...');
+        const deals = await scraper.scrapeDeals();
+        
+        console.log(`🎯 Test completed. Found ${deals.length} test deals`);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          count: deals.length,
+          deals: deals.slice(0, 3), // Return first 3 deals for testing
+          message: 'Scraper test completed successfully'
+        }));
+        
+      } catch (error) {
+        console.error('🚨 Test scraper error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Test scraper failed: ' + error.message }));
+      }
+      return;
+    }
+    
+    // Run deal discovery endpoint
+    if (req.url === '/api/admin/run-deal-discovery' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        // Lazy load the scraper
+        const getAmazonScraper = () => {
+          try {
+            const AmazonDealsScraper = require('./services/scrapers/amazon-deals-scraper');
+            return new AmazonDealsScraper('820cf-20');
+          } catch (error) {
+            console.error('🚨 Failed to load Amazon scraper:', error);
+            return null;
+          }
+        };
+        
+        const scraper = getAmazonScraper();
+        if (!scraper) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Failed to load Amazon scraper' }));
+          return;
+        }
+        
+        console.log('🔍 Running deal discovery...');
+        const deals = await scraper.scrapeDeals();
+        
+        // Save new deals to database
+        let savedCount = 0;
+        for (const deal of deals) {
+          try {
+            await db.createSponsoredProduct(deal);
+            savedCount++;
+          } catch (error) {
+            console.log(`⚠️ Deal already exists or error saving: ${deal.title}`);
+          }
+        }
+        
+        console.log(`🎯 Deal discovery completed. Found ${deals.length} deals, saved ${savedCount} new ones`);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          count: savedCount,
+          deals: deals.slice(0, 5), // Return first 5 deals
+          message: `Deal discovery completed. Found ${deals.length} deals, saved ${savedCount} new ones`
+        }));
+        
+      } catch (error) {
+        console.error('🚨 Deal discovery error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Deal discovery failed: ' + error.message }));
+      }
+      return;
+    }
+    
     // System status endpoint for admin panel
     if (req.url === '/api/weekly-automation/status' && req.method === 'GET') {
       try {
