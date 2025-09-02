@@ -437,7 +437,26 @@ const server = http.createServer(async (req, res) => {
         }
         
         // Get products by user's categories (more efficient)
-        const allProducts = productsModule.getProductsByCategories(userCategories, 100); // Get up to 100 products per user
+        let allProducts;
+        try {
+          if (productsModule.getProductsByCategories) {
+            allProducts = productsModule.getProductsByCategories(userCategories, 100);
+          } else {
+            // Fallback to old method if new function doesn't exist
+            console.log('⚠️ Using fallback method - getProductsByCategories not available');
+            const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
+            allProducts = allProductsTemp.filter(product => 
+              userCategories.includes(product.category)
+            );
+          }
+        } catch (error) {
+          console.error('🚨 Error getting products by categories:', error);
+          // Fallback to old method
+          const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
+          allProducts = allProductsTemp.filter(product => 
+            userCategories.includes(product.category)
+          );
+        }
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Filter products to ensure 50%+ off
@@ -583,8 +602,13 @@ const server = http.createServer(async (req, res) => {
         
       } catch (error) {
         console.error('🚨 Personalized deals error:', error);
+        console.error('🚨 Error stack:', error.stack);
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Internal server error' }));
+        res.end(JSON.stringify({ 
+          error: 'Internal server error', 
+          details: error.message,
+          timestamp: new Date().toISOString()
+        }));
       }
       return;
     }
