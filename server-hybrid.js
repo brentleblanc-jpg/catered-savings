@@ -428,7 +428,8 @@ const server = http.createServer(async (req, res) => {
         console.log('✅ User found:', user.email);
         
         // Get user's categories (stored in preferences field)
-        const userCategories = JSON.parse(user.preferences || '[]');
+        const preferences = JSON.parse(user.preferences || '{}');
+        const userCategories = preferences.categories || [];
         console.log('🔍 User categories:', userCategories);
         console.log('🔍 User preferences raw:', user.preferences);
         
