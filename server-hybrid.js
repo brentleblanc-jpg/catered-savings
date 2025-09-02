@@ -201,11 +201,7 @@ const server = http.createServer(async (req, res) => {
             try {
               await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                 email_address: email,
-                status: 'subscribed',
-                merge_fields: {
-                  FNAME: firstName || '',
-                  PERSONALIZ: `https://cateredsavers.com/deals?token=${user.accessToken}`
-                }
+                status: 'subscribed'
               });
               console.log(`✅ User added to Mailchimp: ${email}`);
             } catch (mailchimpError) {
@@ -1249,12 +1245,7 @@ const server = http.createServer(async (req, res) => {
               try {
                 await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                   email_address: user.email,
-                  status: 'subscribed',
-                  merge_fields: {
-                    FNAME: user.firstName || '',
-                    LNAME: user.lastName || '',
-                    PERSONALIZ: user.personalizedDealsUrl || ''
-                  }
+                  status: 'subscribed'
                 });
                 
                 console.log(`✅ Added user ${user.email} to Mailchimp`);
