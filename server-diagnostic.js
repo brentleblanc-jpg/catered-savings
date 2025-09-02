@@ -76,6 +76,28 @@ try {
     console.log(`🔍 Health endpoint: http://0.0.0.0:${PORT}/health`);
     console.log(`🌐 Ready for Railway healthcheck!`);
     console.log('🚀 Server startup complete!');
+    
+    // Test the health endpoint internally to make sure it's working
+    setTimeout(() => {
+      console.log('🧪 Testing health endpoint internally...');
+      const http = require('http');
+      const options = {
+        hostname: '0.0.0.0',
+        port: PORT,
+        path: '/health',
+        method: 'GET'
+      };
+      
+      const req = http.request(options, (res) => {
+        console.log(`✅ Internal health check response: ${res.statusCode}`);
+      });
+      
+      req.on('error', (error) => {
+        console.error('❌ Internal health check failed:', error.message);
+      });
+      
+      req.end();
+    }, 1000);
   });
   
   // Error handling
