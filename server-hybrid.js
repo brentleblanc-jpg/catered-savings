@@ -1,4 +1,4 @@
-console.log('🚀 Starting HYBRID server...');
+console.log('🚀 Starting HYBRID server (FORCE DEPLOY)...');
 
 const http = require('http');
 const PORT = process.env.PORT || 8080;
