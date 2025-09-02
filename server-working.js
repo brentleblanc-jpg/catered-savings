@@ -9,6 +9,26 @@ const PORT = process.env.PORT || 8080;
 console.log('🚀 Starting WORKING Catered Savers server...');
 console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
 
+// Force HTTPS in production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && !req.secure && req.get('x-forwarded-proto') !== 'https') {
+    return res.redirect(`https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
+// Production environment detection
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // Test 1: Basic imports
 console.log('✅ Test 1: Basic imports successful');
 
@@ -238,8 +258,8 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
   }
 });
 
-// User signup endpoint
-app.post('/api/signup', async (req, res) => {
+// User signup endpoint (compatible with existing frontend)
+app.post('/api/submit-savings', async (req, res) => {
   try {
     if (!dbService) {
       return res.status(500).json({
@@ -248,7 +268,7 @@ app.post('/api/signup', async (req, res) => {
       });
     }
 
-    const { email, firstName, lastName, categories } = req.body;
+    const { email, firstName, categories } = req.body;
     
     if (!email || !categories || categories.length === 0) {
       return res.status(400).json({
@@ -268,32 +288,24 @@ app.post('/api/signup', async (req, res) => {
       });
     }
 
-    // Generate personalized deals URL
-    const token = require('crypto').randomBytes(32).toString('hex');
-    const personalizedDealsUrl = `${req.protocol}://${req.get('host')}/deals?token=${token}`;
-
-    // Create user in database
-    const user = await dbService.createUser({
+    // Create user in database (using existing method)
+    const user = await dbService.createUser(
       email,
-      firstName: firstName || '',
-      lastName: lastName || '',
-      categories: JSON.stringify(categories),
-      personalizedDealsUrl,
-      isActive: true
-    });
+      firstName || null,
+      JSON.stringify(categories)
+    );
 
     console.log(`✅ User created: ${email}`);
 
     // Add to Mailchimp if available
-    if (mailchimp && process.env.MAILCHIMP_AUDIENCE_ID) {
+    if (mailchimp && process.env.MAILCHIMP_LIST_ID) {
       try {
-        await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+        await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
           email_address: email,
           status: 'subscribed',
           merge_fields: {
             FNAME: firstName || '',
-            LNAME: lastName || '',
-            PERSONALIZ: personalizedDealsUrl
+            PERSONALIZ: `https://cateredsavers.com/deals?token=${user.accessToken}`
           }
         });
         console.log(`✅ User added to Mailchimp: ${email}`);
@@ -305,11 +317,11 @@ app.post('/api/signup', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Signup successful! Check your email for personalized deals.',
+      message: 'Successfully signed up!',
       user: {
         id: user.id,
         email: user.email,
-        personalizedDealsUrl
+        accessToken: user.accessToken
       }
     });
 
@@ -319,6 +331,162 @@ app.post('/api/signup', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+// Get categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database service not available'
+      });
+    }
+    
+    const categories = await dbService.getAllCategories();
+    res.json({ success: true, categories });
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Track sponsored product clicks
+app.post('/api/track-sponsored-click', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database service not available'
+      });
+    }
+    
+    const { productId } = req.body;
+    await dbService.trackSponsoredClick(productId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error tracking click:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get personalized deals
+app.get('/api/deals/personalized/:token', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database service not available'
+      });
+    }
+    
+    const { token } = req.params;
+    const deals = await dbService.getPersonalizedDeals(token);
+    
+    // Add affiliate URLs to sponsored products
+    if (deals.sponsoredProducts && sponsoredProducts) {
+      deals.sponsoredProducts = deals.sponsoredProducts.map(product => ({
+        ...product,
+        affiliateUrl: sponsoredProducts.buildAffiliateUrl(product)
+      }));
+    }
+    
+    res.json({ success: true, deals });
+  } catch (error) {
+    console.error('Error fetching personalized deals:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete user endpoint
+app.delete('/api/admin/users/:userId', async (req, res) => {
+  try {
+    if (!dbService) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database service not available'
+      });
+    }
+    
+    const { userId } = req.params;
+    
+    // Check if user exists
+    const user = await dbService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    // Delete user from database
+    await dbService.deleteUser(userId);
+    
+    res.json({ 
+      success: true, 
+      message: 'User deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Update affiliate ID for a product
+app.post('/api/admin/update-affiliate', async (req, res) => {
+  try {
+    if (!sponsoredProducts) {
+      return res.status(500).json({
+        success: false,
+        error: 'Sponsored products not available'
+      });
+    }
+    
+    const { productId, affiliateId, trackingId } = req.body;
+    
+    // Find and update the product
+    const products = sponsoredProducts.getActiveSponsoredProducts();
+    const product = products.find(p => p.id === parseInt(productId));
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    // Update affiliate fields
+    if (affiliateId !== undefined) product.affiliateId = affiliateId;
+    if (trackingId !== undefined) product.trackingId = trackingId;
+    
+    res.json({ success: true, message: 'Affiliate ID updated successfully' });
+  } catch (error) {
+    console.error('Error updating affiliate ID:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all sponsored products for admin management
+app.get('/api/admin/sponsored-products', async (req, res) => {
+  try {
+    if (!sponsoredProducts) {
+      return res.status(500).json({
+        success: false,
+        error: 'Sponsored products not available'
+      });
+    }
+    
+    // Add affiliate URLs to each product
+    const products = sponsoredProducts.getActiveSponsoredProducts();
+    const productsWithAffiliateUrls = products.map(product => ({
+      ...product,
+      affiliateUrl: sponsoredProducts.buildAffiliateUrl(product)
+    }));
+    
+    res.json({ success: true, products: productsWithAffiliateUrls });
+  } catch (error) {
+    console.error('Error fetching sponsored products:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
