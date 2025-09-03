@@ -1423,6 +1423,7 @@ const server = http.createServer(async (req, res) => {
             }
           } catch (error) {
             if (error.status === 404) {
+              // User not found in Mailchimp, try to add them
               try {
                 // Create personalized deals URL
                 const personalizedUrl = `https://cateredsavers.com/deals?token=${user.accessToken}`;
@@ -1450,10 +1451,12 @@ const server = http.createServer(async (req, res) => {
                 syncedCount++;
               } catch (addError) {
                 console.error(`❌ Failed to add user ${user.email}:`, addError.message);
+                console.error(`❌ Add error details:`, addError.response?.body || addError);
                 errors.push(`${user.email}: ${addError.message}`);
               }
             } else {
               console.error(`❌ Error checking user ${user.email}:`, error.message);
+              console.error(`❌ Check error details:`, error.response?.body || error);
               errors.push(`${user.email}: ${error.message}`);
             }
           }
