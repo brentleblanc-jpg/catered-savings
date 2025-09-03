@@ -476,7 +476,7 @@ const server = http.createServer(async (req, res) => {
         // Filter products to ensure 50%+ off (all products are live Amazon products)
         const personalizedProducts = allProducts.filter(product => {
           // Calculate discount percentage
-          const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+          const discount = Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100);
           
           // Only show products with 50%+ off
           return discount >= 50;
