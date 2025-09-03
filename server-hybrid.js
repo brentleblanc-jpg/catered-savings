@@ -486,15 +486,25 @@ const server = http.createServer(async (req, res) => {
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Add affiliate URLs and fix field names
-        const productsWithUrls = personalizedProducts.map(product => ({
-          ...product,
-          name: product.title,
-          imageUrl: product.image, // Use 'image' field from data
-          affiliateUrl: productsModule.buildAffiliateUrl(product), // Build affiliate URL
-          discount: Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100),
-          salePrice: product.salePrice, // Use 'salePrice' field
-          originalPrice: product.originalPrice
-        }));
+        const productsWithUrls = personalizedProducts.map(product => {
+          console.log('🔍 Processing product:', product.title);
+          console.log('🔍 Product image:', product.image);
+          console.log('🔍 Product salePrice:', product.salePrice);
+          console.log('🔍 Product originalPrice:', product.originalPrice);
+          
+          const affiliateUrl = productsModule.buildAffiliateUrl(product);
+          console.log('🔍 Built affiliate URL:', affiliateUrl);
+          
+          return {
+            ...product,
+            name: product.title,
+            imageUrl: product.image, // Use 'image' field from data
+            affiliateUrl: affiliateUrl, // Build affiliate URL
+            discount: Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100),
+            salePrice: product.salePrice, // Use 'salePrice' field
+            originalPrice: product.originalPrice
+          };
+        });
         
         // Get category display names
         const categoryNames = {
