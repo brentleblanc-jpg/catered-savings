@@ -11,6 +11,57 @@ let dbService = null;
 let sponsoredProducts = null;
 let mailchimp = null;
 
+// Deal discovery function - can be expanded with real scraping logic
+async function discoverNewDeals() {
+  try {
+    console.log('🔍 Discovering new deals...');
+    
+    // This is where you would integrate with your deal scraping services
+    // For now, we'll return a small set of sample deals to demonstrate the functionality
+    // In the future, this could call external APIs, scrape websites, etc.
+    
+    const sampleDeals = [
+      {
+        title: "Samsung Galaxy S24 Ultra 256GB",
+        description: "Samsung Galaxy S24 Ultra with S Pen and AI features",
+        imageUrl: "https://m.media-amazon.com/images/I/61NGnpjoRDL._AC_SL1500_.jpg",
+        affiliateUrl: "https://www.amazon.com/Samsung-Galaxy-S24-Ultra/dp/B0CRJDHZ7K?tag=820cf-20",
+        price: 599.99,
+        originalPrice: 1199.99,
+        category: "tech-electronics"
+      },
+      {
+        title: "KitchenAid Artisan Stand Mixer",
+        description: "KitchenAid Artisan Series 5-Qt Stand Mixer",
+        imageUrl: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
+        affiliateUrl: "https://www.amazon.com/KitchenAid-Artisan-Stand-Mixer/dp/B0CHX1W1XY?tag=820cf-20",
+        price: 149.99,
+        originalPrice: 379.99,
+        category: "home-garden"
+      },
+      {
+        title: "The Seven Husbands of Evelyn Hugo",
+        description: "The Seven Husbands of Evelyn Hugo by Taylor Jenkins Reid",
+        imageUrl: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
+        affiliateUrl: "https://www.amazon.com/Seven-Husbands-Evelyn-Hugo-Jenkins/dp/B0CHX1W1XY?tag=820cf-20",
+        price: 7.99,
+        originalPrice: 16.99,
+        category: "books-media"
+      }
+    ];
+    
+    // Simulate some processing time
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log(`✅ Found ${sampleDeals.length} potential new deals`);
+    return sampleDeals;
+    
+  } catch (error) {
+    console.error('❌ Error in deal discovery:', error);
+    return [];
+  }
+}
+
 // Function to get database service (lazy load)
 function getDatabaseService() {
   if (!dbService) {
@@ -494,6 +545,81 @@ const server = http.createServer(async (req, res) => {
         }));
       } catch (error) {
         console.error('Error verifying products:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+      return;
+    }
+    
+    // Admin endpoint to run deal discovery
+    if (req.url === '/api/admin/run-deal-discovery' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        console.log('🔍 Starting deal discovery process...');
+        
+        // This would integrate with your deal scraping logic
+        // For now, we'll simulate finding new deals
+        const newDeals = await discoverNewDeals();
+        
+        let addedCount = 0;
+        let skippedCount = 0;
+        
+        if (newDeals && newDeals.length > 0) {
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          
+          for (const deal of newDeals) {
+            try {
+              // Check if product already exists
+              const existing = await prisma.sponsoredProduct.findFirst({
+                where: { title: deal.title }
+              });
+              
+              if (existing) {
+                skippedCount++;
+                continue;
+              }
+              
+              await prisma.sponsoredProduct.create({
+                data: {
+                  title: deal.title,
+                  description: deal.description,
+                  imageUrl: deal.imageUrl,
+                  affiliateUrl: deal.affiliateUrl,
+                  price: deal.price,
+                  originalPrice: deal.originalPrice,
+                  category: deal.category,
+                  isActive: true,
+                  startDate: new Date(),
+                  endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+                }
+              });
+              addedCount++;
+            } catch (error) {
+              console.error(`Failed to add ${deal.title}:`, error.message);
+            }
+          }
+          
+          await prisma.$disconnect();
+        }
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Deal discovery completed! Found ${newDeals?.length || 0} new deals`,
+          added: addedCount,
+          skipped: skippedCount,
+          totalFound: newDeals?.length || 0,
+          timestamp: new Date().toISOString()
+        }));
+      } catch (error) {
+        console.error('Error in deal discovery:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: error.message }));
       }
