@@ -1158,6 +1158,54 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Test Mailchimp fields endpoint
+    if (req.url === '/api/mailchimp/test-fields' && req.method === 'GET') {
+      try {
+        const mailchimpService = getMailchimp();
+        
+        if (!mailchimpService) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Mailchimp service not available' }));
+          return;
+        }
+        
+        console.log('🔍 Testing Mailchimp configuration...');
+        
+        // Get list information
+        const listInfo = await mailchimpService.lists.getList(process.env.MAILCHIMP_LIST_ID);
+        console.log('📋 List Info:', listInfo.name, listInfo.id);
+        
+        // Get merge fields
+        const mergeFields = await mailchimpService.lists.getAllMergeFields(process.env.MAILCHIMP_LIST_ID);
+        console.log('🏷️ Available Merge Fields:', mergeFields.merge_fields.length);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          listInfo: {
+            name: listInfo.name,
+            id: listInfo.id,
+            memberCount: listInfo.stats.member_count
+          },
+          mergeFields: mergeFields.merge_fields.map(field => ({
+            tag: field.tag,
+            name: field.name,
+            type: field.type
+          }))
+        }));
+        
+      } catch (error) {
+        console.error('❌ Test failed:', error.message);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          error: error.message,
+          response: error.response?.body
+        }));
+      }
+      return;
+    }
+
     // Test Mailchimp API key endpoint
     if (req.url === '/api/test-mailchimp-key' && req.method === 'GET') {
       try {
