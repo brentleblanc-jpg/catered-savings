@@ -381,6 +381,69 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Admin cleanup database API
+    if (req.url === '/api/admin/cleanup-database' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        console.log('🔄 Starting database cleanup...');
+        
+        // Get all products
+        const allProducts = await db.getAllSponsoredProducts();
+        console.log(`Total products: ${allProducts.length}`);
+        
+        // Find fake products
+        const fakeProducts = allProducts.filter(p => 
+          p.imageUrl && p.imageUrl.includes('via.placeholder.com')
+        );
+        console.log(`Fake products: ${fakeProducts.length}`);
+        
+        // Delete fake products
+        let deletedCount = 0;
+        if (fakeProducts.length > 0) {
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          
+          const deleteResult = await prisma.sponsoredProduct.deleteMany({
+            where: {
+              imageUrl: {
+                contains: 'via.placeholder.com'
+              }
+            }
+          });
+          
+          deletedCount = deleteResult.count;
+          await prisma.$disconnect();
+        }
+        
+        // Get remaining products
+        const remainingProducts = await db.getAllSponsoredProducts();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: 'Database cleanup completed',
+          deleted: deletedCount,
+          remaining: remainingProducts.length,
+          products: remainingProducts.map(p => ({
+            title: p.title,
+            category: p.category,
+            hasRealImage: p.imageUrl && !p.imageUrl.includes('via.placeholder.com')
+          }))
+        }));
+      } catch (error) {
+        console.error('Error cleaning database:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: error.message }));
+      }
+      return;
+    }
+    
     // Admin clicks API
     if (req.url === '/api/admin/clicks' && req.method === 'GET') {
       try {
