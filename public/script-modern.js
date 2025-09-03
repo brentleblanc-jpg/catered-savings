@@ -75,7 +75,9 @@ function initializeForm() {
             
         } catch (error) {
             console.error('❌ Form submission error:', error);
-            alert('Sorry, there was an error. Please try again.');
+            console.error('❌ Error details:', error.message);
+            console.error('❌ Error stack:', error.stack);
+            alert(`Sorry, there was an error: ${error.message}. Please try again.`);
         } finally {
             // Reset button
             submitBtn.innerHTML = originalText;

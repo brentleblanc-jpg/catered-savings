@@ -130,7 +130,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error submitting form:', error);
-            alert('There was an error submitting your preferences. Please try again.');
+            console.error('Error details:', error.message);
+            console.error('Error stack:', error.stack);
+            alert(`There was an error submitting your preferences: ${error.message}. Please try again.`);
             
             // Reset button state
             submitBtn.innerHTML = originalText;
