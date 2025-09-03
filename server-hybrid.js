@@ -204,6 +204,13 @@ const server = http.createServer(async (req, res) => {
     
     if (req.url === '/api/sponsored-products' && req.method === 'GET') {
       try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
         const products = await db.getActiveSponsoredProducts();
         const productsWithUrls = products.map(product => ({
           ...product,
