@@ -204,7 +204,11 @@ const server = http.createServer(async (req, res) => {
               
                               await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                   email_address: email,
-                  status: 'subscribed'
+                  status: 'subscribed',
+                  merge_fields: {
+                    FNAME: firstName || '',
+                    PERSONALIZ: personalizedUrl
+                  }
                 });
               console.log(`✅ User added to Mailchimp: ${email} with personalized URL: ${personalizedUrl}`);
             } catch (mailchimpError) {
@@ -1370,7 +1374,11 @@ const server = http.createServer(async (req, res) => {
                 
                 await mailchimpService.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
                   email_address: user.email,
-                  status: 'subscribed'
+                  status: 'subscribed',
+                  merge_fields: {
+                    FNAME: user.name || '',
+                    PERSONALIZ: personalizedUrl
+                  }
                 });
                 
                 console.log(`✅ Added user ${user.email} to Mailchimp`);
