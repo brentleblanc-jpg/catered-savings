@@ -185,7 +185,12 @@ const server = http.createServer(async (req, res) => {
           originalPrice: product.originalPrice
         }));
         
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
         res.end(JSON.stringify({ 
           success: true, 
           deals: productsWithUrls,
@@ -221,7 +226,12 @@ const server = http.createServer(async (req, res) => {
           affiliateUrl: product.affiliateUrl
         }));
         
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
         res.end(JSON.stringify({ success: true, products: productsWithUrls }));
       } catch (error) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -442,6 +452,47 @@ const server = http.createServer(async (req, res) => {
         }));
       } catch (error) {
         console.error('Error fixing expired tokens:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+      return;
+    }
+    
+    // Admin endpoint to verify product data integrity
+    if (req.url === '/api/admin/verify-products' && req.method === 'GET') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const products = await prisma.sponsoredProduct.findMany({
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            imageUrl: true,
+            affiliateUrl: true,
+            price: true,
+            originalPrice: true
+          }
+        });
+        
+        await prisma.$disconnect();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          products: products,
+          count: products.length
+        }));
+      } catch (error) {
+        console.error('Error verifying products:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: error.message }));
       }
