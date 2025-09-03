@@ -138,6 +138,71 @@ const server = http.createServer(async (req, res) => {
     }
     
     // API Routes
+    if (req.url.startsWith('/api/deals/personalized/') && req.method === 'GET') {
+      try {
+        const token = req.url.split('/').pop();
+        
+        if (!token) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Token is required' }));
+          return;
+        }
+        
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        // Get user by token
+        const user = await db.getUserByToken(token);
+        if (!user) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid or expired token' }));
+          return;
+        }
+        
+        // Get user's categories
+        const userCategories = JSON.parse(user.preferences || '[]');
+        
+        // Get products by user's categories from database
+        const allProducts = await db.getProductsByCategories(userCategories, 1000);
+        
+        // Filter products to ensure 50%+ off
+        const personalizedProducts = allProducts.filter(product => {
+          const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+          return discount >= 50;
+        });
+        
+        // Fix field names for frontend compatibility
+        const productsWithUrls = personalizedProducts.map(product => ({
+          ...product,
+          name: product.title,
+          imageUrl: product.imageUrl,
+          affiliateUrl: product.affiliateUrl,
+          discount: Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100),
+          salePrice: product.price,
+          originalPrice: product.originalPrice
+        }));
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          success: true, 
+          deals: productsWithUrls,
+          user: {
+            name: user.name,
+            email: user.email
+          }
+        }));
+      } catch (error) {
+        console.error('Error in personalized deals API:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+      return;
+    }
+    
     if (req.url === '/api/sponsored-products' && req.method === 'GET') {
       try {
         const products = await db.getActiveSponsoredProducts();
