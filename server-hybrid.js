@@ -209,7 +209,7 @@ const server = http.createServer(async (req, res) => {
                     FNAME: firstName || ''
                   }
                 });
-              console.log(`✅ User added to Mailchimp: ${email} with personalized URL: ${personalizedUrl}`);
+              console.log(`✅ User added to Mailchimp: ${email} with personalized URL: ${personalizedUrl} (API Key: ${process.env.MAILCHIMP_API_KEY?.substring(0, 10)}...)`);
             } catch (mailchimpError) {
               console.error(`⚠️ Failed to add user to Mailchimp: ${email}`, mailchimpError.message);
             }
