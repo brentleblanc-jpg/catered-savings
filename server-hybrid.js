@@ -388,6 +388,60 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Admin update product pricing API
+    if (req.url === '/api/admin/update-product-pricing' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        
+        req.on('end', async () => {
+          try {
+            const { title, price, originalPrice } = JSON.parse(body);
+            
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            
+            const updateResult = await prisma.sponsoredProduct.updateMany({
+              where: {
+                title: title
+              },
+              data: {
+                price: price,
+                originalPrice: originalPrice
+              }
+            });
+            
+            await prisma.$disconnect();
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: `Updated ${updateResult.count} products with title: ${title}`,
+              updated: updateResult.count,
+              newPrice: price,
+              newOriginalPrice: originalPrice
+            }));
+          } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: error.message }));
+          }
+        });
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: error.message }));
+      }
+      return;
+    }
+    
     // Admin remove specific product API
     if (req.url === '/api/admin/remove-product' && req.method === 'POST') {
       try {
