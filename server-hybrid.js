@@ -551,7 +551,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
-    // Admin endpoint to fix affiliate URLs with real Amazon ASINs
+    // Admin endpoint to fix affiliate URLs with proper Amazon search URLs
     if (req.url === '/api/admin/fix-affiliate-urls' && req.method === 'POST') {
       try {
         const db = getDatabaseService();
@@ -561,89 +561,43 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        console.log('🔧 Fixing affiliate URLs with real Amazon ASINs...');
+        console.log('🔧 Fixing affiliate URLs with proper Amazon search URLs...');
         
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
         
-        // Real Amazon ASINs for products
-        const realAsins = {
-          "Canon EOS R6 Mark II": "B0B7BP6CJN",
-          "Sony A7 IV Camera": "B09XS7JWHH",
-          "Samsung Galaxy S24 Ultra": "B0CRJDHZ7K",
-          "iPhone 15 Pro": "B0CHX1W1XY",
-          "MacBook Pro 14-inch M3": "B0CHX1W1XY",
-          "Sony WH-1000XM5 Headphones": "B09XS7JWHH",
-          "Bose QuietComfort 45": "B098FKXT8L",
-          "Apple Watch Series 9": "B0CHX1W1XY",
-          "Samsung Galaxy Watch 6": "B0CHX1W1XY",
-          "Nintendo Switch OLED": "B098RKWHHZ",
-          "PlayStation 5 Console": "B08N5WRWNW",
-          "Xbox Series X Console": "B08H75RTZ8",
-          "Samsung 65-inch QLED 4K TV": "B08N5WRWNW",
-          "LG 55-inch OLED 4K TV": "B0CHX1W1XY",
-          "Amazon Echo Show 15": "B08N5WRWNW",
-          "Google Nest Hub Max": "B0CHX1W1XY",
-          "KitchenAid Stand Mixer": "B0CHX1W1XY",
-          "Ninja Foodi 8-in-1 Pressure Cooker": "B0CHX1W1XY",
-          "Vitamix A3500 Blender": "B0CHX1W1XY",
-          "Breville Smart Oven Air Fryer": "B0CHX1W1XY",
-          "Dyson V15 Detect Vacuum": "B0CHX1W1XY",
-          "Shark Navigator Vacuum": "B0CHX1W1XY",
-          "Bissell CrossWave Pet Pro": "B0CHX1W1XY",
-          "Scotts Turf Builder Lawn Food": "B0CHX1W1XY",
-          "Miracle-Gro Potting Mix": "B0CHX1W1XY",
-          "Fiskars Garden Tools Set": "B0CHX1W1XY",
-          "Sun Joe Electric Pressure Washer": "B0CHX1W1XY",
-          "IKEA Kallax Shelf Unit": "B0CHX1W1XY",
-          "Simplehuman Soap Dispenser": "B0CHX1W1XY",
-          "OXO Good Grips Can Opener": "B0CHX1W1XY",
-          "IKEA Hemnes Dresser": "B0CHX1W1XY",
-          "Wayfair Accent Chair": "B0CHX1W1XY",
-          "IKEA Malm Bed Frame": "B0CHX1W1XY",
-          "Philips Hue Smart Bulbs": "B0CHX1W1XY",
-          "Lutron Caseta Smart Dimmer": "B0CHX1W1XY",
-          "Ring Smart Lighting": "B0CHX1W1XY",
-          "Rubbermaid Storage Containers": "B0CHX1W1XY",
-          "IKEA Skubb Storage Boxes": "B0CHX1W1XY",
-          "Simplehuman Trash Can": "B0CHX1W1XY",
-          "Delta Faucet Shower Head": "B0CHX1W1XY",
-          "Kohler Bathroom Faucet": "B0CHX1W1XY",
-          "Bathroom Vanity Mirror": "B0CHX1W1XY",
-          "Ring Alarm Security Kit": "B0CHX1W1XY",
-          "Arlo Pro 4 Security Camera": "B0CHX1W1XY",
-          "SimpliSafe Home Security": "B0CHX1W1XY",
-          "Samsung Front Load Washer": "B0CHX1W1XY",
-          "LG Dryer with Steam": "B0CHX1W1XY",
-          "Whirlpool Refrigerator": "B0CHX1W1XY",
-          "Patio Dining Set": "B0CHX1W1XY",
-          "Outdoor Lounge Chairs": "B0CHX1W1XY",
-          "Fire Pit Table": "B0CHX1W1XY",
-          "Wall Art Canvas Set": "B0CHX1W1XY",
-          "Throw Pillows Set": "B0CHX1W1XY",
-          "Area Rug 8x10": "B0CHX1W1XY",
-          "DeWalt Drill Set": "B0CHX1W1XY",
-          "Black+Decker Tool Set": "B0CHX1W1XY",
-          "Craftsman Tool Box": "B0CHX1W1XY"
-        };
+        // Get all products that need URL fixes
+        const products = await prisma.sponsoredProduct.findMany({
+          where: {
+            OR: [
+              { affiliateUrl: { contains: 'B0CHX1W1XY' } }, // Placeholder ASINs
+              { affiliateUrl: { contains: 'placeholder' } },
+              { affiliateUrl: null }
+            ]
+          }
+        });
         
         let updatedCount = 0;
         
-        for (const [title, asin] of Object.entries(realAsins)) {
+        for (const product of products) {
           try {
+            // Generate proper Amazon search URL with affiliate tag
+            const searchQuery = encodeURIComponent(product.title);
+            const newAffiliateUrl = `https://www.amazon.com/s?k=${searchQuery}&tag=820cf-20`;
+            
             const updateResult = await prisma.sponsoredProduct.updateMany({
-              where: { title: title },
+              where: { id: product.id },
               data: { 
-                affiliateUrl: `https://www.amazon.com/dp/${asin}?tag=820cf-20`
+                affiliateUrl: newAffiliateUrl
               }
             });
             
             if (updateResult.count > 0) {
-              console.log(`✅ Updated: ${title} -> ${asin}`);
+              console.log(`✅ Updated: ${product.title}`);
               updatedCount += updateResult.count;
             }
           } catch (error) {
-            console.error(`❌ Failed to update ${title}:`, error.message);
+            console.error(`❌ Failed to update ${product.title}:`, error.message);
           }
         }
         
@@ -652,8 +606,9 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           success: true,
-          message: `Updated ${updatedCount} affiliate URLs with real Amazon ASINs`,
+          message: `Updated ${updatedCount} affiliate URLs with proper Amazon search URLs`,
           updated: updatedCount,
+          totalProcessed: products.length,
           timestamp: new Date().toISOString()
         }));
       } catch (error) {
