@@ -473,8 +473,16 @@ const server = http.createServer(async (req, res) => {
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         console.log('🔍 User categories for filtering:', userCategories);
         
-        // Temporarily disable 50% filter for testing
-        const personalizedProducts = allProducts;
+        // Filter products to ensure 50%+ off (all products are live Amazon products)
+        const personalizedProducts = allProducts.filter(product => {
+          // Calculate discount percentage using salePrice
+          const discount = Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100);
+          
+          console.log(`🔍 Product: ${product.title}, Original: $${product.originalPrice}, Sale: $${product.salePrice}, Discount: ${discount}%`);
+          
+          // Only show products with 50%+ off
+          return discount >= 50;
+        });
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
         // Add affiliate URLs and fix field names
