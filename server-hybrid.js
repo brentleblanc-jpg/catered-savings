@@ -567,11 +567,7 @@ const server = http.createServer(async (req, res) => {
         const prisma = new PrismaClient();
         
         // Get all products to fix their URLs
-        const products = await prisma.sponsoredProduct.findMany({
-          where: {
-            affiliateUrl: { not: null }
-          }
-        });
+        const products = await prisma.sponsoredProduct.findMany();
         
         let updatedCount = 0;
         
