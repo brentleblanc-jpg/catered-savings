@@ -182,13 +182,8 @@ app.get('/api/deals/personalized/:token', async (req, res) => {
     const { token } = req.params;
     const deals = await db.getPersonalizedDeals(token);
     
-    // Add affiliate URLs to sponsored products
-    if (deals.sponsoredProducts) {
-      deals.sponsoredProducts = deals.sponsoredProducts.map(product => ({
-        ...product,
-        affiliateUrl: db.buildAffiliateUrl(product)
-      }));
-    }
+    // Add affiliate URLs to sponsored products (already handled in database service)
+    // The database service now handles affiliate URL generation
     
     res.json({ success: true, deals });
   } catch (error) {
