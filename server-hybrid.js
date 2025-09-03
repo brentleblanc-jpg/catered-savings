@@ -405,19 +405,25 @@ const server = http.createServer(async (req, res) => {
         
         req.on('end', async () => {
           try {
-            const { title, price, originalPrice } = JSON.parse(body);
+            const { title, price, originalPrice, category } = JSON.parse(body);
             
             const { PrismaClient } = require('@prisma/client');
             const prisma = new PrismaClient();
+            
+            const updateData = {
+              price: price,
+              originalPrice: originalPrice
+            };
+            
+            if (category) {
+              updateData.category = category;
+            }
             
             const updateResult = await prisma.sponsoredProduct.updateMany({
               where: {
                 title: title
               },
-              data: {
-                price: price,
-                originalPrice: originalPrice
-              }
+              data: updateData
             });
             
             await prisma.$disconnect();
