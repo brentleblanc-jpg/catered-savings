@@ -388,6 +388,54 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Admin remove specific product API
+    if (req.url === '/api/admin/remove-product' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Database service not available' }));
+          return;
+        }
+        
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        
+        req.on('end', async () => {
+          try {
+            const { title } = JSON.parse(body);
+            
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            
+            const deleteResult = await prisma.sponsoredProduct.deleteMany({
+              where: {
+                title: title
+              }
+            });
+            
+            await prisma.$disconnect();
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: `Removed ${deleteResult.count} products with title: ${title}`,
+              deleted: deleteResult.count
+            }));
+          } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: error.message }));
+          }
+        });
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: error.message }));
+      }
+      return;
+    }
+    
     // Admin cleanup database API
     if (req.url === '/api/admin/cleanup-database' && req.method === 'POST') {
       try {
