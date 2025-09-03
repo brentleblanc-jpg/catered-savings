@@ -31,8 +31,8 @@ function getSponsoredProducts() {
   if (!sponsoredProducts) {
     try {
       console.log('🔄 Lazy loading sponsored products...');
-      const { getActiveSponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
-      sponsoredProducts = { getActiveSponsoredProducts, buildAffiliateUrl };
+      const { getActiveSponsoredProducts, buildAffiliateUrl, getProductsByCategories } = require('./data/sponsored-products');
+      sponsoredProducts = { getActiveSponsoredProducts, buildAffiliateUrl, getProductsByCategories };
       console.log('✅ Sponsored products loaded successfully');
     } catch (error) {
       console.log('❌ Sponsored products failed to load:', error.message);
