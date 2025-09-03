@@ -314,6 +314,93 @@ app.get('/api/admin/analytics', async (req, res) => {
   }
 });
 
+// Admin Mailchimp sync endpoint
+app.post('/api/admin/sync-mailchimp', async (req, res) => {
+  try {
+    console.log('🔄 Starting Mailchimp sync for pending users...');
+    
+    // Find users with pending Mailchimp status
+    const pendingUsers = await db.getUsersByMailchimpStatus('pending');
+    console.log(`📊 Found ${pendingUsers.length} users with pending Mailchimp status`);
+
+    const results = [];
+    
+    for (const user of pendingUsers) {
+      try {
+        console.log(`📧 Syncing user: ${user.email}`);
+        
+        // Parse preferences
+        const preferences = JSON.parse(user.preferences || '[]');
+        
+        // Create member data
+        const memberData = {
+          email_address: user.email,
+          status: 'subscribed',
+          merge_fields: {
+            FNAME: user.name || '',
+            LNAME: ''
+          },
+          tags: preferences
+        };
+
+        // Add to Mailchimp
+        const response = await mailchimp.lists.addListMember(
+          process.env.MAILCHIMP_LIST_ID,
+          memberData
+        );
+
+        console.log(`✅ Successfully synced ${user.email} to Mailchimp`);
+        console.log(`   Mailchimp ID: ${response.id}`);
+
+        // Update user status in database
+        await db.updateUserMailchimpStatus(user.id, 'subscribed', response.id);
+
+        results.push({
+          email: user.email,
+          status: 'success',
+          mailchimpId: response.id
+        });
+
+      } catch (error) {
+        if (error.status === 400 && error.response?.body?.title === 'Member Exists') {
+          console.log(`⚠️  User ${user.email} already exists in Mailchimp`);
+          
+          // Update status to subscribed
+          await db.updateUserMailchimpStatus(user.id, 'subscribed');
+          
+          results.push({
+            email: user.email,
+            status: 'already_exists',
+            message: 'User already exists in Mailchimp'
+          });
+        } else {
+          console.error(`❌ Failed to sync ${user.email}:`, error.message);
+          results.push({
+            email: user.email,
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+    }
+
+    console.log('🎉 Mailchimp sync completed!');
+    
+    res.json({
+      success: true,
+      message: `Synced ${results.length} users`,
+      results: results
+    });
+    
+  } catch (error) {
+    console.error('❌ Mailchimp sync failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Admin clicks endpoint
 app.get('/api/admin/clicks', async (req, res) => {
   try {

@@ -174,13 +174,26 @@ class DatabaseService {
     };
   }
 
-  async updateUserMailchimpStatus(email, status) {
+  async updateUserMailchimpStatus(userId, status, mailchimpId = null) {
+    const updateData = { 
+      mailchimpStatus: status,
+      lastActiveAt: new Date()
+    };
+    
+    if (mailchimpId) {
+      updateData.mailchimpId = mailchimpId;
+    }
+    
     return await prisma.user.update({
-      where: { email },
-      data: { 
-        mailchimpStatus: status,
-        lastActiveAt: new Date()
-      }
+      where: { id: userId },
+      data: updateData
+    });
+  }
+
+  async getUsersByMailchimpStatus(status) {
+    return await prisma.user.findMany({
+      where: { mailchimpStatus: status },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
