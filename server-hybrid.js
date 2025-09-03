@@ -608,6 +608,45 @@ const server = http.createServer(async (req, res) => {
     
     // Admin cleanup database API
     // Admin endpoint to remove products with null categories (fake products)
+    // Admin endpoint to fix product data mismatches
+    if (req.url === '/api/admin/fix-product-mismatches' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        // Remove products with incorrect image/link data to prevent legal issues
+        const instantPotResult = await prisma.sponsoredProduct.deleteMany({
+          where: { title: "Instant Pot Duo 7-in-1 Electric Pressure Cooker" }
+        });
+        
+        const ringDoorbellResult = await prisma.sponsoredProduct.deleteMany({
+          where: { title: "Ring Video Doorbell Wired" }
+        });
+        
+        await prisma.$disconnect();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: "Removed products with incorrect image/link data",
+          instantPotRemoved: instantPotResult.count,
+          ringDoorbellRemoved: ringDoorbellResult.count
+        }));
+      } catch (error) {
+        console.error('Error fixing product mismatches:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+      return;
+    }
+    
     if (req.url === '/api/admin/remove-null-category-products' && req.method === 'POST') {
       try {
         const db = getDatabaseService();
