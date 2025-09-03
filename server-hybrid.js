@@ -1409,6 +1409,15 @@ const server = http.createServer(async (req, res) => {
             
             if (existingMember) {
               console.log(`✅ User ${user.email} already exists in Mailchimp`);
+              
+              // Update user status in database
+              try {
+                await db.updateUserMailchimpStatus(user.id, 'synced');
+                console.log(`✅ Updated database status for existing user ${user.email}`);
+              } catch (dbError) {
+                console.error(`⚠️ Failed to update database status for ${user.email}:`, dbError.message);
+              }
+              
               syncedCount++;
               continue;
             }
@@ -1429,6 +1438,15 @@ const server = http.createServer(async (req, res) => {
                 });
                 
                 console.log(`✅ Added user ${user.email} to Mailchimp`);
+                
+                // Update user status in database
+                try {
+                  await db.updateUserMailchimpStatus(user.id, 'synced');
+                  console.log(`✅ Updated database status for ${user.email}`);
+                } catch (dbError) {
+                  console.error(`⚠️ Failed to update database status for ${user.email}:`, dbError.message);
+                }
+                
                 syncedCount++;
               } catch (addError) {
                 console.error(`❌ Failed to add user ${user.email}:`, addError.message);
