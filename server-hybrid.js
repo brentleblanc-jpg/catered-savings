@@ -566,14 +566,10 @@ const server = http.createServer(async (req, res) => {
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
         
-        // Get all products that need URL fixes
+        // Get all products to fix their URLs
         const products = await prisma.sponsoredProduct.findMany({
           where: {
-            OR: [
-              { affiliateUrl: { contains: 'B0CHX1W1XY' } }, // Placeholder ASINs
-              { affiliateUrl: { contains: 'placeholder' } },
-              { affiliateUrl: null }
-            ]
+            affiliateUrl: { not: null }
           }
         });
         
