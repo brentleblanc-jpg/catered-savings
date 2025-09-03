@@ -467,44 +467,41 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        // Get products by user's categories (temporary fix)
-        console.log('🔍 Available functions:', Object.keys(productsModule));
+        // Get products by user's categories from database
+        console.log('🔍 Getting products from database for categories:', userCategories);
         
-        // Use the personalized deals function
-        const allProducts = productsModule.getProductsByCategories(userCategories, 1000);
+        const allProducts = await db.getProductsByCategories(userCategories, 1000);
         console.log('🔍 Total products found for user categories:', allProducts.length);
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         console.log('🔍 User categories for filtering:', userCategories);
         
         // Filter products to ensure 50%+ off (all products are live Amazon products)
         const personalizedProducts = allProducts.filter(product => {
-          // Calculate discount percentage using salePrice
-          const discount = Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100);
+          // Calculate discount percentage using price field from database
+          const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
           
-          console.log(`🔍 Product: ${product.title}, Original: $${product.originalPrice}, Sale: $${product.salePrice}, Discount: ${discount}%`);
+          console.log(`🔍 Product: ${product.title}, Original: $${product.originalPrice}, Sale: $${product.price}, Discount: ${discount}%`);
           
           // Only show products with 50%+ off
           return discount >= 50;
         });
         console.log('🔍 Personalized products:', personalizedProducts.map(p => ({ title: p.title, category: p.category })));
         
-        // Add affiliate URLs and fix field names
+        // Fix field names for frontend compatibility
         const productsWithUrls = personalizedProducts.map(product => {
           console.log('🔍 Processing product:', product.title);
-          console.log('🔍 Product image:', product.image);
-          console.log('🔍 Product salePrice:', product.salePrice);
+          console.log('🔍 Product imageUrl:', product.imageUrl);
+          console.log('🔍 Product price:', product.price);
           console.log('🔍 Product originalPrice:', product.originalPrice);
-          
-          const affiliateUrl = productsModule.buildAffiliateUrl(product);
-          console.log('🔍 Built affiliate URL:', affiliateUrl);
+          console.log('🔍 Product affiliateUrl:', product.affiliateUrl);
           
           return {
             ...product,
             name: product.title,
-            imageUrl: product.image, // Use 'image' field from data
-            affiliateUrl: affiliateUrl, // Build affiliate URL
-            discount: Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100),
-            salePrice: product.salePrice, // Use 'salePrice' field
+            imageUrl: product.imageUrl, // Use 'imageUrl' field from database
+            affiliateUrl: product.affiliateUrl, // Use affiliate URL from database
+            discount: Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100),
+            salePrice: product.price, // Use 'price' field from database
             originalPrice: product.originalPrice
           };
         });

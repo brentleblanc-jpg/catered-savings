@@ -253,6 +253,59 @@ class DatabaseService {
     });
   }
 
+  // Get products by categories from database
+  async getProductsByCategories(categories, limit = 50) {
+    const now = new Date();
+    const products = await prisma.sponsoredProduct.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        OR: [
+          { endDate: null },
+          { endDate: { gte: now } }
+        ],
+        category: {
+          in: categories
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
+    
+    // Add affiliate URLs to products that don't have them
+    return products.map(product => {
+      // If product already has affiliateUrl, use it
+      if (product.affiliateUrl) {
+        return product;
+      }
+      
+      // Build affiliate URL based on product title and category
+      let affiliateUrl = '#';
+      
+      // For Amazon-style products, create Amazon affiliate URL
+      if (product.title && (
+        product.title.toLowerCase().includes('samsung') ||
+        product.title.toLowerCase().includes('sony') ||
+        product.title.toLowerCase().includes('apple') ||
+        product.title.toLowerCase().includes('echo') ||
+        product.title.toLowerCase().includes('fire') ||
+        product.title.toLowerCase().includes('kindle') ||
+        product.title.toLowerCase().includes('ring') ||
+        product.title.toLowerCase().includes('airpods') ||
+        product.title.toLowerCase().includes('ninja') ||
+        product.title.toLowerCase().includes('instant pot')
+      )) {
+        // Create Amazon search URL with affiliate ID
+        affiliateUrl = `https://www.amazon.com/s?k=${encodeURIComponent(product.title)}&tag=820cf-20`;
+      }
+      
+      return {
+        ...product,
+        affiliateUrl: affiliateUrl
+      };
+    });
+  }
+
   async getAllSponsoredProducts() {
     return await prisma.sponsoredProduct.findMany({
       orderBy: { createdAt: 'desc' }
