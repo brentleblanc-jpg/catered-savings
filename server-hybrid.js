@@ -455,13 +455,7 @@ const server = http.createServer(async (req, res) => {
         console.log('🔍 User categories is array:', Array.isArray(userCategories));
         console.log('🔍 User preferences raw:', user.preferences);
         
-        // Get sponsored products
-        const productsModule = getSponsoredProducts();
-        if (!productsModule) {
-          res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Sponsored products not available' }));
-          return;
-        }
+        // Database service is already loaded, no need for static products
         
         // Get products by user's categories from database
         console.log('🔍 Getting products from database for categories:', userCategories);
