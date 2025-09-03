@@ -197,7 +197,8 @@ const server = http.createServer(async (req, res) => {
           user: {
             name: user.name,
             email: user.email
-          }
+          },
+          timestamp: new Date().toISOString()
         }));
       } catch (error) {
         console.error('Error in personalized deals API:', error);
