@@ -206,8 +206,7 @@ const server = http.createServer(async (req, res) => {
                   email_address: email,
                   status: 'subscribed',
                   merge_fields: {
-                    FNAME: firstName || '',
-                    PERSONALIZ: personalizedUrl
+                    FNAME: firstName || ''
                   }
                 });
               console.log(`✅ User added to Mailchimp: ${email} with personalized URL: ${personalizedUrl}`);
