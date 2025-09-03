@@ -1,10 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+// Script to add products to production database via API
 
-const prisma = new PrismaClient();
-
-// Comprehensive list of tech-electronics products with real Amazon ASINs and 50%+ discounts
 const techElectronicsProducts = [
-  // Smartphones
   {
     title: "iPhone 15 Pro",
     description: "iPhone 15 Pro with A17 Pro chip and titanium design",
@@ -32,8 +28,6 @@ const techElectronicsProducts = [
     originalPrice: 899.99,
     category: "tech-electronics"
   },
-  
-  // Laptops
   {
     title: "MacBook Pro 14-inch M3",
     description: "MacBook Pro 14-inch with M3 chip",
@@ -61,8 +55,6 @@ const techElectronicsProducts = [
     originalPrice: 1399.99,
     category: "tech-electronics"
   },
-  
-  // Tablets
   {
     title: "iPad Pro 12.9-inch M2",
     description: "iPad Pro 12.9-inch with M2 chip",
@@ -81,8 +73,6 @@ const techElectronicsProducts = [
     originalPrice: 799.99,
     category: "tech-electronics"
   },
-  
-  // Headphones & Audio
   {
     title: "Sony WH-1000XM5 Headphones",
     description: "Sony WH-1000XM5 wireless noise canceling headphones",
@@ -110,8 +100,6 @@ const techElectronicsProducts = [
     originalPrice: 499.99,
     category: "tech-electronics"
   },
-  
-  // Smart Watches
   {
     title: "Apple Watch Series 9",
     description: "Apple Watch Series 9 GPS 45mm",
@@ -130,8 +118,6 @@ const techElectronicsProducts = [
     originalPrice: 299.99,
     category: "tech-electronics"
   },
-  
-  // Gaming
   {
     title: "Nintendo Switch OLED",
     description: "Nintendo Switch OLED Model with 7-inch screen",
@@ -159,8 +145,6 @@ const techElectronicsProducts = [
     originalPrice: 499.99,
     category: "tech-electronics"
   },
-  
-  // TVs
   {
     title: "Samsung 65-inch QLED 4K TV",
     description: "Samsung 65-inch QLED 4K UHD Smart TV",
@@ -179,8 +163,6 @@ const techElectronicsProducts = [
     originalPrice: 1399.99,
     category: "tech-electronics"
   },
-  
-  // Smart Home
   {
     title: "Amazon Echo Show 15",
     description: "Amazon Echo Show 15 smart display",
@@ -198,78 +180,33 @@ const techElectronicsProducts = [
     price: 99.99,
     originalPrice: 229.99,
     category: "tech-electronics"
-  },
-  
-  // Cameras
-  {
-    title: "Canon EOS R6 Mark II",
-    description: "Canon EOS R6 Mark II mirrorless camera",
-    imageUrl: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
-    affiliateUrl: "https://www.amazon.com/Canon-EOS-R6-Mark-II/dp/B0CHX1W1XY?tag=820cf-20",
-    price: 999.99,
-    originalPrice: 2499.99,
-    category: "tech-electronics"
-  },
-  {
-    title: "Sony A7 IV Camera",
-    description: "Sony A7 IV full-frame mirrorless camera",
-    imageUrl: "https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg",
-    affiliateUrl: "https://www.amazon.com/Sony-A7-IV-Camera/dp/B0CHX1W1XY?tag=820cf-20",
-    price: 1199.99,
-    originalPrice: 2498.99,
-    category: "tech-electronics"
   }
 ];
 
-async function addComprehensiveTechProducts() {
+async function addProductsToProduction() {
   try {
-    console.log('🚀 Adding comprehensive tech-electronics products...');
+    console.log('🚀 Adding tech-electronics products to production...');
     
-    let addedCount = 0;
-    let skippedCount = 0;
+    const response = await fetch('https://cateredsavers.com/api/admin/add-multiple-products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ products: techElectronicsProducts })
+    });
     
-    for (const product of techElectronicsProducts) {
-      try {
-        // Check if product already exists
-        const existing = await prisma.sponsoredProduct.findFirst({
-          where: { title: product.title }
-        });
-        
-        if (existing) {
-          console.log(`⏭️  Skipped (already exists): ${product.title}`);
-          skippedCount++;
-          continue;
-        }
-        
-        await prisma.sponsoredProduct.create({
-          data: {
-            title: product.title,
-            description: product.description,
-            imageUrl: product.imageUrl,
-            affiliateUrl: product.affiliateUrl,
-            price: product.price,
-            originalPrice: product.originalPrice,
-            category: product.category,
-            isActive: true,
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-          }
-        });
-        console.log(`✅ Added: ${product.title}`);
-        addedCount++;
-      } catch (error) {
-        console.log(`❌ Failed to add ${product.title}:`, error.message);
-      }
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ Success:', result.message);
+      console.log(`📊 Added: ${result.added}, Skipped: ${result.skipped}`);
+    } else {
+      console.error('❌ Error:', result.error);
     }
-    
-    console.log(`🎉 Tech electronics products added successfully!`);
-    console.log(`📊 Added: ${addedCount}, Skipped: ${skippedCount}`);
   } catch (error) {
-    console.error('❌ Error adding tech electronics products:', error);
-  } finally {
-    await prisma.$disconnect();
+    console.error('❌ Network error:', error.message);
   }
 }
 
 // Run the script
-addComprehensiveTechProducts();
+addProductsToProduction();
