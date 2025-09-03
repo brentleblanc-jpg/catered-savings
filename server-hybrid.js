@@ -577,16 +577,19 @@ const server = http.createServer(async (req, res) => {
             const searchQuery = encodeURIComponent(product.title);
             const newAffiliateUrl = `https://www.amazon.com/s?k=${searchQuery}&tag=820cf-20`;
             
-            const updateResult = await prisma.sponsoredProduct.updateMany({
-              where: { id: product.id },
-              data: { 
-                affiliateUrl: newAffiliateUrl
+            // Only update if the URL doesn't already have the correct format
+            if (!product.affiliateUrl || !product.affiliateUrl.includes('tag=820cf-20')) {
+              const updateResult = await prisma.sponsoredProduct.updateMany({
+                where: { id: product.id },
+                data: { 
+                  affiliateUrl: newAffiliateUrl
+                }
+              });
+              
+              if (updateResult.count > 0) {
+                console.log(`✅ Updated: ${product.title} -> ${newAffiliateUrl}`);
+                updatedCount += updateResult.count;
               }
-            });
-            
-            if (updateResult.count > 0) {
-              console.log(`✅ Updated: ${product.title}`);
-              updatedCount += updateResult.count;
             }
           } catch (error) {
             console.error(`❌ Failed to update ${product.title}:`, error.message);
