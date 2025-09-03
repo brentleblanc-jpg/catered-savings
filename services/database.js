@@ -255,7 +255,6 @@ class DatabaseService {
 
   // Get products by categories from database
   async getProductsByCategories(categories, limit = 50) {
-    console.log('getProductsByCategories called with:', categories, 'limit:', limit);
     const now = new Date();
     const products = await prisma.sponsoredProduct.findMany({
       where: {
@@ -272,7 +271,6 @@ class DatabaseService {
       orderBy: { createdAt: 'desc' },
       take: limit
     });
-    console.log('Database query returned:', products.length, 'products');
     
     // Add affiliate URLs to products that don't have them
     return products.map(product => {

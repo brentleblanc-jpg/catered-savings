@@ -164,11 +164,9 @@ const server = http.createServer(async (req, res) => {
         
         // Get user's categories
         const userCategories = JSON.parse(user.preferences || '[]');
-        console.log('User categories:', userCategories);
         
         // Get products by user's categories from database
         const allProducts = await db.getProductsByCategories(userCategories, 1000);
-        console.log('Products from database:', allProducts.length, allProducts.map(p => p.title));
         
         // Filter products to ensure 50%+ off
         const personalizedProducts = allProducts.filter(product => {
@@ -204,40 +202,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
-    // Debug endpoint to test database categories
-    if (req.url === '/api/debug-categories' && req.method === 'POST') {
-      try {
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', async () => {
-          try {
-            const { categories } = JSON.parse(body);
-            const db = getDatabaseService();
-            if (!db) {
-              res.writeHead(500, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Database service not available' }));
-              return;
-            }
-            
-            const products = await db.getProductsByCategories(categories, 1000);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 
-              success: true, 
-              categories: categories,
-              products: products.map(p => ({ title: p.title, category: p.category, price: p.price, originalPrice: p.originalPrice }))
-            }));
-          } catch (error) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: error.message }));
-          }
-        });
-      } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Internal server error' }));
-      }
-      return;
-    }
-    
+
     if (req.url === '/api/sponsored-products' && req.method === 'GET') {
       try {
         const db = getDatabaseService();
