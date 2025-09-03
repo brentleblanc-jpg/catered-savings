@@ -607,6 +607,42 @@ const server = http.createServer(async (req, res) => {
     }
     
     // Admin cleanup database API
+    // Admin endpoint to remove products with null categories (fake products)
+    if (req.url === '/api/admin/remove-null-category-products' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        // Delete products with null categories
+        const deleteResult = await prisma.sponsoredProduct.deleteMany({
+          where: {
+            category: null
+          }
+        });
+        
+        await prisma.$disconnect();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Removed ${deleteResult.count} products with null categories`,
+          deleted: deleteResult.count
+        }));
+      } catch (error) {
+        console.error('Error removing null category products:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+      return;
+    }
+    
     if (req.url === '/api/admin/cleanup-database' && req.method === 'POST') {
       try {
         const db = getDatabaseService();
