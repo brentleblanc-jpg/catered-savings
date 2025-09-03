@@ -467,15 +467,11 @@ const server = http.createServer(async (req, res) => {
         // Get products by user's categories (temporary fix)
         console.log('🔍 Available functions:', Object.keys(productsModule));
         
-        // Use the working method for now
-        const allProductsTemp = productsModule.getActiveSponsoredProducts(1000);
-        console.log('🔍 Total products found:', allProductsTemp.length);
-        const allProducts = allProductsTemp.filter(product => 
-          userCategories.includes(product.category)
-        );
+        // Use the personalized deals function
+        const allProducts = productsModule.getProductsByCategories(userCategories, 1000);
+        console.log('🔍 Total products found for user categories:', allProducts.length);
         console.log('🔍 Products for user categories:', allProducts.map(p => ({ title: p.title, category: p.category })));
         console.log('🔍 User categories for filtering:', userCategories);
-        console.log('🔍 All product categories:', allProductsTemp.map(p => p.category));
         
         // Filter products to ensure 50%+ off (all products are live Amazon products)
         const personalizedProducts = allProducts.filter(product => {
