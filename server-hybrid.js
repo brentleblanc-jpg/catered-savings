@@ -140,17 +140,13 @@ const server = http.createServer(async (req, res) => {
     // API Routes
     if (req.url === '/api/sponsored-products' && req.method === 'GET') {
       try {
-        const productsModule = getSponsoredProducts();
-        if (!productsModule) {
-          res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: 'Sponsored products not loaded' }));
-          return;
-        }
-        
-        const products = productsModule.getActiveSponsoredProducts();
+        const products = await db.getActiveSponsoredProducts();
         const productsWithUrls = products.map(product => ({
           ...product,
-          affiliateUrl: productsModule.buildAffiliateUrl(product)
+          name: product.title,
+          imageUrl: product.imageUrl,
+          salePrice: product.price,
+          affiliateUrl: product.affiliateUrl
         }));
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
