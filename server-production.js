@@ -425,6 +425,43 @@ app.get('/api/admin/clicks', async (req, res) => {
   }
 });
 
+// Test Mailchimp fields endpoint
+app.get('/api/mailchimp/test-fields', async (req, res) => {
+  try {
+    console.log('🔍 Testing Mailchimp configuration...');
+    
+    // Get list information
+    const listInfo = await mailchimp.lists.getList(process.env.MAILCHIMP_LIST_ID);
+    console.log('📋 List Info:', listInfo.name, listInfo.id);
+    
+    // Get merge fields
+    const mergeFields = await mailchimp.lists.getAllMergeFields(process.env.MAILCHIMP_LIST_ID);
+    console.log('🏷️ Available Merge Fields:', mergeFields.merge_fields.length);
+    
+    res.json({
+      success: true,
+      listInfo: {
+        name: listInfo.name,
+        id: listInfo.id,
+        memberCount: listInfo.stats.member_count
+      },
+      mergeFields: mergeFields.merge_fields.map(field => ({
+        tag: field.tag,
+        name: field.name,
+        type: field.type
+      }))
+    });
+    
+  } catch (error) {
+    console.error('❌ Test failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      response: error.response?.body
+    });
+  }
+});
+
 // Mailchimp users endpoint for sync comparison
 app.get('/api/mailchimp/users', async (req, res) => {
   try {
