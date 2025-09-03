@@ -561,7 +561,7 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         
-        console.log('🔧 Fixing affiliate URLs with proper Amazon search URLs...');
+        console.log('🔧 Fixing affiliate URLs with proper Amazon search URLs (v2)...');
         
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
