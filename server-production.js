@@ -338,7 +338,8 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
           status: 'subscribed',
           merge_fields: {
             FNAME: user.name || '',
-            LNAME: ''
+            LNAME: '',
+            PERSONALIZ: `https://cateredsavers.com/deals?token=${user.accessToken}`
           },
           tags: preferences
         };
