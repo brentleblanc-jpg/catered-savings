@@ -500,6 +500,81 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Admin endpoint to add multiple products
+    if (req.url === '/api/admin/add-multiple-products' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+          try {
+            const { products } = JSON.parse(body);
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            
+            let addedCount = 0;
+            let skippedCount = 0;
+            
+            for (const product of products) {
+              try {
+                // Check if product already exists
+                const existing = await prisma.sponsoredProduct.findFirst({
+                  where: { title: product.title }
+                });
+                
+                if (existing) {
+                  skippedCount++;
+                  continue;
+                }
+                
+                await prisma.sponsoredProduct.create({
+                  data: {
+                    title: product.title,
+                    description: product.description,
+                    imageUrl: product.imageUrl,
+                    affiliateUrl: product.affiliateUrl,
+                    price: product.price,
+                    originalPrice: product.originalPrice,
+                    category: product.category,
+                    isActive: true,
+                    startDate: new Date(),
+                    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+                  }
+                });
+                addedCount++;
+              } catch (error) {
+                console.error(`Failed to add ${product.title}:`, error.message);
+              }
+            }
+            
+            await prisma.$disconnect();
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: `Added ${addedCount} products, skipped ${skippedCount} existing products`,
+              added: addedCount,
+              skipped: skippedCount
+            }));
+          } catch (error) {
+            console.error('Error adding multiple products:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+      return;
+    }
+    
     if (req.url === '/api/admin/update-product-pricing' && req.method === 'POST') {
       try {
         const db = getDatabaseService();
