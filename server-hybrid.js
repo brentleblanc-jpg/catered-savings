@@ -31,8 +31,7 @@ function getSponsoredProducts() {
   if (!sponsoredProducts) {
     try {
       console.log('🔄 Lazy loading sponsored products...');
-      const { getActiveSponsoredProducts, buildAffiliateUrl, getProductsByCategories } = require('./data/sponsored-products');
-      sponsoredProducts = { getActiveSponsoredProducts, buildAffiliateUrl, getProductsByCategories };
+      console.log('⚠️ Static sponsored products file not needed - using database only');
       console.log('✅ Sponsored products loaded successfully');
     } catch (error) {
       console.log('❌ Sponsored products failed to load:', error.message);
@@ -371,7 +370,7 @@ const server = http.createServer(async (req, res) => {
           analytics: {
             totalUsers,
             activeUsers,
-            totalProducts: getSponsoredProducts() ? getSponsoredProducts().getActiveSponsoredProducts().length : 0,
+            totalProducts: 0, // TODO: Get from database
             categoryDistribution: {}
           }
         }));
