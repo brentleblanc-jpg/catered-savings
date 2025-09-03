@@ -489,10 +489,10 @@ const server = http.createServer(async (req, res) => {
         const productsWithUrls = personalizedProducts.map(product => ({
           ...product,
           name: product.title,
-          imageUrl: product.imageUrl,
-          affiliateUrl: product.affiliateUrl,
-          discount: Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100),
-          salePrice: product.price,
+          imageUrl: product.image, // Use 'image' field from data
+          affiliateUrl: productsModule.buildAffiliateUrl(product), // Build affiliate URL
+          discount: Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100),
+          salePrice: product.salePrice, // Use 'salePrice' field
           originalPrice: product.originalPrice
         }));
         
