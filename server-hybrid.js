@@ -390,6 +390,64 @@ const server = http.createServer(async (req, res) => {
     }
     
     // Admin update product pricing API
+    // Admin endpoint to fix expired tokens
+    if (req.url === '/api/admin/fix-expired-tokens' && req.method === 'POST') {
+      try {
+        const db = getDatabaseService();
+        if (!db) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Database service not available' }));
+          return;
+        }
+        
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        // Get all users with expired tokens
+        const now = new Date();
+        const users = await prisma.user.findMany({
+          where: {
+            accessToken: { not: null },
+            tokenExpiresAt: { lt: now }
+          },
+          select: {
+            id: true,
+            email: true,
+            tokenExpiresAt: true
+          }
+        });
+        
+        let fixedCount = 0;
+        for (const user of users) {
+          // Extend token by 30 days
+          const newExpiration = new Date();
+          newExpiration.setDate(newExpiration.getDate() + 30);
+          
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { tokenExpiresAt: newExpiration }
+          });
+          
+          fixedCount++;
+        }
+        
+        await prisma.$disconnect();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Fixed ${fixedCount} expired tokens`,
+          fixedCount: fixedCount,
+          totalExpired: users.length
+        }));
+      } catch (error) {
+        console.error('Error fixing expired tokens:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+      return;
+    }
+    
     if (req.url === '/api/admin/update-product-pricing' && req.method === 'POST') {
       try {
         const db = getDatabaseService();
