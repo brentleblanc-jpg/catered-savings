@@ -1,7 +1,11 @@
-// Script to add real Amazon products with working ASINs
+// Script to add REAL Amazon products with working ASINs and images
+
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 const realWorkingAmazonProducts = [
-  // Home & Garden - Real Amazon products with working ASINs
+  // Home & Garden - REAL Amazon products with working ASINs
   {
     title: "KitchenAid Artisan Stand Mixer",
     description: "KitchenAid Artisan Series 5-Qt Stand Mixer with Pouring Shield",
@@ -93,7 +97,7 @@ const realWorkingAmazonProducts = [
     category: "home-garden"
   },
   
-  // Tech & Electronics - Real Amazon products with working ASINs
+  // Tech & Electronics - REAL Amazon products with working ASINs
   {
     title: "Apple AirPods (3rd Generation)",
     description: "Apple AirPods (3rd Generation) with Lightning Charging Case",
@@ -185,7 +189,7 @@ const realWorkingAmazonProducts = [
     category: "tech-electronics"
   },
   
-  // Travel - Real Amazon products with working ASINs
+  // Travel - REAL Amazon products with working ASINs
   {
     title: "Samsonite Winfield 2 Hardside Luggage",
     description: "Samsonite Winfield 2 28-inch Hardside Spinner Luggage",
@@ -277,7 +281,7 @@ const realWorkingAmazonProducts = [
     category: "travel"
   },
   
-  // Office & Education - Real Amazon products with working ASINs
+  // Office & Education - REAL Amazon products with working ASINs
   {
     title: "Herman Miller Aeron Chair",
     description: "Herman Miller Aeron Ergonomic Office Chair",
@@ -372,37 +376,48 @@ const realWorkingAmazonProducts = [
 
 async function addRealWorkingAmazonProducts() {
   try {
-    console.log('🚀 Adding real Amazon products with working ASINs...');
+    console.log('🚀 Adding REAL Amazon products with working ASINs...');
     
-    // Add products with unique titles to avoid conflicts
-    const productsWithUniqueIds = realWorkingAmazonProducts.map((product, index) => ({
-      ...product,
-      title: `${product.title} - Working ASIN ${index + 1}`
-    }));
+    // First, clear existing products
+    const deleted = await prisma.sponsoredProduct.deleteMany({});
+    console.log(`🗑️ Deleted ${deleted.count} existing products`);
     
-    const response = await fetch('https://cateredsavers.com/api/admin/add-multiple-products', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ products: productsWithUniqueIds })
+    // Add real products
+    const result = await prisma.sponsoredProduct.createMany({
+      data: realWorkingAmazonProducts,
+      skipDuplicates: true
     });
     
-    const result = await response.json();
+    console.log(`✅ Successfully added ${result.count} REAL Amazon products`);
     
-    if (result.success) {
-      console.log('✅ Success:', result.message);
-      console.log(`📊 Added: ${result.added}, Skipped: ${result.skipped}`);
-      console.log('🎯 All products now have working Amazon ASINs with 50%+ discounts!');
-      console.log('🔗 Example working links:');
-      console.log('   - https://www.amazon.com/dp/B08N5WRWNW?tag=820cf-20');
-      console.log('   - https://www.amazon.com/dp/B00FLYWNYQ?tag=820cf-20');
-      console.log('   - https://www.amazon.com/dp/B09B8V1LZ3?tag=820cf-20');
-    } else {
-      console.error('❌ Error:', result.error);
-    }
+    // Verify the count
+    const totalProducts = await prisma.sponsoredProduct.count();
+    console.log(`📊 Total products in database: ${totalProducts}`);
+    
+    // Show sample products
+    const sampleProducts = await prisma.sponsoredProduct.findMany({
+      take: 5,
+      select: {
+        title: true,
+        affiliateUrl: true,
+        imageUrl: true,
+        category: true
+      }
+    });
+    
+    console.log(`\n📋 Sample REAL products added:`);
+    sampleProducts.forEach((product, index) => {
+      console.log(`${index + 1}. ${product.title}`);
+      console.log(`   Category: ${product.category}`);
+      console.log(`   URL: ${product.affiliateUrl}`);
+      console.log(`   Image: ${product.imageUrl}`);
+      console.log('');
+    });
+    
   } catch (error) {
-    console.error('❌ Network error:', error.message);
+    console.error('❌ Error adding products:', error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
