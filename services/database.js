@@ -97,7 +97,7 @@ class DatabaseService {
       data: {
         email,
         name,
-        preferences,
+        preferences: JSON.stringify(preferences),
         mailchimpStatus: 'pending',
         accessToken,
         tokenExpiresAt

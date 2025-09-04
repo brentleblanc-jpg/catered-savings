@@ -40,10 +40,15 @@ app.use(express.static('public'));
 let questionnaireResponses = [];
 
 // Configure Mailchimp
-mailchimp.setConfig({
-  apiKey: process.env.MAILCHIMP_API_KEY,
-  server: process.env.MAILCHIMP_SERVER_PREFIX
-});
+if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER_PREFIX) {
+  mailchimp.setConfig({
+    apiKey: process.env.MAILCHIMP_API_KEY,
+    server: process.env.MAILCHIMP_SERVER_PREFIX
+  });
+  console.log('✅ Mailchimp configured successfully');
+} else {
+  console.log('⚠️ Mailchimp not configured - missing API key or server prefix');
+}
 
 // Function to send personalized welcome email with company data
 async function sendPersonalizedWelcomeEmail(email, firstName, categories) {
@@ -156,7 +161,7 @@ app.post('/api/submit-savings', async (req, res) => {
     }
 
         // Add subscriber to Mailchimp audience
-    if (response.email) {
+    if (response.email && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER_PREFIX && process.env.MAILCHIMP_LIST_ID) {
       try {
         // Get the user's access token from database
         const user = await db.getUserByEmail(response.email);
@@ -187,6 +192,8 @@ app.post('/api/submit-savings', async (req, res) => {
         console.error('Full error details:', mailchimpError);
         console.log('⚠️  User signup saved locally, but Mailchimp sync failed for:', response.email);
       }
+    } else if (response.email) {
+      console.log('⚠️ Mailchimp not configured - user saved locally only:', response.email);
     }
 
     // Log the signup for your team (you can view this in Mailchimp dashboard)
