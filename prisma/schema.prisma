@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // Categories for organizing retailers and products
@@ -82,7 +82,10 @@ model SponsoredProduct {
   affiliateUrl     String
   price            Float?
   originalPrice    Float?
+  discount         Int? // Discount percentage
   category         String? // Category for product matching
+  source           String? // Source retailer (bestbuy, woot, etc.)
+  sku              String? // Product SKU
   isActive         Boolean @default(true)
   startDate        DateTime @default(now())
   endDate          DateTime?
