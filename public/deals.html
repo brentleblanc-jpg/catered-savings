@@ -247,8 +247,9 @@
             }
 
             getTokenFromUrl() {
-                const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get('token');
+                // Extract token from URL path (e.g., /deals/test-token-12345)
+                const pathParts = window.location.pathname.split('/');
+                return pathParts[pathParts.length - 1];
             }
 
             async init() {
