@@ -117,7 +117,7 @@ class DatabaseService {
   }
 
   async getUserByToken(token) {
-    return await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { 
         accessToken: token,
         tokenExpiresAt: {
@@ -125,6 +125,18 @@ class DatabaseService {
         }
       }
     });
+    
+    // Parse preferences JSON string if it exists
+    if (user && user.preferences) {
+      try {
+        user.preferences = JSON.parse(user.preferences);
+      } catch (e) {
+        console.error('Error parsing user preferences:', e);
+        user.preferences = {};
+      }
+    }
+    
+    return user;
   }
 
   async getUserById(userId) {
