@@ -40,10 +40,10 @@ app.use(express.static('public'));
 let questionnaireResponses = [];
 
 // Configure Mailchimp
-if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER_PREFIX) {
+if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
   mailchimp.setConfig({
     apiKey: process.env.MAILCHIMP_API_KEY,
-    server: process.env.MAILCHIMP_SERVER_PREFIX
+    server: process.env.MAILCHIMP_SERVER
   });
   console.log('✅ Mailchimp configured successfully');
 } else {
@@ -161,7 +161,7 @@ app.post('/api/submit-savings', async (req, res) => {
     }
 
         // Add subscriber to Mailchimp audience
-    if (response.email && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER_PREFIX && process.env.MAILCHIMP_LIST_ID) {
+    if (response.email && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER && process.env.MAILCHIMP_LIST_ID) {
       try {
         // Get the user's access token from database
         const user = await db.getUserByEmail(response.email);
@@ -253,7 +253,7 @@ app.get('/api/admin/analytics', async (req, res) => {
       const mailchimp = require('@mailchimp/mailchimp_marketing');
       mailchimp.setConfig({
         apiKey: process.env.MAILCHIMP_API_KEY,
-        server: process.env.MAILCHIMP_SERVER_PREFIX,
+        server: process.env.MAILCHIMP_SERVER,
       });
       const mailchimpResponse = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID, {
         count: 1000,
