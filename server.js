@@ -34,6 +34,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index-modern.html'));
 });
 
+// Deals page route (must be before static middleware)
+app.get('/deals/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals.html'));
+});
+
 app.use(express.static('public'));
 
 // Store questionnaire responses (in production, use a database)
@@ -510,10 +515,7 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Personalized deals page
-app.get('/deals/:token', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'deals.html'));
-});
+// Personalized deals page route moved above static middleware
 
 // Mailchimp users endpoint
 app.get('/api/mailchimp/users', async (req, res) => {
