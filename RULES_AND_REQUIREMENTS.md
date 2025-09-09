@@ -103,7 +103,7 @@ test: add fresh test scraper for validation
 - **Design Style**: User prefers modern, HubSpot-inspired design with clean, minimal aesthetics.
 
 ### **Technical Preferences**
-- **Database**: Prefer SQLite for local development (faster iteration), PostgreSQL for production
+- **Database**: PostgreSQL for all environments (local development and production)
 - **Testing**: Always use fresh test scraper to avoid duplicate deal issues when demonstrating functionality
 - **Documentation**: Prefer centralized, clean documentation over scattered files
 - **Deployment**: Railway platform preferred for production deployment
@@ -129,7 +129,7 @@ test: add fresh test scraper for validation
 
 ### **Technology Stack**
 - **Backend**: Node.js + Express.js
-- **Database**: SQLite (local dev) → PostgreSQL (production)
+- **Database**: PostgreSQL (all environments)
 - **ORM**: Prisma
 - **Frontend**: Vanilla HTML/CSS/JavaScript
 - **Email**: Mailchimp API integration

@@ -34,7 +34,7 @@ node server.js
 - ✅ **Deal Discovery**: Automated web scraping system
 - ✅ **Sponsored Products**: Monetization platform
 - ✅ **Admin Dashboard**: Real-time analytics
-- ✅ **Database**: Prisma + SQLite/PostgreSQL
+- ✅ **Database**: Prisma + PostgreSQL
 
 ## 🏗️ Architecture
 
