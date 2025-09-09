@@ -1314,16 +1314,16 @@ class AdminDashboard {
 
     parseCSV(csvText) {
         const lines = csvText.trim().split('\n');
-        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        const headers = this.parseCSVLine(lines[0]);
         const products = [];
 
         for (let i = 1; i < lines.length; i++) {
             if (lines[i].trim()) {
-                const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                const values = this.parseCSVLine(lines[i]);
                 const product = {};
                 
                 headers.forEach((header, index) => {
-                    product[header] = values[index];
+                    product[header] = values[index] || '';
                 });
                 
                 // Convert price fields to numbers
@@ -1336,6 +1336,28 @@ class AdminDashboard {
 
         this.csvData = products;
         this.showCSVPreview(products.slice(0, 3), headers);
+    }
+
+    parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        result.push(current.trim());
+        return result;
     }
 
     showCSVPreview(products, headers) {
