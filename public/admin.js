@@ -1443,7 +1443,7 @@ class AdminDashboard {
         uploadResults.style.display = 'block';
         
         // Refresh products table
-        this.loadProducts();
+        this.loadProductsTable();
     }
 
     downloadTemplate() {
