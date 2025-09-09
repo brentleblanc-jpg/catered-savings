@@ -22,10 +22,8 @@ class AdminDashboard {
             });
         });
 
-        // Add product button
-        document.getElementById('add-product-btn').addEventListener('click', () => {
-            this.openProductModal();
-        });
+        // CSV Upload functionality
+        this.setupCSVUpload();
 
         // Modal close
         document.querySelector('.close').addEventListener('click', () => {
@@ -1245,10 +1243,215 @@ class AdminDashboard {
             tbody.appendChild(row);
         });
     }
+
+    // CSV Upload functionality
+    setupCSVUpload() {
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('csv-file-input');
+        const browseBtn = document.getElementById('browse-files-btn');
+        const downloadTemplateBtn = document.getElementById('download-template-btn');
+        const processBtn = document.getElementById('process-csv-btn');
+        const cancelBtn = document.getElementById('cancel-upload-btn');
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                this.handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        // Browse button
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                this.handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Download template
+        downloadTemplateBtn.addEventListener('click', () => {
+            this.downloadTemplate();
+        });
+
+        // Process CSV
+        processBtn.addEventListener('click', () => {
+            this.processCSV();
+        });
+
+        // Cancel upload
+        cancelBtn.addEventListener('click', () => {
+            this.cancelUpload();
+        });
+    }
+
+    handleFileSelect(file) {
+        if (!file.name.endsWith('.csv')) {
+            alert('Please select a CSV file');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.parseCSV(e.target.result);
+        };
+        reader.readAsText(file);
+    }
+
+    parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        const products = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim()) {
+                const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                const product = {};
+                
+                headers.forEach((header, index) => {
+                    product[header] = values[index];
+                });
+                
+                // Convert price fields to numbers
+                if (product.price) product.price = parseFloat(product.price);
+                if (product.originalPrice) product.originalPrice = parseFloat(product.originalPrice);
+                
+                products.push(product);
+            }
+        }
+
+        this.csvData = products;
+        this.showCSVPreview(products.slice(0, 3), headers);
+    }
+
+    showCSVPreview(products, headers) {
+        const previewTable = document.getElementById('preview-table');
+        const csvPreview = document.getElementById('csv-preview');
+        
+        // Clear existing content
+        previewTable.innerHTML = '';
+        
+        // Create header row
+        const headerRow = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        previewTable.appendChild(headerRow);
+        
+        // Create data rows
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            headers.forEach(header => {
+                const td = document.createElement('td');
+                td.textContent = product[header] || '';
+                row.appendChild(td);
+            });
+            previewTable.appendChild(row);
+        });
+        
+        csvPreview.style.display = 'block';
+    }
+
+    async processCSV() {
+        if (!this.csvData || this.csvData.length === 0) {
+            alert('No data to process');
+            return;
+        }
+
+        const processBtn = document.getElementById('process-csv-btn');
+        const originalText = processBtn.innerHTML;
+        processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        processBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/admin/add-multiple-products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ products: this.csvData })
+            });
+
+            const result = await response.json();
+            this.showUploadResults(result);
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        } finally {
+            processBtn.innerHTML = originalText;
+            processBtn.disabled = false;
+        }
+    }
+
+    showUploadResults(result) {
+        const resultsDiv = document.getElementById('results-summary');
+        const uploadResults = document.getElementById('upload-results');
+        
+        resultsDiv.innerHTML = `
+            <div class="result-stat">
+                <div class="number">${result.added || 0}</div>
+                <div class="label">Added</div>
+            </div>
+            <div class="result-stat">
+                <div class="number">${result.skipped || 0}</div>
+                <div class="label">Skipped</div>
+            </div>
+            <div class="result-stat">
+                <div class="number">${(result.added || 0) + (result.skipped || 0)}</div>
+                <div class="label">Total Processed</div>
+            </div>
+        `;
+        
+        uploadResults.style.display = 'block';
+        
+        // Refresh products table
+        this.loadProducts();
+    }
+
+    downloadTemplate() {
+        const templateContent = `title,description,price,originalPrice,imageUrl,affiliateUrl,category,productType
+"KitchenAid Artisan Stand Mixer","KitchenAid Artisan Series 5-Qt Stand Mixer with Pouring Shield - Perfect for baking and cooking",199.99,399.99,"https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg","https://www.amazon.com/dp/B08N5WRWNW","home-garden","deal"
+"Instant Pot Duo 7-in-1","Instant Pot Duo 7-in-1 Electric Pressure Cooker, 6 Quart, 14 One-Touch Programs",49.97,99.95,"https://m.media-amazon.com/images/I/71QHvW2hl7L._AC_SL1500_.jpg","https://www.amazon.com/dp/B00FLYWNYQ","home-garden","deal"
+"Sony WH-1000XM4 Headphones","Industry Leading Noise Canceling Overhead Headphones with Mic for Phone-Call and Alexa Voice Control",199.99,349.99,"https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg","https://www.amazon.com/dp/B0863TXGM3","tech-electronics","deal"`;
+
+        const blob = new Blob([templateContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'products-template.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
+    cancelUpload() {
+        document.getElementById('csv-preview').style.display = 'none';
+        document.getElementById('upload-results').style.display = 'none';
+        document.getElementById('csv-file-input').value = '';
+        this.csvData = null;
+    }
 }
 
 // Initialize admin dashboard when page loads
 let adminDashboard;
+
 document.addEventListener('DOMContentLoaded', () => {
     adminDashboard = new AdminDashboard();
 });

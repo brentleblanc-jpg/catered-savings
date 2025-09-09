@@ -159,13 +159,53 @@
                 </div>
             </div>
 
-            <!-- Sponsored Products Tab -->
+            <!-- Products Management Tab -->
             <div id="products" class="tab-content">
                 <div class="tab-header">
-                    <h2>Sponsored Products Management</h2>
-                    <button class="btn btn-primary" id="add-product-btn">
-                        <i class="fas fa-plus"></i> Add Product
-                    </button>
+                    <h2>Products Management</h2>
+                    <div class="product-actions">
+                        <button class="btn btn-primary" id="upload-csv-btn">
+                            <i class="fas fa-upload"></i> Upload CSV
+                        </button>
+                        <button class="btn btn-secondary" id="download-template-btn">
+                            <i class="fas fa-download"></i> Download Template
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CSV Upload Section -->
+                <div class="csv-upload-section">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Upload Products CSV</h3>
+                            <p>Drag and drop your CSV file here, or click to browse</p>
+                            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                            <button class="btn btn-outline" id="browse-files-btn">Browse Files</button>
+                        </div>
+                    </div>
+                    
+                    <div class="csv-preview" id="csv-preview" style="display: none;">
+                        <h4>CSV Preview (First 3 rows)</h4>
+                        <div class="preview-table-container">
+                            <table class="preview-table" id="preview-table">
+                                <!-- Preview rows will be inserted here -->
+                            </table>
+                        </div>
+                        <div class="preview-actions">
+                            <button class="btn btn-success" id="process-csv-btn">
+                                <i class="fas fa-check"></i> Process Data
+                            </button>
+                            <button class="btn btn-secondary" id="cancel-upload-btn">Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-results" id="upload-results" style="display: none;">
+                        <h4>Upload Results</h4>
+                        <div class="results-summary" id="results-summary">
+                            <!-- Results will be inserted here -->
+                        </div>
+                    </div>
                 </div>
 
                 <div class="products-table-container">
@@ -256,9 +296,6 @@
                 <div class="tab-header">
                     <h2>User Management</h2>
                     <div class="user-actions">
-                        <button class="btn btn-primary" id="add-user-btn">
-                            <i class="fas fa-plus"></i> Add User
-                        </button>
                         <button class="btn btn-secondary" id="sync-mailchimp-btn">
                             <i class="fas fa-sync"></i> Sync with Mailchimp
                         </button>
