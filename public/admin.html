@@ -44,7 +44,7 @@
                 </li>
                 <li class="nav-item" data-tab="products">
                     <i class="fas fa-box"></i>
-                    <span>Sponsored Products</span>
+                    <span>Products</span>
                 </li>
                 <li class="nav-item" data-tab="analytics">
                     <i class="fas fa-chart-bar"></i>
@@ -166,6 +166,9 @@
                         <button class="btn btn-secondary" id="download-template-btn">
                             <i class="fas fa-download"></i> Download Template
                         </button>
+                        <button class="btn btn-danger" id="clear-all-products-btn">
+                            <i class="fas fa-trash"></i> Clear All Products
+                        </button>
                     </div>
                 </div>
 
@@ -209,17 +212,26 @@
                         <thead>
                             <tr>
                                 <th>Product</th>
-                                <th>Retailer</th>
+                                <th>Category</th>
                                 <th>Price</th>
-                                <th>Monthly Fee</th>
-                                <th>Affiliate ID</th>
+                                <th>Original Price</th>
+                                <th>Discount</th>
+                                <th>Type</th>
                                 <th>Status</th>
                                 <th>Clicks</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="products-table-body">
-                            <!-- Products will be loaded here -->
+                            <tr>
+                                <td colspan="9" class="empty-state">
+                                    <div class="empty-content">
+                                        <i class="fas fa-box"></i>
+                                        <p>No products found</p>
+                                        <p>Products are loading from the server...</p>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

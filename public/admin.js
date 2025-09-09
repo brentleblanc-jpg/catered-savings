@@ -238,7 +238,7 @@ class AdminDashboard {
                 this.loadDashboardCharts();
                 break;
             case 'products':
-                this.loadProductsTable();
+                this.loadAllProducts();
                 break;
             case 'analytics':
                 this.loadAnalytics();
@@ -527,13 +527,126 @@ class AdminDashboard {
         this.openProductModal(productId);
     }
 
-    deleteProduct(productId) {
+    async deleteProduct(productId) {
         if (confirm('Are you sure you want to delete this product?')) {
-            this.products = this.products.filter(p => p.id !== productId);
-            this.loadProductsTable();
-            this.updateDashboardStats();
-            this.loadRevenueData();
-            this.showNotification('Product deleted successfully!', 'success');
+            try {
+                const response = await fetch(`/api/admin/products/${productId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    this.showNotification('Product deleted successfully!', 'success');
+                    this.loadAllProducts();
+                } else {
+                    throw new Error('Failed to delete product');
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                this.showNotification('Error deleting product', 'error');
+            }
+        }
+    }
+
+    async loadAllProducts() {
+        try {
+            const response = await fetch('/api/sponsored-products');
+            const data = await response.json();
+            
+            if (data.success && data.products) {
+                this.products = data.products;
+                this.renderProductsTable();
+            } else {
+                this.showEmptyState();
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            this.showEmptyState();
+        }
+    }
+
+    renderProductsTable() {
+        const tbody = document.getElementById('products-table-body');
+        tbody.innerHTML = '';
+
+        if (this.products.length === 0) {
+            this.showEmptyState();
+            return;
+        }
+
+        this.products.forEach(product => {
+            const discount = product.originalPrice ? 
+                Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="product-info">
+                        <div class="product-image">
+                            <img src="${product.imageUrl || 'https://via.placeholder.com/50'}" alt="${product.title}" onerror="this.src='https://via.placeholder.com/50'">
+                        </div>
+                        <div class="product-details">
+                            <h4>${product.title}</h4>
+                            <p>${product.description || 'No description'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td>${product.category || 'N/A'}</td>
+                <td>$${product.price || '0'}</td>
+                <td>$${product.originalPrice || '0'}</td>
+                <td>${discount}%</td>
+                <td>
+                    <span class="type-badge ${product.productType === 'deal' ? 'deal' : 'sponsored'}">
+                        ${product.productType || 'deal'}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge ${product.isActive ? 'active' : 'inactive'}">
+                        ${product.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td>${product.clickCount || 0}</td>
+                <td>
+                    <button class="btn btn-sm btn-danger" onclick="adminDashboard.deleteProduct('${product.id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    showEmptyState() {
+        const tbody = document.getElementById('products-table-body');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty-state">
+                    <div class="empty-content">
+                        <i class="fas fa-box"></i>
+                        <p>No products found</p>
+                        <p>Upload a CSV file to add products</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    async clearAllProducts() {
+        if (confirm('Are you sure you want to delete ALL products? This action cannot be undone.')) {
+            try {
+                const response = await fetch('/api/admin/clear-all-products', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    this.showNotification('All products deleted successfully!', 'success');
+                    this.loadAllProducts();
+                } else {
+                    throw new Error('Failed to delete products');
+                }
+            } catch (error) {
+                console.error('Error clearing products:', error);
+                this.showNotification('Error clearing products', 'error');
+            }
         }
     }
 
@@ -1297,6 +1410,14 @@ class AdminDashboard {
         cancelBtn.addEventListener('click', () => {
             this.cancelUpload();
         });
+
+        // Clear all products
+        const clearAllBtn = document.getElementById('clear-all-products-btn');
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                this.clearAllProducts();
+            });
+        }
     }
 
     handleFileSelect(file) {
