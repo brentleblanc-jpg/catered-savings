@@ -399,7 +399,7 @@
                 <div class="automation-section">
                     <div class="automation-header">
                         <h3>Weekly Email Automation</h3>
-                        <p>Follow these steps in order to send fresh deals to your subscribers</p>
+                        <p>Follow these steps to upload products and send personalized deals to your subscribers</p>
                     </div>
                     
                     <div class="automation-status">
@@ -414,13 +414,13 @@
                             <div class="step-header">
                                 <span class="step-number">1</span>
                                 <div class="step-info">
-                                    <h4>Scrape Amazon Deals</h4>
-                                    <p>Find 50%+ off deals from Amazon with your affiliate tracking (820cf-20)</p>
+                                    <h4>Upload Product CSV</h4>
+                                    <p>Upload your products CSV file with deals and sponsored products</p>
                                 </div>
                             </div>
                             <div class="step-action">
-                                <button class="btn btn-outline" id="scrape-amazon-deals">
-                                    <i class="fab fa-amazon"></i> Scrape Amazon
+                                <button class="btn btn-outline" onclick="document.querySelector('[data-tab=products]').click()">
+                                    <i class="fas fa-upload"></i> Upload CSV
                                 </button>
                             </div>
                         </div>
@@ -429,13 +429,13 @@
                             <div class="step-header">
                                 <span class="step-number">2</span>
                                 <div class="step-info">
-                                    <h4>Test Your Scrapers</h4>
-                                    <p>Verify that your deal scrapers are working before running the full discovery</p>
+                                    <h4>Review Products</h4>
+                                    <p>Check your uploaded products and verify they're displaying correctly</p>
                                 </div>
                             </div>
                             <div class="step-action">
-                                <button class="btn btn-outline" id="test-scraper">
-                                    <i class="fas fa-flask"></i> Test Scraper
+                                <button class="btn btn-outline" onclick="document.querySelector('[data-tab=products]').click()">
+                                    <i class="fas fa-eye"></i> View Products
                                 </button>
                             </div>
                         </div>
@@ -444,13 +444,13 @@
                             <div class="step-header">
                                 <span class="step-number">3</span>
                                 <div class="step-info">
-                                    <h4>Find Fresh Deals</h4>
-                                    <p>Scrape all retailers to discover new 50%+ off deals and update your database</p>
+                                    <h4>Send Weekly Email</h4>
+                                    <p>Send personalized deals to your subscribers via Mailchimp</p>
                                 </div>
                             </div>
                             <div class="step-action">
-                                <button class="btn btn-secondary" id="run-deal-discovery">
-                                    <i class="fas fa-search"></i> Run Deal Discovery
+                                <button class="btn btn-secondary" id="send-weekly-email">
+                                    <i class="fas fa-paper-plane"></i> Send Email
                                 </button>
                             </div>
                         </div>
