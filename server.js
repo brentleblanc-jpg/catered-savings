@@ -39,6 +39,21 @@ app.get('/deals/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'deals.html'));
 });
 
+// New deals page route for testing
+app.get('/deals-new.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals-new.html'));
+});
+
+// Fixed deals page route
+app.get('/deals-fixed.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals-fixed.html'));
+});
+
+// Standalone deals page route
+app.get('/deals-standalone.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals-standalone.html'));
+});
+
 app.use(express.static('public'));
 
 // Store questionnaire responses (in production, use a database)

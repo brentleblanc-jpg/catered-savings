@@ -3,73 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Your Personalized Deals - Catered Savers</title>
-    <link rel="stylesheet" href="styles-modern.css?v=2025-09-11-3">
+    <link rel="stylesheet" href="styles-modern.css?v=2025-09-11-2">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* Deals Page Specific Styles */
         .deals-page {
             min-height: 100vh;
-            background: #f8f9fa !important;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-            color: #33475b !important;
+            background: var(--background-light);
         }
         
         .deals-container {
-            max-width: 1200px !important;
-            margin: 0 auto !important;
-            padding: 60px 24px !important;
-            text-align: center !important;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 24px;
         }
         
         .deals-header {
-            text-align: center !important;
-            margin-bottom: 60px !important;
+            text-align: center;
+            margin-bottom: 60px;
         }
         
         .deals-title {
-            font-size: 3rem !important;
-            font-weight: 700 !important;
-            color: #33475b !important;
-            margin-bottom: 16px !important;
-            text-align: center !important;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
         }
         
         .deals-subtitle {
-            font-size: 1.25rem !important;
-            color: #6c757d !important;
-            margin-bottom: 40px !important;
-            text-align: center !important;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
         }
         
         .deals-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
             margin-bottom: 60px;
-            justify-content: center;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
         }
         
         .deal-card {
-            background: #ffffff;
-            border-radius: 16px;
+            background: var(--background-white);
+            border-radius: var(--radius-large);
             padding: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e9ecef;
-            transition: all 0.3s ease;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-medium);
             overflow: hidden;
         }
         
         .deal-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--shadow-heavy);
         }
         
         .deal-image {
@@ -79,9 +67,9 @@
         
         .deal-image img {
             width: 100%;
-            height: 200px;
+            height: 250px;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform var(--transition-medium);
         }
         
         .deal-card:hover .deal-image img {
@@ -89,7 +77,7 @@
         }
         
         .deal-content {
-            padding: 20px;
+            padding: 24px;
         }
         
         .deal-header {
@@ -100,17 +88,13 @@
         }
         
         .deal-title {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 600;
-            color: #33475b;
+            color: var(--text-primary);
             margin: 0;
-            line-height: 1.3;
+            line-height: 1.4;
             flex: 1;
             margin-right: 16px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
         
         .deal-price {
@@ -120,34 +104,29 @@
         
         .deal-original-price {
             text-decoration: line-through;
-            color: #8a9ba8;
+            color: var(--text-light);
             font-size: 0.9rem;
             display: block;
         }
         
         .deal-sale-price {
-            color: #ff7a59;
-            font-size: 1.3rem;
+            color: var(--primary-blue);
+            font-size: 1.5rem;
             font-weight: 700;
             display: block;
         }
         
         .deal-description {
-            color: #6c757d;
-            margin-bottom: 16px;
-            line-height: 1.5;
-            font-size: 0.9rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
         
         .deal-discount {
-            background: #ff7a59;
+            background: var(--primary-blue);
             color: white;
             padding: 4px 12px;
-            border-radius: 6px;
+            border-radius: var(--radius-small);
             font-size: 0.875rem;
             font-weight: 600;
             display: inline-block;
@@ -157,18 +136,18 @@
         .deal-cta {
             display: block !important;
             width: 100%;
-            padding: 12px 20px;
+            padding: 16px 24px;
             background: #ff7a59 !important;
             color: white !important;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 12px;
             text-align: center;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 1rem;
             transition: all 0.2s ease;
             border: none;
             cursor: pointer;
-            margin-top: 12px;
+            margin-top: 16px;
         }
         
         .deal-cta:hover {
@@ -184,13 +163,13 @@
         .loading, .error, .no-deals {
             text-align: center;
             padding: 80px 20px;
-            color: #6c757d;
+            color: var(--text-secondary);
         }
         
         .loading i {
             font-size: 2rem;
             margin-bottom: 16px;
-            color: #ff7a59;
+            color: var(--primary-blue);
         }
         
         .error {
@@ -198,22 +177,22 @@
         }
         
         .no-deals {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e9ecef;
+            background: var(--background-white);
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-light);
         }
         
         .no-deals i {
             font-size: 3rem;
             margin-bottom: 24px;
-            color: #8a9ba8;
+            color: var(--text-light);
         }
         
         .no-deals h3 {
             font-size: 1.5rem;
             margin-bottom: 12px;
-            color: #33475b;
+            color: var(--text-primary);
         }
         
         .no-deals p {
@@ -224,16 +203,16 @@
         .back-to-home {
             display: inline-block;
             padding: 12px 24px;
-            background: #ff7a59;
+            background: var(--primary-blue);
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: var(--radius-medium);
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all var(--transition-fast);
         }
         
         .back-to-home:hover {
-            background: #e85d3a;
+            background: var(--primary-blue-dark);
             transform: translateY(-1px);
         }
     </style>
@@ -356,6 +335,7 @@
             }
 
             displayDeals(deals) {
+                console.log('Displaying deals:', deals);
                 const loading = document.getElementById('loading');
                 const dealsGrid = document.getElementById('deals-grid');
                 
@@ -365,13 +345,16 @@
                 dealsGrid.innerHTML = '';
 
                 if (deals.sponsoredProducts && deals.sponsoredProducts.length > 0) {
+                    console.log('Found sponsored products:', deals.sponsoredProducts.length);
                     deals.sponsoredProducts.forEach(product => {
+                        console.log('Creating card for product:', product.title);
                         const dealCard = this.createDealCard(product);
                         dealsGrid.appendChild(dealCard);
                     });
                 }
 
                 if (deals.retailers && deals.retailers.length > 0) {
+                    console.log('Found retailers:', deals.retailers.length);
                     deals.retailers.forEach(retailer => {
                         const dealCard = this.createRetailerCard(retailer);
                         dealsGrid.appendChild(dealCard);
@@ -379,7 +362,10 @@
                 }
 
                 if (dealsGrid.children.length === 0) {
+                    console.log('No cards created, showing no deals');
                     this.showNoDeals();
+                } else {
+                    console.log('Created', dealsGrid.children.length, 'deal cards');
                 }
             }
 
