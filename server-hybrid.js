@@ -420,6 +420,38 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    // Admin sponsored products API
+    if (req.url === '/api/admin/sponsored-products' && req.method === 'GET') {
+      try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const products = await prisma.sponsoredProduct.findMany({
+          where: { isActive: true },
+          orderBy: { createdAt: 'desc' }
+        });
+        
+        await prisma.$disconnect();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          products: products,
+          totalRevenue: products.reduce((sum, p) => sum + (p.revenueGenerated || 0), 0),
+          activeCount: products.length
+        }));
+      } catch (error) {
+        console.error('Error fetching admin sponsored products:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Error fetching sponsored products',
+          error: error.message
+        }));
+      }
+      return;
+    }
+    
     // Admin analytics API
     if (req.url === '/api/admin/analytics' && req.method === 'GET') {
       try {
@@ -867,6 +899,84 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: error.message }));
+      }
+      return;
+    }
+    
+    // Admin endpoint to clear all products
+    if (req.url === '/api/admin/clear-all-products' && req.method === 'POST') {
+      try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const result = await prisma.sponsoredProduct.deleteMany({});
+        
+        await prisma.$disconnect();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          message: `Cleared ${result.count} products from database`,
+          deletedCount: result.count
+        }));
+      } catch (error) {
+        console.error('Error clearing products:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Error clearing products',
+          error: error.message
+        }));
+      }
+      return;
+    }
+    
+    // Admin endpoint to delete single product by ID
+    if (req.url === '/api/admin/delete-product' && req.method === 'POST') {
+      try {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+          try {
+            const { productId } = JSON.parse(body);
+            
+            if (!productId) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success: false,
+                message: 'Product ID is required'
+              }));
+              return;
+            }
+
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            
+            const result = await prisma.sponsoredProduct.delete({
+              where: { id: productId }
+            });
+            
+            await prisma.$disconnect();
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: 'Product deleted successfully',
+              deletedProduct: result
+            }));
+          } catch (error) {
+            console.error('Error deleting product:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: false,
+              message: 'Error deleting product',
+              error: error.message
+            }));
+          }
+        });
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
       }
       return;
     }
