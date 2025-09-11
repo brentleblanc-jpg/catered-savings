@@ -1309,19 +1309,39 @@ class AdminDashboard {
             const discrepancy = Math.abs((dbData.users ? dbData.users.length : 0) - (mailchimpData.totalSubscribers || 0));
             document.getElementById('discrepancy-count').textContent = discrepancy;
 
-            // Update sync status
+            // Update sync status with detailed results
+            const syncDetails = `
+                <div style="text-align: left; margin-top: 10px;">
+                    <strong>Sync Results:</strong><br>
+                    • Users synced: ${syncResult.syncedCount}<br>
+                    • Added to Mailchimp: ${syncResult.usersAddedToMailchimp || 0}<br>
+                    • Added to Database: ${syncResult.usersAddedToDb || 0}<br>
+                    • Database users: ${syncResult.dbUsersCount || 0}<br>
+                    • Mailchimp subscribers: ${syncResult.mailchimpMembersCount || 0}
+                </div>
+            `;
+
             if (discrepancy === 0) {
                 syncStatus.className = 'sync-status success';
-                syncStatus.innerHTML = '<i class="fas fa-check-circle"></i> User lists are in sync!';
+                syncStatus.innerHTML = '<i class="fas fa-check-circle"></i> User lists are in sync!' + syncDetails;
             } else if (discrepancy < 5) {
                 syncStatus.className = 'sync-status warning';
-                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Minor discrepancy: ${discrepancy} users differ`;
+                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Minor discrepancy: ${discrepancy} users differ` + syncDetails;
             } else {
                 syncStatus.className = 'sync-status error';
-                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Significant discrepancy: ${discrepancy} users differ`;
+                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Significant discrepancy: ${discrepancy} users differ` + syncDetails;
             }
 
-            this.showNotification(`Mailchimp sync completed: ${syncResult.syncedCount} users synced`, 'success');
+            // Show detailed notification
+            let notificationMessage = `Mailchimp sync completed! ${syncResult.syncedCount} users synced. Added ${syncResult.usersAddedToMailchimp || 0} to Mailchimp, ${syncResult.usersAddedToDb || 0} to database.`;
+            
+            // Add error information if any
+            if (syncResult.errors && syncResult.errors.length > 0) {
+                notificationMessage += ` ${syncResult.errors.length} errors occurred.`;
+                console.warn('Sync errors:', syncResult.errors);
+            }
+            
+            this.showNotification(notificationMessage, 'success');
             
         } catch (error) {
             syncStatus.className = 'sync-status error';

@@ -554,7 +554,7 @@ app.get('/api/mailchimp/users', async (req, res) => {
     
     mailchimp.setConfig({
       apiKey: process.env.MAILCHIMP_API_KEY,
-      server: process.env.MAILCHIMP_SERVER_PREFIX,
+      server: process.env.MAILCHIMP_SERVER,
     });
 
     // Get list members from Mailchimp
@@ -809,6 +809,129 @@ app.get('/api/admin/users', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching users',
+      error: error.message
+    });
+  }
+});
+
+// Sync with Mailchimp endpoint
+app.post('/api/admin/sync-mailchimp', async (req, res) => {
+  try {
+    console.log('🔄 Starting Mailchimp sync...');
+    
+    // Check if Mailchimp is configured
+    if (!process.env.MAILCHIMP_API_KEY || !process.env.MAILCHIMP_SERVER || !process.env.MAILCHIMP_LIST_ID) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mailchimp not configured - missing API key, server prefix, or list ID',
+        error: 'Missing environment variables'
+      });
+    }
+
+    // Configure Mailchimp
+    const mailchimp = require('@mailchimp/mailchimp_marketing');
+    mailchimp.setConfig({
+      apiKey: process.env.MAILCHIMP_API_KEY,
+      server: process.env.MAILCHIMP_SERVER
+    });
+
+    // Get all users from our database
+    const dbUsers = await db.getAllUsers();
+    console.log(`📊 Found ${dbUsers.length} users in database`);
+
+    // Get subscribers from Mailchimp (only subscribed and active)
+    const mailchimpResponse = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID, {
+      status: 'subscribed',
+      count: 1000 // Adjust if you have more than 1000 subscribers
+    });
+
+    const mailchimpMembers = mailchimpResponse.members.map(member => ({
+      email: member.email_address,
+      firstName: member.merge_fields.FNAME || '',
+      lastName: member.merge_fields.LNAME || '',
+      status: member.status,
+      subscribedAt: member.timestamp_signup,
+      lastChanged: member.last_changed
+    }));
+
+    console.log(`📧 Found ${mailchimpMembers.length} subscribed members in Mailchimp`);
+
+    // Find users in our DB but not in Mailchimp
+    const dbEmails = dbUsers.map(user => user.email.toLowerCase());
+    const mailchimpEmails = mailchimpMembers.map(member => member.email.toLowerCase());
+    
+    const usersToAddToMailchimp = dbUsers.filter(user => 
+      !mailchimpEmails.includes(user.email.toLowerCase())
+    );
+
+    // Find users in Mailchimp but not in our DB
+    const usersToAddToDb = mailchimpMembers.filter(member => 
+      !dbEmails.includes(member.email.toLowerCase())
+    );
+
+    console.log(`➕ ${usersToAddToMailchimp.length} users need to be added to Mailchimp`);
+    console.log(`➕ ${usersToAddToDb.length} users need to be added to database`);
+
+    let syncedCount = 0;
+    const errors = [];
+
+    // Add users to Mailchimp
+    for (const user of usersToAddToMailchimp) {
+      try {
+        await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
+          email_address: user.email,
+          status: 'subscribed',
+          merge_fields: {
+            FNAME: user.firstName || '',
+            LNAME: user.lastName || ''
+          }
+        });
+        console.log(`✅ Added to Mailchimp: ${user.email}`);
+        syncedCount++;
+      } catch (error) {
+        console.error(`❌ Failed to add ${user.email} to Mailchimp:`, error.message);
+        errors.push(`Failed to add ${user.email} to Mailchimp: ${error.message}`);
+      }
+    }
+
+    // Add users to our database
+    for (const member of usersToAddToDb) {
+      try {
+        await db.createUser({
+          email: member.email,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          preferences: {
+            categories: ['tech-electronics'], // Default category
+            exclusiveDeals: false
+          }
+        });
+        console.log(`✅ Added to database: ${member.email}`);
+        syncedCount++;
+      } catch (error) {
+        console.error(`❌ Failed to add ${member.email} to database:`, error.message);
+        errors.push(`Failed to add ${member.email} to database: ${error.message}`);
+      }
+    }
+
+    console.log(`🎉 Sync completed! ${syncedCount} users synced`);
+
+    res.json({
+      success: true,
+      message: 'Mailchimp sync completed successfully',
+      syncedCount: syncedCount,
+      dbUsersCount: dbUsers.length,
+      mailchimpMembersCount: mailchimpMembers.length,
+      usersAddedToMailchimp: usersToAddToMailchimp.length,
+      usersAddedToDb: usersToAddToDb.length,
+      errors: errors
+    });
+
+  } catch (error) {
+    console.error('❌ Error during Mailchimp sync:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during Mailchimp sync',
       error: error.message
     });
   }
