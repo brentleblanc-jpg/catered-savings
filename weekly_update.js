@@ -7,7 +7,7 @@ require('dotenv').config();
 // Configure Mailchimp
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
-  server: process.env.MAILCHIMP_SERVER_PREFIX
+  server: process.env.MAILCHIMP_SERVER
 });
 
 // Function to generate weekly deal digest with current data

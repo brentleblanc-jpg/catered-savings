@@ -554,7 +554,7 @@ app.get('/api/mailchimp/users', async (req, res) => {
     
     mailchimp.setConfig({
       apiKey: process.env.MAILCHIMP_API_KEY,
-      server: process.env.MAILCHIMP_SERVER_PREFIX,
+      server: process.env.MAILCHIMP_SERVER,
     });
 
     // Get list members from Mailchimp

@@ -5,7 +5,7 @@ require('dotenv').config();
 // Configure Mailchimp
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
-  server: process.env.MAILCHIMP_SERVER_PREFIX
+  server: process.env.MAILCHIMP_SERVER
 });
 
 // Function to sync categories as Mailchimp tags
