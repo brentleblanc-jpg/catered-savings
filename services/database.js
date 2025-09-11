@@ -116,6 +116,15 @@ class DatabaseService {
     });
   }
 
+  async updateUserPreferences(userId, preferences) {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: {
+        preferences: JSON.stringify(preferences)
+      }
+    });
+  }
+
   async getUserByToken(token) {
     const user = await prisma.user.findUnique({
       where: { 

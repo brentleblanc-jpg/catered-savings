@@ -152,13 +152,22 @@ app.post('/api/submit-savings', async (req, res) => {
     };
     
     // Save user to database
+    let userAccessToken = null;
     try {
       const existingUser = await db.getUserByEmail(response.email);
       if (!existingUser) {
-        await db.createUser(response.email, response.firstName, {
+        const newUser = await db.createUser(response.email, response.firstName, {
           categories: response.categories,
           submittedAt: timestamp
         });
+        userAccessToken = newUser.accessToken;
+      } else {
+        // Update existing user's preferences
+        await db.updateUserPreferences(existingUser.id, {
+          categories: response.categories,
+          submittedAt: timestamp
+        });
+        userAccessToken = existingUser.accessToken;
       }
     } catch (dbError) {
       console.error('Error saving user to database:', dbError);
@@ -212,7 +221,7 @@ app.post('/api/submit-savings', async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Welcome to Catered Savings!',
-      id: timestamp
+      id: userAccessToken || timestamp
     });
 
   } catch (error) {
