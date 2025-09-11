@@ -2,37 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const path = require('path');
+// const cron = require('node-cron');
 const db = require('./services/database');
-const { getActiveSponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
+// const dealDiscovery = require('./services/deal-discovery-manager');
+// const weeklyAutomation = require('./services/weekly-email-automation');
 require('dotenv').config();
 
-// Configure Mailchimp
-if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
-  mailchimp.setConfig({
-    apiKey: process.env.MAILCHIMP_API_KEY,
-    server: process.env.MAILCHIMP_SERVER,
-  });
-  console.log('✅ Mailchimp configured successfully');
-} else {
-  console.log('⚠️  Mailchimp not configured - missing API key or server');
-}
-
 const app = express();
-const PORT = process.env.PORT || 8080;
-
-// Add startup logging
-console.log('🚀 Starting Catered Savers server (ROUTING FIXED)...');
-console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`🔑 Mailchimp configured: ${!!(process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER)}`);
-console.log(`🗄️  Database configured: ${!!process.env.DATABASE_URL}`);
-
-// Force HTTPS in production
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && !req.secure && req.get('x-forwarded-proto') !== 'https') {
-    return res.redirect(`https://${req.headers.host}${req.url}`);
-  }
-  next();
-});
+const PORT = process.env.PORT || 3000;
 
 // Production environment detection
 const isProduction = process.env.NODE_ENV === 'production';
@@ -41,31 +18,14 @@ const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 
-// Security headers
-app.use((req, res, next) => {
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  next();
-});
-
 // Health check endpoint for production monitoring
 app.get('/health', (req, res) => {
-  console.log(`🔍 Health check request received from ${req.ip}`);
-  console.log(`🔍 Request headers:`, req.headers);
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     version: '1.0.0',
-    message: 'Catered Savers API is running',
-    domain: 'cateredsavers.com',
-    database_url_exists: !!process.env.DATABASE_URL,
-    database_url_preview: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'Not set',
-    mailchimp_api_key_exists: !!process.env.MAILCHIMP_API_KEY,
-    mailchimp_server_exists: !!process.env.MAILCHIMP_SERVER,
-    mailchimp_list_id_exists: !!process.env.MAILCHIMP_LIST_ID
+    message: 'Catered Savers API is running'
   });
 });
 
@@ -74,93 +34,426 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index-modern.html'));
 });
 
-// Personalized deals page
-app.get('/deals', (req, res) => {
+// Deals page route (must be before static middleware)
+app.get('/deals/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'deals.html'));
 });
 
-// API Routes
+// New deals page route for testing
+app.get('/deals-new.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals-new.html'));
+});
+
+// Fixed deals page route
+app.get('/deals-fixed.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals-fixed.html'));
+});
+
+// Standalone deals page route
+app.get('/deals-standalone.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deals-standalone.html'));
+});
+
+app.use(express.static('public'));
+
+// Store questionnaire responses (in production, use a database)
+let questionnaireResponses = [];
+
+// Configure Mailchimp
+if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER) {
+  mailchimp.setConfig({
+    apiKey: process.env.MAILCHIMP_API_KEY,
+    server: process.env.MAILCHIMP_SERVER
+  });
+  console.log('✅ Mailchimp configured successfully');
+} else {
+  console.log('⚠️ Mailchimp not configured - missing API key or server prefix');
+}
+
+// Function to send personalized welcome email with company data
+async function sendPersonalizedWelcomeEmail(email, firstName, categories) {
+  try {
+    // Generate personalized email content based on selected categories
+    let emailContent = `
+      <h2>Welcome to Catered Savings! 🎉</h2>
+      <p>Hi ${firstName},</p>
+      <p>Thank you for signing up for Catered Savings! Here are your personalized deal sources with 50%+ savings:</p>
+    `;
+
+    // Add company data for each selected category
+    categories.forEach(category => {
+      if (categoriesData[category]) {
+        const categoryInfo = categoriesData[category];
+        emailContent += `
+          <h3>${categoryInfo.name}</h3>
+          <p>${categoryInfo.description}</p>
+        `;
+        
+        categoryInfo.companies.forEach(company => {
+          const affiliateBadge = company.affiliate ? ' <span style="background: #ffd700; color: #1a1a1a; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">Affiliate</span>' : '';
+          emailContent += `
+            <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+              <h4 style="margin: 0 0 8px 0;">
+                <a href="${company.url}" style="color: #667eea; text-decoration: none;">${company.name}</a>${affiliateBadge}
+              </h4>
+              <p style="margin: 0; color: #6b7280;">${company.description}</p>
+            </div>
+          `;
+        });
+      }
+    });
+
+    emailContent += `
+      <p><strong>Coming Next Week:</strong> Your first curated deal digest featuring 50%+ off deals from these sources!</p>
+      <p>Happy saving! 💰</p>
+      <p>Best regards,<br>The Catered Savings Team</p>
+    `;
+
+    // Log personalized email content for manual sending through Mailchimp
+    console.log('Personalized email content generated for:', email);
+    console.log('Email content:', emailContent);
+    console.log('📧 Copy this content and send through Mailchimp campaigns!');
+    
+      } catch (error) {
+      console.error('Error generating personalized email:', error);
+    }
+}
+
+
+
+
+
+
+
+// Routes
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Submit savings preferences
 app.post('/api/submit-savings', async (req, res) => {
   try {
-    const { email, firstName, categories } = req.body;
+    const response = req.body;
+    const timestamp = new Date().toISOString();
     
-    if (!email || !categories || categories.length === 0) {
+    // Validate required fields
+    if (!response.email || !response.email.trim()) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Email and at least one category are required' 
+        message: 'Email address is required' 
       });
     }
-
-    // Create user in database
-    const user = await db.createUser(
-      email,
-      firstName || null,
-      JSON.stringify(categories)
-    );
-
-    // Add to Mailchimp
+    
+    if (!response.firstName || !response.firstName.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'First name is required' 
+      });
+    }
+    
+    if (!response.categories || response.categories.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please select at least one category' 
+      });
+    }
+    
+    // Store the response
+    const savingsResponse = {
+      ...response,
+      timestamp,
+      id: Date.now().toString()
+    };
+    
+    // Save user to database
+    let userAccessToken = null;
     try {
-      await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
-        email_address: email,
-        status: 'subscribed',
-        merge_fields: {
-          FNAME: firstName || '',
-          PERSONALIZ: `https://cateredsavers.com/deals?token=${user.accessToken}`
-        }
-      });
-    } catch (mailchimpError) {
-      console.error('Mailchimp error:', mailchimpError);
-      // Continue even if Mailchimp fails
+      const existingUser = await db.getUserByEmail(response.email);
+      if (!existingUser) {
+        const newUser = await db.createUser(response.email, response.firstName, {
+          categories: response.categories,
+          submittedAt: timestamp
+        });
+        userAccessToken = newUser.accessToken;
+      } else {
+        // Update existing user's preferences
+        await db.updateUserPreferences(existingUser.id, {
+          categories: response.categories,
+          submittedAt: timestamp
+        });
+        userAccessToken = existingUser.accessToken;
+      }
+    } catch (dbError) {
+      console.error('Error saving user to database:', dbError);
+      // Continue with Mailchimp even if DB save fails
     }
+
+        // Add subscriber to Mailchimp audience
+    if (response.email && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_SERVER && process.env.MAILCHIMP_LIST_ID) {
+      try {
+        // Get the user's access token from database
+        const user = await db.getUserByEmail(response.email);
+        const personalizedUrl = user?.accessToken ? 
+          `${process.env.BASE_URL || 'http://localhost:3000'}/deals/${user.accessToken}` : 
+          `${process.env.BASE_URL || 'http://localhost:3000'}/deals/pending`;
+
+        const mailchimpResult = await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
+          email_address: response.email,
+          status: 'subscribed',
+          merge_fields: {
+            FNAME: response.firstName.trim(),
+            CATEGORIES: response.categories.join(', '),
+            EXCLUSIVE_DEALS: response.exclusiveDeals ? 'Yes' : 'No',
+            PERSONALIZ: personalizedUrl
+          },
+          tags: response.categories
+        });
+
+        console.log('✅ Mailchimp Success! User added to audience:', response.email);
+        console.log('Mailchimp response:', mailchimpResult);
+
+        // Send personalized welcome email with company data
+        await sendPersonalizedWelcomeEmail(response.email, response.firstName.trim(), response.categories);
+        
+      } catch (mailchimpError) {
+        console.error('❌ Mailchimp Error:', mailchimpError.message);
+        console.error('Full error details:', mailchimpError);
+        console.log('⚠️  User signup saved locally, but Mailchimp sync failed for:', response.email);
+      }
+    } else if (response.email) {
+      console.log('⚠️ Mailchimp not configured - user saved locally only:', response.email);
+    }
+
+    // Log the signup for your team (you can view this in Mailchimp dashboard)
+    console.log('New Catered Savings Signup! 🎯');
+    console.log('Email:', response.email);
+    console.log('First Name:', response.firstName.trim());
+    console.log('Selected Categories:', response.categories.join(', '));
+    console.log('Exclusive Deals:', response.exclusiveDeals ? 'Yes' : 'No');
+    console.log('Submitted:', timestamp);
 
     res.json({ 
       success: true, 
-      message: 'Successfully signed up!',
-      user: {
-        id: user.id,
-        email: user.email,
-        accessToken: user.accessToken
-      }
+      message: 'Welcome to Catered Savings!',
+      id: userAccessToken || timestamp
     });
+
   } catch (error) {
-    console.error('Signup error:', error);
-    console.error('Error stack:', error.stack);
+    console.error('Error submitting questionnaire:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error processing signup',
-      error: error.message,
-      stack: error.stack
+      message: 'Error submitting savings preferences' 
     });
   }
 });
 
-// Get categories
+// Get all users (for admin purposes)
+app.get('/api/savings-responses', async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Get admin clicks data
+app.get('/api/admin/clicks', async (req, res) => {
+  try {
+    const clickAnalytics = await db.getClickAnalytics(30); // Last 30 days
+    res.json({ clicks: clickAnalytics });
+  } catch (error) {
+    console.error('Error fetching click analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// Get admin dashboard analytics
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    const analytics = await db.getAnalyticsSummary();
+    const users = await db.getAllUsers();
+    
+    // Get Mailchimp members for comparison
+    let mailchimpMembers = [];
+    try {
+      const mailchimp = require('@mailchimp/mailchimp_marketing');
+      mailchimp.setConfig({
+        apiKey: process.env.MAILCHIMP_API_KEY,
+        server: process.env.MAILCHIMP_SERVER,
+      });
+      const mailchimpResponse = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID, {
+        count: 1000,
+        status: 'subscribed'
+      });
+      mailchimpMembers = mailchimpResponse.members.map(member => member.email_address);
+    } catch (error) {
+      console.error('Error fetching Mailchimp members for comparison:', error);
+    }
+
+    // Add Mailchimp status to users and transform data for frontend
+    const usersWithStatus = users.map(user => ({
+      ...user,
+      categories: user.preferences?.categories || [],
+      mailchimpStatus: mailchimpMembers.includes(user.email) ? 'subscribed' : 'not-synced'
+    }));
+    
+    res.json({
+      ...analytics,
+      users: usersWithStatus
+    });
+  } catch (error) {
+    console.error('Error fetching analytics summary:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// Deal Discovery API Endpoints
+
+// Run deal discovery process
+app.post('/api/deal-discovery/run', async (req, res) => {
+  try {
+    const stats = await dealDiscovery.runDiscovery();
+    res.json({
+      success: true,
+      message: 'Deal discovery completed',
+      stats
+    });
+  } catch (error) {
+    console.error('Error running deal discovery:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error running deal discovery',
+      error: error.message
+    });
+  }
+});
+
+// Get deal discovery status
+app.get('/api/deal-discovery/status', (req, res) => {
+  try {
+    const status = dealDiscovery.getStatus();
+    res.json({
+      success: true,
+      status
+    });
+  } catch (error) {
+    console.error('Error getting deal discovery status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting status'
+    });
+  }
+});
+
+// Get recent discovered deals
+app.get('/api/deal-discovery/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const deals = await dealDiscovery.getRecentDeals(limit);
+    res.json({
+      success: true,
+      deals
+    });
+  } catch (error) {
+    console.error('Error getting recent deals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting recent deals'
+    });
+  }
+});
+
+// Get deal statistics
+app.get('/api/deal-discovery/stats', async (req, res) => {
+  try {
+    const stats = await dealDiscovery.getDealStatistics();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('Error getting deal statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting statistics'
+    });
+  }
+});
+
+// Test a specific scraper
+app.post('/api/deal-discovery/test/:scraper', async (req, res) => {
+  try {
+    const scraperName = req.params.scraper;
+    const deals = await dealDiscovery.testScraper(scraperName);
+    res.json({
+      success: true,
+      message: `Test completed for ${scraperName}`,
+      deals
+    });
+  } catch (error) {
+    console.error('Error testing scraper:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error testing scraper',
+      error: error.message
+    });
+  }
+});
+
+// Get savings response by ID
+app.get('/api/savings-responses/:id', (req, res) => {
+  const response = (global.savingsResponses || []).find(r => r.id === req.params.id);
+  if (response) {
+    res.json(response);
+  } else {
+    res.status(404).json({ message: 'Response not found' });
+  }
+});
+
+// Get all categories data
 app.get('/api/categories', async (req, res) => {
   try {
     const categories = await db.getAllCategories();
-    res.json({ success: true, categories });
+    
+    // Transform to match the existing frontend format
+    const categoriesData = {};
+    categories.forEach(category => {
+      categoriesData[category.slug] = {
+        name: category.name,
+        description: category.description,
+        companies: category.retailers.map(retailer => ({
+          name: retailer.hasActiveSale ? `✅ ${retailer.name}` : retailer.name,
+          url: retailer.url,
+          description: retailer.description,
+          affiliate: true
+        }))
+      };
+    });
+    
+    res.json(categoriesData);
   } catch (error) {
     console.error('Error fetching categories:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
 
 // Get sponsored products
 app.get('/api/sponsored-products', async (req, res) => {
   try {
-    const { getActiveSponsoredProducts, buildAffiliateUrl } = require('./data/sponsored-products');
-    const products = getActiveSponsoredProducts();
-    
-    // Add affiliate URLs to each product
-    const productsWithAffiliateUrls = products.map(product => ({
-      ...product,
-      affiliateUrl: buildAffiliateUrl(product)
-    }));
-    
-    res.json({ success: true, products: productsWithAffiliateUrls });
+    const products = await db.getActiveSponsoredProducts(4);
+    res.json({
+      success: true,
+      products: products
+    });
   } catch (error) {
     console.error('Error fetching sponsored products:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching sponsored products'
+    });
   }
 });
 
@@ -168,499 +461,541 @@ app.get('/api/sponsored-products', async (req, res) => {
 app.post('/api/track-sponsored-click', async (req, res) => {
   try {
     const { productId } = req.body;
-    await db.trackSponsoredClick(productId);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error tracking click:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Get personalized deals
-app.get('/api/deals/personalized/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const deals = await db.getPersonalizedDeals(token);
+    const metadata = {
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    };
     
-    // Add affiliate URLs to sponsored products (already handled in database service)
-    // The database service now handles affiliate URL generation
-    
-    res.json({ success: true, deals });
-  } catch (error) {
-    console.error('Error fetching personalized deals:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Admin routes
-app.get('/api/admin/users', async (req, res) => {
-  try {
-    const users = await db.getAllUsers();
-    res.json({ success: true, users });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Delete user endpoint
-app.delete('/api/admin/users/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    // Check if user exists
-    const user = await db.getUserById(userId);
-    if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'User not found' 
-      });
-    }
-
-    // Delete user from database
-    await db.deleteUser(userId);
-    
-    res.json({ 
-      success: true, 
-      message: 'User deleted successfully' 
-    });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Update affiliate ID for a product
-app.post('/api/admin/update-affiliate', async (req, res) => {
-  try {
-    const { productId, affiliateId, trackingId } = req.body;
-    
-    // Use imported sponsored products module
-    
-    // Find and update the product
-    const products = getActiveSponsoredProducts();
-    const product = products.find(p => p.id === parseInt(productId));
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-    
-    // Update affiliate fields
-    if (affiliateId !== undefined) product.affiliateId = affiliateId;
-    if (trackingId !== undefined) product.trackingId = trackingId;
-    
-    res.json({ success: true, message: 'Affiliate ID updated successfully' });
-  } catch (error) {
-    console.error('Error updating affiliate ID:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Get all sponsored products for admin management
-app.get('/api/admin/sponsored-products', async (req, res) => {
-  try {
-    // Add affiliate URLs to each product
-    const products = getActiveSponsoredProducts();
-    const productsWithAffiliateUrls = products.map(product => ({
-      ...product,
-      affiliateUrl: buildAffiliateUrl(product)
-    }));
-    
-    res.json({ success: true, products: productsWithAffiliateUrls });
-  } catch (error) {
-    console.error('Error fetching sponsored products:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Admin analytics endpoint
-app.get('/api/admin/analytics', async (req, res) => {
-  try {
-    const users = await db.getAllUsers();
-    const sponsoredProducts = await db.getActiveSponsoredProducts();
-    
-    // Calculate basic stats
-    const totalUsers = users.length;
-    const activeUsers = users.filter(user => user.isActive).length;
-    const totalProducts = sponsoredProducts.length;
-    
-    // Get category distribution
-    const categoryCounts = {};
-    users.forEach(user => {
-      try {
-        const categories = JSON.parse(user.preferences || '[]');
-        categories.forEach(cat => {
-          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-        });
-      } catch (e) {
-        // Skip invalid preferences
-      }
-    });
+    const clickData = await db.trackSponsoredClick(productId, metadata);
+    console.log('Sponsored click tracked:', clickData);
     
     res.json({
       success: true,
-      stats: {
-        totalUsers,
-        activeUsers,
-        totalProducts,
-        categoryDistribution: categoryCounts
-      }
+      message: 'Click tracked successfully'
     });
   } catch (error) {
-    console.error('Error fetching analytics:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Admin Mailchimp sync endpoint
-app.post('/api/admin/sync-mailchimp', async (req, res) => {
-  try {
-    console.log('🔄 Starting Mailchimp sync for pending users...');
-    
-    // Find users with pending Mailchimp status
-    const pendingUsers = await db.getUsersByMailchimpStatus('pending');
-    console.log(`📊 Found ${pendingUsers.length} users with pending Mailchimp status`);
-
-    const results = [];
-    
-    for (const user of pendingUsers) {
-      try {
-        console.log(`📧 Syncing user: ${user.email}`);
-        
-        // Parse preferences
-        const preferences = JSON.parse(user.preferences || '[]');
-        
-        // Create member data
-        const memberData = {
-          email_address: user.email,
-          status: 'subscribed',
-          merge_fields: {
-            FNAME: user.name || '',
-            LNAME: '',
-            PERSONALIZ: `https://cateredsavers.com/deals?token=${user.accessToken}`
-          },
-          tags: preferences
-        };
-
-        // Add to Mailchimp
-        const response = await mailchimp.lists.addListMember(
-          process.env.MAILCHIMP_LIST_ID,
-          memberData
-        );
-
-        console.log(`✅ Successfully synced ${user.email} to Mailchimp`);
-        console.log(`   Mailchimp ID: ${response.id}`);
-
-        // Update user status in database
-        await db.updateUserMailchimpStatus(user.id, 'subscribed', response.id);
-
-        results.push({
-          email: user.email,
-          status: 'success',
-          mailchimpId: response.id
-        });
-
-      } catch (error) {
-        if (error.status === 400 && error.response?.body?.title === 'Member Exists') {
-          console.log(`⚠️  User ${user.email} already exists in Mailchimp`);
-          
-          // Update status to subscribed
-          await db.updateUserMailchimpStatus(user.id, 'subscribed');
-          
-          results.push({
-            email: user.email,
-            status: 'already_exists',
-            message: 'User already exists in Mailchimp'
-          });
-        } else {
-          console.error(`❌ Failed to sync ${user.email}:`, error.message);
-          results.push({
-            email: user.email,
-            status: 'error',
-            error: error.message
-          });
-        }
-      }
-    }
-
-    console.log('🎉 Mailchimp sync completed!');
-    
-    res.json({
-      success: true,
-      message: `Synced ${results.length} users`,
-      results: results
-    });
-    
-  } catch (error) {
-    console.error('❌ Mailchimp sync failed:', error);
+    console.error('Error tracking sponsored click:', error);
     res.status(500).json({
       success: false,
+      message: 'Error tracking click'
+    });
+  }
+});
+
+
+
+
+
+// Add new company to a category
+app.post('/api/add-company', (req, res) => {
+  try {
+    const { category, name, url, affiliate, description } = req.body;
+    
+    if (!categoriesData[category]) {
+      return res.status(400).json({ success: false, message: 'Invalid category' });
+    }
+    
+    const newCompany = {
+      name,
+      url,
+      affiliate,
+      description
+    };
+    
+    categoriesData[category].companies.push(newCompany);
+    
+    res.json({ success: true, message: 'Company added successfully' });
+  } catch (error) {
+    console.error('Error adding company:', error);
+    res.status(500).json({ success: false, message: 'Error adding company' });
+  }
+});
+
+// Get sponsored products for admin
+app.get('/api/admin/sponsored-products', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const products = await prisma.sponsoredProduct.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      products: products,
+      totalRevenue: products.reduce((sum, p) => sum + (p.revenueGenerated || 0), 0),
+      activeCount: products.length
+    });
+  } catch (error) {
+    console.error('Error fetching admin sponsored products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching sponsored products',
       error: error.message
     });
   }
 });
 
-// Admin clicks endpoint
-app.get('/api/admin/clicks', async (req, res) => {
-  try {
-    const sponsoredProducts = await db.getAllSponsoredProducts();
-    const totalClicks = sponsoredProducts.reduce((sum, product) => sum + (product.clickCount || 0), 0);
-    
-    res.json({
-      success: true,
-      stats: {
-        totalClicks,
-        products: sponsoredProducts.map(p => ({
-          id: p.id,
-          title: p.title,
-          clicks: p.clickCount || 0
-        }))
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching clicks:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+// Admin panel route
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Test Mailchimp fields endpoint
-app.get('/api/mailchimp/test-fields', async (req, res) => {
-  try {
-    console.log('🔍 Testing Mailchimp configuration...');
-    
-    // Get list information
-    const listInfo = await mailchimp.lists.getList(process.env.MAILCHIMP_LIST_ID);
-    console.log('📋 List Info:', listInfo.name, listInfo.id);
-    
-    // Get merge fields
-    const mergeFields = await mailchimp.lists.getAllMergeFields(process.env.MAILCHIMP_LIST_ID);
-    console.log('🏷️ Available Merge Fields:', mergeFields.merge_fields.length);
-    
-    res.json({
-      success: true,
-      listInfo: {
-        name: listInfo.name,
-        id: listInfo.id,
-        memberCount: listInfo.stats.member_count
-      },
-      mergeFields: mergeFields.merge_fields.map(field => ({
-        tag: field.tag,
-        name: field.name,
-        type: field.type
-      }))
-    });
-    
-  } catch (error) {
-    console.error('❌ Test failed:', error.message);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      response: error.response?.body
-    });
-  }
-});
+// Personalized deals page route moved above static middleware
 
-// Mailchimp users endpoint for sync comparison
+// Mailchimp users endpoint
 app.get('/api/mailchimp/users', async (req, res) => {
   try {
-    if (!process.env.MAILCHIMP_API_KEY || !process.env.MAILCHIMP_LIST_ID) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Mailchimp not configured' 
-      });
-    }
-
-    // Get Mailchimp list members
-    const response = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID);
+    const mailchimp = require('@mailchimp/mailchimp_marketing');
     
+    mailchimp.setConfig({
+      apiKey: process.env.MAILCHIMP_API_KEY,
+      server: process.env.MAILCHIMP_SERVER_PREFIX,
+    });
+
+    // Get list members from Mailchimp
+    const response = await mailchimp.lists.getListMembersInfo(process.env.MAILCHIMP_LIST_ID, {
+      count: 1000, // Get up to 1000 members
+      status: 'subscribed'
+    });
+
     res.json({
       success: true,
       totalSubscribers: response.total_items,
       members: response.members.map(member => ({
         email: member.email_address,
         status: member.status,
-        firstName: member.merge_fields?.FNAME || '',
-        subscribedAt: member.timestamp_signup
-      }))
+        subscribedAt: member.timestamp_opt,
+        merge_fields: member.merge_fields
+      })),
+      message: 'Mailchimp data retrieved successfully'
     });
   } catch (error) {
     console.error('Error fetching Mailchimp users:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Failed to fetch Mailchimp users' 
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching Mailchimp users',
+      error: error.message
     });
   }
 });
 
-// Database migration endpoint (run once to create tables)
-app.post('/api/migrate', async (req, res) => {
+// Delete user endpoint
+app.delete('/api/admin/users/:id', async (req, res) => {
   try {
-    console.log('🔄 Running database migration...');
-    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    const userId = req.params.id;
     
-    // Use direct PostgreSQL connection instead of Prisma
-    const { Client } = require('pg');
-    console.log('pg package loaded successfully');
+    // Delete from database
+    await db.deleteUser(userId);
     
-    const client = new Client({
-      connectionString: process.env.DATABASE_URL
-    });
-    
-    console.log('Attempting to connect to database...');
-    await client.connect();
-    console.log('Database connected successfully');
-    
-    // Create all tables
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "categories" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "name" TEXT NOT NULL UNIQUE,
-        "slug" TEXT NOT NULL UNIQUE,
-        "description" TEXT,
-        "iconUrl" TEXT,
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL
-      );
-    `);
-    
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "retailers" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "name" TEXT NOT NULL,
-        "url" TEXT NOT NULL,
-        "description" TEXT,
-        "logoUrl" TEXT,
-        "isVerified" BOOLEAN NOT NULL DEFAULT false,
-        "hasActiveSale" BOOLEAN NOT NULL DEFAULT false,
-        "salePercentage" INTEGER,
-        "saleEndDate" TIMESTAMP(3),
-        "clickCount" INTEGER NOT NULL DEFAULT 0,
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL,
-        "categoryId" TEXT NOT NULL,
-        FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE
-      );
-    `);
-    
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "users" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "email" TEXT NOT NULL UNIQUE,
-        "name" TEXT,
-        "preferences" TEXT,
-        "mailchimpStatus" TEXT NOT NULL DEFAULT 'pending',
-        "accessToken" TEXT UNIQUE,
-        "tokenExpiresAt" TIMESTAMP(3),
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "lastActiveAt" TIMESTAMP(3),
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL
-      );
-    `);
-    
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "sponsored_products" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "title" TEXT NOT NULL,
-        "description" TEXT,
-        "imageUrl" TEXT,
-        "affiliateUrl" TEXT NOT NULL,
-        "price" REAL,
-        "originalPrice" REAL,
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "startDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "endDate" TIMESTAMP(3),
-        "clickCount" INTEGER NOT NULL DEFAULT 0,
-        "conversionCount" INTEGER NOT NULL DEFAULT 0,
-        "revenueGenerated" REAL NOT NULL DEFAULT 0,
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL
-      );
-    `);
-    
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "analytics_events" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "eventType" TEXT NOT NULL,
-        "ipAddress" TEXT,
-        "userAgent" TEXT,
-        "metadata" TEXT,
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "userId" TEXT,
-        "retailerId" TEXT,
-        "sponsoredProductId" TEXT,
-        FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-        FOREIGN KEY ("retailerId") REFERENCES "retailers"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-        FOREIGN KEY ("sponsoredProductId") REFERENCES "sponsored_products"("id") ON DELETE SET NULL ON UPDATE CASCADE
-      );
-    `);
-    
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "email_campaigns" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "name" TEXT NOT NULL,
-        "subject" TEXT NOT NULL,
-        "content" TEXT NOT NULL,
-        "campaignType" TEXT NOT NULL,
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "sentCount" INTEGER NOT NULL DEFAULT 0,
-        "openCount" INTEGER NOT NULL DEFAULT 0,
-        "clickCount" INTEGER NOT NULL DEFAULT 0,
-        "scheduledFor" TIMESTAMP(3),
-        "sentAt" TIMESTAMP(3),
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL
-      );
-    `);
-    
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "admin_users" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "email" TEXT NOT NULL UNIQUE,
-        "name" TEXT NOT NULL,
-        "role" TEXT NOT NULL DEFAULT 'admin',
-        "isActive" BOOLEAN NOT NULL DEFAULT true,
-        "lastLoginAt" TIMESTAMP(3),
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL
-      );
-    `);
-    
-    await client.end();
-    
-    console.log('✅ Database migration completed successfully!');
-    res.json({ 
-      success: true, 
-      message: 'Database migration completed successfully!',
-      tables: ['categories', 'retailers', 'users', 'sponsored_products', 'analytics_events', 'email_campaigns', 'admin_users']
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
     });
   } catch (error) {
-    console.error('❌ Migration failed:', error);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Unknown error occurred',
-      stack: error.stack
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting user',
+      error: error.message
     });
   }
 });
 
-// Serve static files (must be AFTER all routes)
-app.use(express.static('public'));
+// Email Automation System - Personalized Deals
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Get personalized deals for user (by token)
+app.get('/api/deals/personalized/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const deals = await db.getPersonalizedDeals(token);
+    
+    res.json({
+      success: true,
+      deals
+    });
+  } catch (error) {
+    console.error('Error getting personalized deals:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired access token'
+    });
+  }
+});
+
+// Track deal clicks
+app.post('/api/deals/click/:token/:dealId', async (req, res) => {
+  try {
+    const { token, dealId } = req.params;
+    const metadata = {
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      timestamp: new Date()
+    };
+    
+    // Verify token is valid
+    const user = await db.getUserByToken(token);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired access token'
+      });
+    }
+    
+    // Track the click (you can expand this to store in analytics_events table)
+    console.log(`Deal click tracked: User ${user.email}, Deal ${dealId}`, metadata);
+    
+    res.json({
+      success: true,
+      message: 'Click tracked successfully'
+    });
+  } catch (error) {
+    console.error('Error tracking deal click:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error tracking click'
+    });
+  }
+});
+
+// Generate new access token for user
+app.post('/api/user/generate-token', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    const user = await db.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Generate new token
+    const accessToken = db.generateAccessToken();
+    const tokenExpiresAt = new Date();
+    tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
+    
+    // Update user with new token
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    await prisma.user.update({
+      where: { email },
+      data: { accessToken, tokenExpiresAt }
+    });
+    
+    res.json({
+      success: true,
+      accessToken,
+      tokenExpiresAt,
+      personalizedDealsUrl: `/deals/${accessToken}`
+    });
+  } catch (error) {
+    console.error('Error generating token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating access token'
+    });
+  }
+});
+
+
+
+// Weekly Email Automation Endpoints
+
+// Run weekly automation (refresh deals + send emails)
+app.post('/api/weekly-automation/run', async (req, res) => {
+  try {
+    console.log('🚀 Manual weekly automation triggered');
+    const result = await weeklyAutomation.runWeeklyAutomation();
+    
+    res.json({
+      success: result.success,
+      message: result.success ? 'Weekly automation completed successfully' : 'Weekly automation failed',
+      details: result
+    });
+  } catch (error) {
+    console.error('Error running weekly automation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error running weekly automation',
+      error: error.message
+    });
+  }
+});
+
+// Get automation status
+app.get('/api/weekly-automation/status', async (req, res) => {
+  try {
+    const status = await weeklyAutomation.getAutomationStatus();
+    res.json({
+      success: true,
+      status
+    });
+  } catch (error) {
+    console.error('Error getting automation status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting automation status',
+      error: error.message
+    });
+  }
+});
+
+// Refresh deals only (without sending emails)
+app.post('/api/weekly-automation/refresh-deals', async (req, res) => {
+  try {
+    console.log('🔄 Refreshing deals only...');
+    const result = await weeklyAutomation.refreshWeeklyDeals();
+    
+    res.json({
+      success: true,
+      message: 'Deals refreshed successfully',
+      stats: result
+    });
+  } catch (error) {
+    console.error('Error refreshing deals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error refreshing deals',
+      error: error.message
+    });
+  }
+});
+
+// Update Mailchimp with fresh data (without sending emails)
+app.post('/api/weekly-automation/update-mailchimp', async (req, res) => {
+  try {
+    console.log('📧 Updating Mailchimp with fresh data...');
+    const result = await weeklyAutomation.updateMailchimpWithFreshDeals();
+    
+    res.json({
+      success: true,
+      message: 'Mailchimp updated with fresh deal data',
+      deals: result
+    });
+  } catch (error) {
+    console.error('Error updating Mailchimp:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating Mailchimp',
+      error: error.message
+    });
+  }
+});
+
+// Admin endpoints
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json({
+      success: true,
+      users: users
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users',
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/sponsored-products', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const products = await prisma.sponsoredProduct.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      products: products,
+      totalRevenue: products.reduce((sum, p) => sum + (p.monthlyFee || 0), 0),
+      activeCount: products.length
+    });
+  } catch (error) {
+    console.error('Error fetching sponsored products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching sponsored products',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/clear-all-products', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const result = await prisma.sponsoredProduct.deleteMany({});
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      message: `Cleared ${result.count} products from database`,
+      deletedCount: result.count
+    });
+  } catch (error) {
+    console.error('Error clearing products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error clearing products',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/delete-product', async (req, res) => {
+  try {
+    const { productId } = req.body;
+    
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product ID is required'
+      });
+    }
+
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const result = await prisma.sponsoredProduct.delete({
+      where: { id: productId }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      message: 'Product deleted successfully',
+      deletedProduct: result
+    });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting product',
+      error: error.message
+    });
+  }
+});
+
+// Admin endpoint to add multiple products via CSV
+app.post('/api/admin/add-multiple-products', async (req, res) => {
+  try {
+    const { products } = req.body;
+    
+    if (!products || !Array.isArray(products)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Products array is required'
+      });
+    }
+
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    let addedCount = 0;
+    let skippedCount = 0;
+    
+    for (const product of products) {
+      try {
+        // Check if product already exists
+        const existing = await prisma.sponsoredProduct.findFirst({
+          where: { title: product.title }
+        });
+        
+        if (existing) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Validate required fields
+        if (!product.title || !product.price || !product.originalPrice || !product.affiliateUrl || !product.category) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Add affiliate ID to Amazon URLs
+        let affiliateUrl = product.affiliateUrl;
+        if (affiliateUrl.includes('amazon.com') && !affiliateUrl.includes('tag=')) {
+          affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=820cf-20';
+        }
+        
+        await prisma.sponsoredProduct.create({
+          data: {
+            title: product.title,
+            description: product.description || '',
+            imageUrl: product.imageUrl || '',
+            affiliateUrl: affiliateUrl,
+            price: parseFloat(product.price),
+            originalPrice: parseFloat(product.originalPrice),
+            category: product.category,
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          }
+        });
+        addedCount++;
+        
+      } catch (productError) {
+        console.error('Error adding product:', product.title, productError);
+        skippedCount++;
+      }
+    }
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      added: addedCount,
+      skipped: skippedCount,
+      message: `Successfully processed ${products.length} products`
+    });
+    
+  } catch (error) {
+    console.error('Error processing CSV upload:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing CSV upload',
+      error: error.message
+    });
+  }
+});
+
+// Manual Weekly Automation (MVP Approach)
+// No automatic scheduling - you control when to send emails
+
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Server bound to 0.0.0.0:${PORT}`);
   if (isProduction) {
     console.log(`🌐 Production server is live!`);
-    console.log(`📧 Ready for production use`);
-    console.log(`🔍 Health endpoint available at: http://0.0.0.0:${PORT}/health`);
+    console.log(`📧 Weekly automation ready for production use`);
   } else {
     console.log(`💻 Development server - Open http://localhost:${PORT} in your browser`);
+    console.log('🎯 Manual Weekly Automation Ready:');
+    console.log('   - Run: npm run weekly-automation');
+    console.log('   - Or: curl -X POST http://localhost:3000/api/weekly-automation/run');
   }
 });
