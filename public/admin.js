@@ -277,11 +277,27 @@ class AdminDashboard {
         `;
     }
 
-    loadProductsTable() {
+    async loadProductsTable() {
         console.log('Loading products table...');
-        console.log('Products array:', this.products);
         
         const tbody = document.getElementById('products-table-body');
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading products...</td></tr>';
+
+        try {
+            // Fetch fresh data from server
+            const response = await fetch('/api/admin/sponsored-products');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.products = data.products;
+            } else {
+                throw new Error('Failed to fetch products');
+            }
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            this.products = [];
+        }
+        
         tbody.innerHTML = '';
 
         if (this.products.length === 0) {
@@ -290,7 +306,7 @@ class AdminDashboard {
                     <td colspan="8" style="text-align: center; padding: 2rem; color: #6b7280;">
                         <i class="fas fa-box" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
                         <p>No sponsored products found</p>
-                        <small>Products are loading from the server...</small>
+                        <small>Add products using the CSV upload feature</small>
                     </td>
                 </tr>
             `;
@@ -340,12 +356,22 @@ class AdminDashboard {
                     <button class="action-btn edit-btn" onclick="adminDashboard.editProduct(${product.id})">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn delete-btn" onclick="adminDashboard.deleteProduct(${product.id})">
-                        <i class="fas fa-trash"></i>
+                    <button class="action-btn delete-btn" data-product-id="${product.id}">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </td>
             `;
             tbody.appendChild(row);
+        });
+        
+        // Add event listeners for delete buttons
+        tbody.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const productId = button.getAttribute('data-product-id');
+                console.log('Delete button clicked via event listener, product ID:', productId);
+                this.deleteProduct(productId);
+            });
         });
     }
 
@@ -528,21 +554,29 @@ class AdminDashboard {
     }
 
     async deleteProduct(productId) {
+        console.log('Delete product called with ID:', productId);
         if (confirm('Are you sure you want to delete this product?')) {
+            console.log('User confirmed deletion');
             try {
-                const response = await fetch(`/api/admin/products/${productId}`, {
-                    method: 'DELETE'
+                const response = await fetch('/api/admin/delete-product', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ productId: productId })
                 });
                 
-                if (response.ok) {
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
                     this.showNotification('Product deleted successfully!', 'success');
-                    this.loadAllProducts();
+                    await this.loadProductsTable(); // Refresh the products table with fresh data
                 } else {
-                    throw new Error('Failed to delete product');
+                    throw new Error(result.message || 'Failed to delete product');
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
-                this.showNotification('Error deleting product', 'error');
+                this.showNotification('Error deleting product: ' + error.message, 'error');
             }
         }
     }
@@ -606,12 +640,22 @@ class AdminDashboard {
                 </td>
                 <td>${product.clickCount || 0}</td>
                 <td>
-                    <button class="btn btn-sm btn-danger" onclick="adminDashboard.deleteProduct('${product.id}')">
+                    <button class="action-btn delete-btn" data-product-id="${product.id}">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </td>
             `;
             tbody.appendChild(row);
+        });
+        
+        // Add event listeners for delete buttons
+        tbody.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const productId = button.getAttribute('data-product-id');
+                console.log('Delete button clicked via event listener, product ID:', productId);
+                this.deleteProduct(productId);
+            });
         });
     }
 
@@ -1597,4 +1641,16 @@ let adminDashboard;
 
 document.addEventListener('DOMContentLoaded', () => {
     adminDashboard = new AdminDashboard();
+    // Make adminDashboard globally accessible for onclick handlers
+    window.adminDashboard = adminDashboard;
+    
+    // Test function to verify global scope
+    window.testDelete = function() {
+        console.log('Test delete function called!');
+        console.log('adminDashboard exists:', !!window.adminDashboard);
+        console.log('adminDashboard.deleteProduct exists:', !!window.adminDashboard?.deleteProduct);
+    };
+    
+    console.log('Admin dashboard initialized');
+    console.log('adminDashboard available globally:', !!window.adminDashboard);
 });

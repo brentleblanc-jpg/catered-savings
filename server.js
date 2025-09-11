@@ -488,24 +488,30 @@ app.post('/api/add-company', (req, res) => {
 });
 
 // Get sponsored products for admin
-app.get('/api/admin/sponsored-products', (req, res) => {
+app.get('/api/admin/sponsored-products', async (req, res) => {
   try {
-    const { sponsoredProducts } = require('./data/sponsored-products');
-    const totalRevenue = sponsoredProducts.reduce((sum, product) => {
-      return product.active ? sum + product.monthlyFee : sum;
-    }, 0);
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const products = await prisma.sponsoredProduct.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    await prisma.$disconnect();
     
     res.json({
       success: true,
-      products: sponsoredProducts,
-      totalRevenue: totalRevenue,
-      activeCount: sponsoredProducts.filter(p => p.active).length
+      products: products,
+      totalRevenue: products.reduce((sum, p) => sum + (p.revenueGenerated || 0), 0),
+      activeCount: products.length
     });
   } catch (error) {
     console.error('Error fetching admin sponsored products:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching sponsored products'
+      message: 'Error fetching sponsored products',
+      error: error.message
     });
   }
 });
@@ -761,6 +767,194 @@ app.post('/api/weekly-automation/update-mailchimp', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating Mailchimp',
+      error: error.message
+    });
+  }
+});
+
+// Admin endpoints
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json({
+      success: true,
+      users: users
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users',
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/sponsored-products', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const products = await prisma.sponsoredProduct.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      products: products,
+      totalRevenue: products.reduce((sum, p) => sum + (p.monthlyFee || 0), 0),
+      activeCount: products.length
+    });
+  } catch (error) {
+    console.error('Error fetching sponsored products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching sponsored products',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/clear-all-products', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const result = await prisma.sponsoredProduct.deleteMany({});
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      message: `Cleared ${result.count} products from database`,
+      deletedCount: result.count
+    });
+  } catch (error) {
+    console.error('Error clearing products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error clearing products',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/delete-product', async (req, res) => {
+  try {
+    const { productId } = req.body;
+    
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product ID is required'
+      });
+    }
+
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const result = await prisma.sponsoredProduct.delete({
+      where: { id: productId }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      message: 'Product deleted successfully',
+      deletedProduct: result
+    });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting product',
+      error: error.message
+    });
+  }
+});
+
+// Admin endpoint to add multiple products via CSV
+app.post('/api/admin/add-multiple-products', async (req, res) => {
+  try {
+    const { products } = req.body;
+    
+    if (!products || !Array.isArray(products)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Products array is required'
+      });
+    }
+
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    let addedCount = 0;
+    let skippedCount = 0;
+    
+    for (const product of products) {
+      try {
+        // Check if product already exists
+        const existing = await prisma.sponsoredProduct.findFirst({
+          where: { title: product.title }
+        });
+        
+        if (existing) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Validate required fields
+        if (!product.title || !product.price || !product.originalPrice || !product.affiliateUrl || !product.category) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Add affiliate ID to Amazon URLs
+        let affiliateUrl = product.affiliateUrl;
+        if (affiliateUrl.includes('amazon.com') && !affiliateUrl.includes('tag=')) {
+          affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=820cf-20';
+        }
+        
+        await prisma.sponsoredProduct.create({
+          data: {
+            title: product.title,
+            description: product.description || '',
+            imageUrl: product.imageUrl || '',
+            affiliateUrl: affiliateUrl,
+            price: parseFloat(product.price),
+            originalPrice: parseFloat(product.originalPrice),
+            category: product.category,
+            isActive: true,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          }
+        });
+        addedCount++;
+        
+      } catch (productError) {
+        console.error('Error adding product:', product.title, productError);
+        skippedCount++;
+      }
+    }
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      added: addedCount,
+      skipped: skippedCount,
+      message: `Successfully processed ${products.length} products`
+    });
+    
+  } catch (error) {
+    console.error('Error processing CSV upload:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing CSV upload',
       error: error.message
     });
   }
