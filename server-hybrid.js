@@ -400,6 +400,22 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     
+    if (req.url === '/admin.html' && req.method === 'GET') {
+      const fs = require('fs');
+      const path = require('path');
+      const adminPath = path.join(__dirname, 'public', 'admin.html');
+      
+      try {
+        const content = fs.readFileSync(adminPath);
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(content);
+      } catch (error) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Admin page not found' }));
+      }
+      return;
+    }
+    
     // Admin users API
     if (req.url === '/api/admin/users' && req.method === 'GET') {
       try {
@@ -1197,6 +1213,23 @@ const server = http.createServer(async (req, res) => {
         console.error('🚨 Delete user error:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Failed to delete user' }));
+      }
+      return;
+    }
+    
+    // Personalized deals page (path-based token)
+    if (req.url.startsWith('/deals/') && req.method === 'GET') {
+      const fs = require('fs');
+      const path = require('path');
+      const dealsPath = path.join(__dirname, 'public', 'deals.html');
+      
+      try {
+        const content = fs.readFileSync(dealsPath);
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(content);
+      } catch (error) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Deals page not found' }));
       }
       return;
     }
