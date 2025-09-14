@@ -1549,18 +1549,47 @@ class AdminDashboard {
     }
 
     copyUrl(url) {
-        navigator.clipboard.writeText(url).then(() => {
-            this.showNotification('URL copied to clipboard!', 'success');
-        }).catch(err => {
-            // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = url;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
+        console.log('Copying URL:', url);
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                console.log('URL copied successfully');
+                this.showNotification('URL copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Clipboard API failed:', err);
+                this.fallbackCopy(url);
+            });
+        } else {
+            console.log('Using fallback copy method');
+            this.fallbackCopy(url);
+        }
+    }
+    
+    fallbackCopy(url) {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                console.log('Fallback copy successful');
+                this.showNotification('URL copied to clipboard!', 'success');
+            } else {
+                console.error('Fallback copy failed');
+                this.showNotification('Failed to copy URL', 'error');
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+            this.showNotification('Failed to copy URL', 'error');
+        } finally {
             document.body.removeChild(textArea);
-            this.showNotification('URL copied to clipboard!', 'success');
-        });
+        }
     }
 
     async loadUsers() {
@@ -1633,7 +1662,7 @@ class AdminDashboard {
                     ${user.accessToken ? 
                         `<div class="url-container">
                             <input type="text" value="${personalizedUrl}" readonly class="url-input" onclick="this.select()">
-                            <button class="btn btn-sm btn-copy" onclick="adminDashboard.copyUrl('${personalizedUrl}')" title="Copy URL">
+                            <button class="btn btn-sm btn-copy" data-url="${personalizedUrl}" title="Copy URL">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>` : 
@@ -1660,6 +1689,26 @@ class AdminDashboard {
             `;
             tbody.appendChild(row);
         });
+        
+        // Add event listeners to copy buttons
+        this.setupCopyButtons();
+    }
+    
+    setupCopyButtons() {
+        // Remove existing event listeners to avoid duplicates
+        document.querySelectorAll('.btn-copy').forEach(button => {
+            button.removeEventListener('click', this.handleCopyClick);
+        });
+        
+        // Add event listeners to all copy buttons
+        document.querySelectorAll('.btn-copy').forEach(button => {
+            button.addEventListener('click', this.handleCopyClick.bind(this));
+        });
+    }
+    
+    handleCopyClick(event) {
+        const url = event.target.closest('.btn-copy').getAttribute('data-url');
+        this.copyUrl(url);
     }
 
     // CSV Upload functionality
