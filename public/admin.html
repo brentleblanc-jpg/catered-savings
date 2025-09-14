@@ -34,6 +34,49 @@
             background: #e55a2b !important;
             transform: translateY(-1px);
         }
+        
+        .url-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #f8f9fa;
+            color: #495057;
+            cursor: pointer;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: #007bff;
+            background: white;
+        }
+        
+        .btn-copy {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        
+        .btn-copy:hover {
+            background: #218838;
+        }
+        
+        .text-muted {
+            color: #6c757d;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -422,6 +465,7 @@
                                 <th>Email</th>
                                 <th>Name</th>
                                 <th>Categories</th>
+                                <th>Personalized URL</th>
                                 <th>Signup Date</th>
                                 <th>Status</th>
                                 <th>Mailchimp</th>

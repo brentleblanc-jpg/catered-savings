@@ -1548,6 +1548,21 @@ class AdminDashboard {
         }
     }
 
+    copyUrl(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            this.showNotification('URL copied to clipboard!', 'success');
+        }).catch(err => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            this.showNotification('URL copied to clipboard!', 'success');
+        });
+    }
+
     async loadUsers() {
         try {
             const response = await fetch('/api/admin/users', {
@@ -1606,10 +1621,25 @@ class AdminDashboard {
                 categoriesDisplay = categoryTags;
             }
             
+            // Generate personalized URL
+            const baseUrl = window.location.origin;
+            const personalizedUrl = user.accessToken ? `${baseUrl}/deals/${user.accessToken}` : 'No token';
+            
             row.innerHTML = `
                 <td>${user.email}</td>
                 <td>${user.name || 'N/A'}</td>
                 <td style="max-width: 200px; overflow: hidden;">${categoriesDisplay}</td>
+                <td style="max-width: 300px;">
+                    ${user.accessToken ? 
+                        `<div class="url-container">
+                            <input type="text" value="${personalizedUrl}" readonly class="url-input" onclick="this.select()">
+                            <button class="btn btn-sm btn-copy" onclick="adminDashboard.copyUrl('${personalizedUrl}')" title="Copy URL">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>` : 
+                        '<span class="text-muted">No token</span>'
+                    }
+                </td>
                 <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                 <td>
                     <span class="status-badge ${user.status || 'active'}">
