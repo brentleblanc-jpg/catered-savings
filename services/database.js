@@ -125,6 +125,13 @@ class DatabaseService {
     });
   }
 
+  async updateUserToken(email, accessToken, tokenExpiresAt) {
+    return await prisma.user.update({
+      where: { email },
+      data: { accessToken, tokenExpiresAt }
+    });
+  }
+
   async getUserByToken(token) {
     const user = await prisma.user.findUnique({
       where: { 
@@ -162,27 +169,28 @@ class DatabaseService {
 
     const userCategories = user.preferences?.categories || [];
     
-    // Get retailers from user's preferred categories
-    const retailers = await prisma.retailer.findMany({
-      where: {
-        category: {
-          slug: {
+    // Get sponsored products (filtered by user's preferred categories if they have any)
+    let sponsoredProducts;
+    if (userCategories && userCategories.length > 0) {
+      // Filter by user's preferred categories
+      sponsoredProducts = await prisma.sponsoredProduct.findMany({
+        where: {
+          isActive: true,
+          category: {
             in: userCategories
           }
         },
-        isActive: true
-      },
-      include: {
-        category: true
-      },
-      orderBy: [
-        { hasActiveSale: 'desc' },
-        { clickCount: 'desc' }
-      ]
-    });
-
-    // Get sponsored products
-    const sponsoredProducts = await this.getActiveSponsoredProducts(4);
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      });
+    } else {
+      // If no categories specified, return all active products
+      sponsoredProducts = await prisma.sponsoredProduct.findMany({
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      });
+    }
 
     return {
       user: {
@@ -190,7 +198,7 @@ class DatabaseService {
         email: user.email,
         categories: userCategories
       },
-      retailers,
+      retailers: [], // Empty array since retailers table doesn't exist
       sponsoredProducts
     };
   }
@@ -219,8 +227,27 @@ class DatabaseService {
   }
 
   async getAllUsers() {
-    return await prisma.user.findMany({
+    const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' }
+    });
+    
+    // Parse preferences JSON and extract categories
+    return users.map(user => {
+      let categories = [];
+      if (user.preferences) {
+        try {
+          const parsed = JSON.parse(user.preferences);
+          categories = parsed.categories || [];
+        } catch (error) {
+          console.error('Error parsing user preferences for user:', user.email, error);
+          categories = [];
+        }
+      }
+      
+      return {
+        ...user,
+        categories
+      };
     });
   }
 
@@ -329,12 +356,98 @@ class DatabaseService {
 
   async getAllSponsoredProducts() {
     return await prisma.sponsoredProduct.findMany({
+      where: { isActive: true },
       orderBy: { createdAt: 'desc' }
     });
   }
 
   async createSponsoredProduct(data) {
     return await prisma.sponsoredProduct.create({ data });
+  }
+
+  async addMultipleSponsoredProducts(products) {
+    let addedCount = 0;
+    let skippedCount = 0;
+    
+    for (const product of products) {
+      try {
+        // Check if product already exists (only active products)
+        const existingActive = await prisma.sponsoredProduct.findFirst({
+          where: { 
+            title: product.title,
+            isActive: true
+          }
+        });
+        
+        if (existingActive) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Check if product exists but is inactive (reactivate and update)
+        const existingInactive = await prisma.sponsoredProduct.findFirst({
+          where: { 
+            title: product.title,
+            isActive: false
+          }
+        });
+        
+        if (existingInactive) {
+          // Reactivate and update the existing product
+          await prisma.sponsoredProduct.update({
+            where: { id: existingInactive.id },
+            data: {
+              description: product.description || existingInactive.description,
+              imageUrl: product.imageUrl || existingInactive.imageUrl,
+              affiliateUrl: product.affiliateUrl,
+              price: parseFloat(product.price),
+              originalPrice: parseFloat(product.originalPrice),
+              category: product.category,
+              source: product.source || existingInactive.source,
+              sku: product.sku || existingInactive.sku,
+              isActive: true,
+              updatedAt: new Date()
+            }
+          });
+          addedCount++;
+          continue;
+        }
+        
+        // Validate required fields
+        if (!product.title || !product.price || !product.originalPrice || !product.affiliateUrl || !product.category) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Add affiliate ID to Amazon URLs
+        let affiliateUrl = product.affiliateUrl;
+        if (affiliateUrl.includes('amazon.com') && !affiliateUrl.includes('tag=')) {
+          affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=820cf-20';
+        }
+        
+        await prisma.sponsoredProduct.create({
+          data: {
+            title: product.title,
+            description: product.description || '',
+            imageUrl: product.imageUrl || '',
+            affiliateUrl: affiliateUrl,
+            price: parseFloat(product.price),
+            originalPrice: parseFloat(product.originalPrice),
+            category: product.category,
+            source: product.source || 'manual',
+            sku: product.sku || null,
+            isActive: true
+          }
+        });
+        
+        addedCount++;
+      } catch (error) {
+        console.error('Error adding product:', product.title, error);
+        skippedCount++;
+      }
+    }
+    
+    return { addedCount, skippedCount, totalProcessed: products.length };
   }
 
   async clearSponsoredProducts() {

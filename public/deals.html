@@ -34,13 +34,13 @@
         .deals-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 60px 24px;
+            padding: 30px 24px;
             text-align: center;
         }
 
         .deals-header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 30px;
         }
 
         .deals-title {
@@ -54,8 +54,48 @@
         .deals-subtitle {
             font-size: 1.25rem;
             color: #6c757d;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             text-align: center;
+        }
+
+        .selected-categories {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .categories-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #33475b;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .categories-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .category-tag {
+            background: #ff6b35;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-tag i {
+            font-size: 0.8rem;
         }
 
         .deals-grid {
@@ -357,8 +397,7 @@
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo">
-                <i class="fas fa-gem"></i>
-                Catered Savers
+                <img src="/logo.svg" alt="Catered Savers Logo" width="350" height="140" style="margin: 0; padding: 0; margin-bottom: -10px;">
             </a>
             <nav>
                 <ul class="nav">
@@ -376,6 +415,14 @@
             <div class="deals-header">
                 <h1 class="deals-title">Your Personalized Deals</h1>
                 <p class="deals-subtitle">Hand-picked offers based on your interests</p>
+            </div>
+
+            <!-- Selected Categories Section -->
+            <div id="selected-categories" class="selected-categories" style="display: none;">
+                <h3 class="categories-title">Your Selected Categories:</h3>
+                <div id="categories-list" class="categories-list">
+                    <!-- Categories will be populated here -->
+                </div>
             </div>
 
             <!-- Loading State -->
@@ -458,6 +505,7 @@
                     const data = await response.json();
 
                     if (data.success && data.deals) {
+                        this.displayCategories(data.deals.user);
                         this.displayDeals(data.deals);
                     } else {
                         this.showNoDeals();
@@ -465,6 +513,47 @@
                 } catch (error) {
                     console.error('Error loading deals:', error);
                     this.showError('Failed to load your personalized deals. Please try again later.');
+                }
+            }
+
+            displayCategories(user) {
+                const categoriesSection = document.getElementById('selected-categories');
+                const categoriesList = document.getElementById('categories-list');
+                
+                if (user && user.categories && user.categories.length > 0) {
+                    categoriesList.innerHTML = '';
+                    
+                    // Category mapping with icons
+                    const categoryMap = {
+                        'tech-electronics': { name: 'Tech & Electronics', icon: 'fas fa-laptop' },
+                        'home-garden': { name: 'Home & Garden', icon: 'fas fa-home' },
+                        'fashion-accessories': { name: 'Fashion Accessories', icon: 'fas fa-gem' },
+                        'mens-fashion': { name: 'Men\'s Fashion', icon: 'fas fa-male' },
+                        'womens-fashion': { name: 'Women\'s Fashion', icon: 'fas fa-female' },
+                        'health-beauty': { name: 'Health & Beauty', icon: 'fas fa-heart' },
+                        'sports-outdoors': { name: 'Sports & Outdoors', icon: 'fas fa-dumbbell' },
+                        'automotive': { name: 'Automotive', icon: 'fas fa-car' },
+                        'books-media': { name: 'Books & Media', icon: 'fas fa-book' },
+                        'food-dining': { name: 'Food & Dining', icon: 'fas fa-utensils' },
+                        'kids-family': { name: 'Kids & Family', icon: 'fas fa-child' },
+                        'pets': { name: 'Pets', icon: 'fas fa-paw' },
+                        'travel': { name: 'Travel', icon: 'fas fa-plane' },
+                        'office-education': { name: 'Office & Education', icon: 'fas fa-briefcase' },
+                        'entertainment': { name: 'Entertainment', icon: 'fas fa-gamepad' },
+                        'other': { name: 'Other', icon: 'fas fa-ellipsis-h' }
+                    };
+                    
+                    user.categories.forEach(categorySlug => {
+                        const categoryInfo = categoryMap[categorySlug] || { name: categorySlug, icon: 'fas fa-tag' };
+                        const categoryTag = document.createElement('div');
+                        categoryTag.className = 'category-tag';
+                        categoryTag.innerHTML = `<i class="${categoryInfo.icon}"></i> ${categoryInfo.name}`;
+                        categoriesList.appendChild(categoryTag);
+                    });
+                    
+                    categoriesSection.style.display = 'block';
+                } else {
+                    categoriesSection.style.display = 'none';
                 }
             }
 

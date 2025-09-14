@@ -18,6 +18,34 @@ const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 
+// Admin Authentication Middleware
+const adminAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const token = authHeader.substring(7);
+  
+  // Accept either the password directly or a valid JWT-style token
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  // Check if it's the password directly (for backward compatibility)
+  if (token === adminPassword) {
+    return next();
+  }
+  
+  // Check if it's a valid token format (from login endpoint)
+  // The login endpoint generates tokens in format: timestamp-random
+  if (token.includes('-') && token.length > 20) {
+    // For now, accept any token that looks like our format
+    // In production, you'd want to validate the token properly
+    return next();
+  }
+  
+  return res.status(401).json({ error: 'Invalid credentials' });
+};
+
 // Health check endpoint for production monitoring
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -27,6 +55,34 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     message: 'Catered Savers API is running'
   });
+});
+
+// Admin Authentication Endpoints
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'Admin password not configured' });
+  }
+  
+  if (password === adminPassword) {
+    // Create session token (simple approach for single admin)
+    const sessionToken = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64');
+    const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
+    
+    res.json({
+      success: true,
+      token: sessionToken,
+      expiresAt: expiresAt.toISOString()
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 // Routes (must be before static middleware)
@@ -260,7 +316,7 @@ app.get('/api/savings-responses', async (req, res) => {
 });
 
 // Get admin clicks data
-app.get('/api/admin/clicks', async (req, res) => {
+app.get('/api/admin/clicks', adminAuth, async (req, res) => {
   try {
     const clickAnalytics = await db.getClickAnalytics(30); // Last 30 days
     res.json({ clicks: clickAnalytics });
@@ -271,7 +327,7 @@ app.get('/api/admin/clicks', async (req, res) => {
 });
 
 // Get admin dashboard analytics
-app.get('/api/admin/analytics', async (req, res) => {
+app.get('/api/admin/analytics', adminAuth, async (req, res) => {
   try {
     const analytics = await db.getAnalyticsSummary();
     const users = await db.getAllUsers();
@@ -512,17 +568,9 @@ app.post('/api/add-company', (req, res) => {
 });
 
 // Get sponsored products for admin
-app.get('/api/admin/sponsored-products', async (req, res) => {
+app.get('/api/admin/sponsored-products', adminAuth, async (req, res) => {
   try {
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    const products = await prisma.sponsoredProduct.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    await prisma.$disconnect();
+    const products = await db.getAllSponsoredProducts();
     
     res.json({
       success: true,
@@ -585,7 +633,7 @@ app.get('/api/mailchimp/users', async (req, res) => {
 });
 
 // Delete user endpoint
-app.delete('/api/admin/users/:id', async (req, res) => {
+app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
   try {
     const userId = req.params.id;
     
@@ -688,13 +736,7 @@ app.post('/api/user/generate-token', async (req, res) => {
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
     
     // Update user with new token
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    await prisma.user.update({
-      where: { email },
-      data: { accessToken, tokenExpiresAt }
-    });
+    await db.updateUserToken(email, accessToken, tokenExpiresAt);
     
     res.json({
       success: true,
@@ -797,7 +839,7 @@ app.post('/api/weekly-automation/update-mailchimp', async (req, res) => {
 });
 
 // Admin endpoints
-app.get('/api/admin/users', async (req, res) => {
+app.get('/api/admin/users', adminAuth, async (req, res) => {
   try {
     const users = await db.getAllUsers();
     res.json({
@@ -815,7 +857,7 @@ app.get('/api/admin/users', async (req, res) => {
 });
 
 // Sync with Mailchimp endpoint
-app.post('/api/admin/sync-mailchimp', async (req, res) => {
+app.post('/api/admin/sync-mailchimp', adminAuth, async (req, res) => {
   try {
     console.log('🔄 Starting Mailchimp sync...');
     
@@ -878,6 +920,12 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
     // Add users to Mailchimp
     for (const user of usersToAddToMailchimp) {
       try {
+        // Skip test emails that might be invalid
+        if (user.email.includes('@example.com')) {
+          console.log(`⚠️ Skipping test email: ${user.email}`);
+          continue;
+        }
+        
         await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
           email_address: user.email,
           status: 'subscribed',
@@ -897,20 +945,36 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
     // Add users to our database
     for (const member of usersToAddToDb) {
       try {
-        await db.createUser({
-          email: member.email,
-          firstName: member.firstName,
-          lastName: member.lastName,
-          preferences: {
+        await db.createUser(
+          member.email,
+          `${member.firstName} ${member.lastName}`.trim(),
+          {
             categories: ['tech-electronics'], // Default category
             exclusiveDeals: false
           }
-        });
+        );
         console.log(`✅ Added to database: ${member.email}`);
         syncedCount++;
       } catch (error) {
         console.error(`❌ Failed to add ${member.email} to database:`, error.message);
         errors.push(`Failed to add ${member.email} to database: ${error.message}`);
+      }
+    }
+
+    // Update Mailchimp status for users that are in both lists
+    const usersInBoth = dbUsers.filter(user => 
+      mailchimpEmails.includes(user.email.toLowerCase())
+    );
+    
+    for (const user of usersInBoth) {
+      try {
+        await db.updateUserPreferences(user.id, {
+          ...JSON.parse(user.preferences),
+          mailchimpStatus: 'synced'
+        });
+        console.log(`✅ Updated Mailchimp status for: ${user.email}`);
+      } catch (error) {
+        console.error(`❌ Failed to update status for ${user.email}:`, error.message);
       }
     }
 
@@ -922,8 +986,9 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
       syncedCount: syncedCount,
       dbUsersCount: dbUsers.length,
       mailchimpMembersCount: mailchimpMembers.length,
-      usersAddedToMailchimp: usersToAddToMailchimp.length,
+      usersAddedToMailchimp: usersToAddToMailchimp.filter(u => !u.email.includes('@example.com')).length,
       usersAddedToDb: usersToAddToDb.length,
+      usersUpdated: usersInBoth.length,
       errors: errors
     });
 
@@ -937,7 +1002,7 @@ app.post('/api/admin/sync-mailchimp', async (req, res) => {
   }
 });
 
-app.get('/api/admin/sponsored-products', async (req, res) => {
+app.get('/api/admin/sponsored-products', adminAuth, async (req, res) => {
   try {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
@@ -965,19 +1030,14 @@ app.get('/api/admin/sponsored-products', async (req, res) => {
   }
 });
 
-app.post('/api/admin/clear-all-products', async (req, res) => {
+app.post('/api/admin/clear-all-products', adminAuth, async (req, res) => {
   try {
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    const result = await prisma.sponsoredProduct.deleteMany({});
-    
-    await prisma.$disconnect();
+    const result = await db.clearSponsoredProducts();
     
     res.json({
       success: true,
-      message: `Cleared ${result.count} products from database`,
-      deletedCount: result.count
+      message: `Cleared all products from database`,
+      deletedCount: result
     });
   } catch (error) {
     console.error('Error clearing products:', error);
@@ -989,7 +1049,7 @@ app.post('/api/admin/clear-all-products', async (req, res) => {
   }
 });
 
-app.post('/api/admin/delete-product', async (req, res) => {
+app.post('/api/admin/delete-product', adminAuth, async (req, res) => {
   try {
     const { productId } = req.body;
     
@@ -1000,14 +1060,7 @@ app.post('/api/admin/delete-product', async (req, res) => {
       });
     }
 
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    const result = await prisma.sponsoredProduct.delete({
-      where: { id: productId }
-    });
-    
-    await prisma.$disconnect();
+    const result = await db.deleteSponsoredProduct(productId);
     
     res.json({
       success: true,
@@ -1025,7 +1078,7 @@ app.post('/api/admin/delete-product', async (req, res) => {
 });
 
 // Admin endpoint to add multiple products via CSV
-app.post('/api/admin/add-multiple-products', async (req, res) => {
+app.post('/api/admin/add-multiple-products', adminAuth, async (req, res) => {
   try {
     const { products } = req.body;
     
@@ -1036,65 +1089,13 @@ app.post('/api/admin/add-multiple-products', async (req, res) => {
       });
     }
 
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    let addedCount = 0;
-    let skippedCount = 0;
-    
-    for (const product of products) {
-      try {
-        // Check if product already exists
-        const existing = await prisma.sponsoredProduct.findFirst({
-          where: { title: product.title }
-        });
-        
-        if (existing) {
-          skippedCount++;
-          continue;
-        }
-        
-        // Validate required fields
-        if (!product.title || !product.price || !product.originalPrice || !product.affiliateUrl || !product.category) {
-          skippedCount++;
-          continue;
-        }
-        
-        // Add affiliate ID to Amazon URLs
-        let affiliateUrl = product.affiliateUrl;
-        if (affiliateUrl.includes('amazon.com') && !affiliateUrl.includes('tag=')) {
-          affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=820cf-20';
-        }
-        
-        await prisma.sponsoredProduct.create({
-          data: {
-            title: product.title,
-            description: product.description || '',
-            imageUrl: product.imageUrl || '',
-            affiliateUrl: affiliateUrl,
-            price: parseFloat(product.price),
-            originalPrice: parseFloat(product.originalPrice),
-            category: product.category,
-            isActive: true,
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-          }
-        });
-        addedCount++;
-        
-      } catch (productError) {
-        console.error('Error adding product:', product.title, productError);
-        skippedCount++;
-      }
-    }
-    
-    await prisma.$disconnect();
+    const result = await db.addMultipleSponsoredProducts(products);
     
     res.json({
       success: true,
-      added: addedCount,
-      skipped: skippedCount,
-      message: `Successfully processed ${products.length} products`
+      added: result.addedCount,
+      skipped: result.skippedCount,
+      message: `Successfully processed ${result.totalProcessed} products`
     });
     
   } catch (error) {

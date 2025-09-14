@@ -1,7 +1,9 @@
 # Catered Savers 🎯
 *Personalized Deal Discovery Platform*
 
-> **📋 For complete project context, AI rules, and technical details, see [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)**
+> **📋 For complete project context, AI rules, and technical details, see [RULES_AND_REQUIREMENTS.md](./RULES_AND_REQUIREMENTS.md)**
+> 
+> **🏗️ For clean project structure overview, see [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)**
 
 ## 🚀 Quick Start
 

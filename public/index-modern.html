@@ -7,6 +7,21 @@
     <link rel="stylesheet" href="styles-modern.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .logo img {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .header {
+            padding-bottom: 0px !important;
+        }
+        .header-content {
+            padding-bottom: 0px !important;
+        }
+        .logo img {
+            margin-bottom: -20px !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -14,10 +29,7 @@
         <div class="container">
             <div class="header-content">
                 <a href="#" class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-tags"></i>
-                    </div>
-                    Catered Savers
+                    <img src="/logo.svg" alt="Catered Savers Logo" width="350" height="140" style="margin: 0; padding: 0;">
                 </a>
                 <nav class="nav-links">
                     <a href="#how-it-works" class="nav-link">How It Works</a>
@@ -34,7 +46,7 @@
             <div class="hero-content">
                 <h1>Get Personalized Deals Delivered Weekly</h1>
                 <p class="hero-subtitle">
-                    Join thousands of smart shoppers who save 50%+ on their favorite brands. 
+                    Save 50%+ on your favorite brands with personalized deals. 
                     Get deals tailored to your interests, delivered straight to your inbox.
                 </p>
                 <div class="hero-stats">
@@ -43,8 +55,8 @@
                         <span class="stat-label">Average Savings</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number">10K+</span>
-                        <span class="stat-label">Happy Customers</span>
+                        <span class="stat-number">Weekly</span>
+                        <span class="stat-label">Delivery</span>
                     </div>
                     <div class="stat">
                         <span class="stat-number">500+</span>
@@ -88,9 +100,21 @@
                             </label>
                             
                             <label class="category-card">
-                                <input type="checkbox" name="categories" value="fashion">
-                                <span class="category-icon">👕</span>
-                                <span class="category-name">Fashion & Style</span>
+                                <input type="checkbox" name="categories" value="mens-fashion">
+                                <span class="category-icon">👔</span>
+                                <span class="category-name">Men's Fashion</span>
+                            </label>
+                            
+                            <label class="category-card">
+                                <input type="checkbox" name="categories" value="womens-fashion">
+                                <span class="category-icon">👗</span>
+                                <span class="category-name">Women's Fashion</span>
+                            </label>
+                            
+                            <label class="category-card">
+                                <input type="checkbox" name="categories" value="fashion-accessories">
+                                <span class="category-icon">💎</span>
+                                <span class="category-name">Fashion Accessories</span>
                             </label>
                             
                             <label class="category-card">

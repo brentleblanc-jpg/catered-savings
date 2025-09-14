@@ -5,20 +5,159 @@ class AdminDashboard {
         this.products = [];
         this.users = [];
         this.clicks = [];
+        this.isAuthenticated = false;
+        this.authToken = null;
         this.init();
     }
 
     init() {
         this.setupEventListeners();
-        this.loadDashboardData();
         this.setDefaultDates();
+        this.checkAuthentication();
+    }
+
+    loadSavedTab() {
+        // Load saved tab from localStorage, fallback to 'dashboard'
+        const savedTab = localStorage.getItem('adminActiveTab') || 'dashboard';
+        
+        // Validate that the saved tab exists
+        const validTabs = ['dashboard', 'products', 'analytics', 'users', 'settings'];
+        const tabToLoad = validTabs.includes(savedTab) ? savedTab : 'dashboard';
+        
+        // Only switch if it's not the default dashboard
+        if (tabToLoad !== 'dashboard') {
+            this.switchTab(tabToLoad);
+        }
+    }
+
+    checkAuthentication() {
+        const token = localStorage.getItem('adminToken');
+        const expiresAt = localStorage.getItem('adminTokenExpires');
+        
+        if (token && expiresAt) {
+            const now = new Date();
+            const expiration = new Date(expiresAt);
+            
+            if (now < expiration) {
+                this.isAuthenticated = true;
+                this.authToken = token;
+                this.showAdminInterface();
+                this.loadDashboardData();
+                // Load saved tab after everything is loaded
+                window.addEventListener('load', () => {
+                    this.loadSavedTab();
+                });
+            } else {
+                this.clearAuth();
+                this.showLoginForm();
+            }
+        } else {
+            this.showLoginForm();
+        }
+    }
+
+    showLoginForm() {
+        document.getElementById('login-container').style.display = 'flex';
+        document.getElementById('admin-container').style.display = 'none';
+    }
+
+    showAdminInterface() {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('admin-container').style.display = 'block';
+    }
+
+    async login(password) {
+        try {
+            const response = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.isAuthenticated = true;
+                this.authToken = data.token;
+                
+                // Store token and expiration
+                localStorage.setItem('adminToken', data.token);
+                localStorage.setItem('adminTokenExpires', data.expiresAt);
+                
+                this.showAdminInterface();
+                this.loadDashboardData();
+                
+                // Load saved tab
+                this.loadSavedTab();
+                
+                return true;
+            } else {
+                this.showError(data.error || 'Login failed');
+                return false;
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            this.showError('Network error. Please try again.');
+            return false;
+        }
+    }
+
+    logout() {
+        this.clearAuth();
+        this.showLoginForm();
+        
+        // Clear any cached data
+        this.products = [];
+        this.users = [];
+        this.clicks = [];
+    }
+
+    clearAuth() {
+        this.isAuthenticated = false;
+        this.authToken = null;
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminTokenExpires');
+    }
+
+    showError(message) {
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        
+        // Hide error after 5 seconds
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    getAuthHeaders() {
+        return {
+            'Authorization': `Bearer admin123`,
+            'Content-Type': 'application/json'
+        };
     }
 
     setupEventListeners() {
+        // Login form
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            await this.login(password);
+        });
+
+        // Logout button
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.logout();
+        });
+
         // Tab navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                this.switchTab(e.currentTarget.dataset.tab);
+                const tabName = e.currentTarget.dataset.tab;
+                this.switchTab(tabName);
             });
         });
 
@@ -98,9 +237,17 @@ class AdminDashboard {
             this.openUserModal();
         });
 
-        document.getElementById('sync-mailchimp-btn').addEventListener('click', () => {
-            this.syncWithMailchimp();
-        });
+        const syncButton = document.getElementById('sync-mailchimp-btn');
+        if (syncButton) {
+            console.log('Sync button found, adding event listener');
+            syncButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Sync button clicked!');
+                this.syncWithMailchimp();
+            });
+        } else {
+            console.error('Sync button not found!');
+        }
 
         // User modal events
         document.getElementById('close-user-modal').addEventListener('click', () => {
@@ -140,13 +287,19 @@ class AdminDashboard {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
 
         // Update content
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
         });
-        document.getElementById(tabName).classList.add('active');
+        const targetContent = document.getElementById(tabName);
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
 
         // Update header
         this.updatePageHeader(tabName);
@@ -155,6 +308,9 @@ class AdminDashboard {
         this.loadTabData(tabName);
 
         this.currentTab = tabName;
+        
+        // Save current tab to localStorage
+        localStorage.setItem('adminActiveTab', tabName);
     }
 
     updatePageHeader(tabName) {
@@ -187,22 +343,24 @@ class AdminDashboard {
     async loadDashboardData() {
         try {
             // Load sponsored products
-            console.log('Loading sponsored products...');
-            const productsResponse = await fetch('/api/sponsored-products');
-            console.log('Products response status:', productsResponse.status);
+            const productsResponse = await fetch('/api/admin/sponsored-products', {
+                headers: this.getAuthHeaders()
+            });
             const productsData = await productsResponse.json();
-            console.log('Products data:', productsData);
             this.products = productsData.products || [];
-            console.log('Loaded products count:', this.products.length);
 
             // Load users
-            const usersResponse = await fetch('/api/admin/users');
+            const usersResponse = await fetch('/api/admin/users', {
+                headers: this.getAuthHeaders()
+            });
             const usersData = await usersResponse.json();
             this.users = usersData.users || [];
 
             // Load clicks (if available)
             try {
-                const clicksResponse = await fetch('/api/admin/clicks');
+                const clicksResponse = await fetch('/api/admin/clicks', {
+                    headers: this.getAuthHeaders()
+                });
                 const clicksData = await clicksResponse.json();
                 this.clicks = clicksData.clicks || [];
             } catch (error) {
@@ -217,25 +375,28 @@ class AdminDashboard {
     }
 
     updateDashboardStats() {
-        // Total users
-        document.getElementById('total-users').textContent = this.users.length;
+        // Total users (subscribers)
+        const userCount = this.users ? this.users.length : 0;
+        const totalUsersElement = document.getElementById('total-users');
+        if (totalUsersElement) {
+            totalUsersElement.textContent = userCount;
+        }
 
         // Active products
-        const activeProducts = this.products.filter(p => p.active);
-        document.getElementById('active-products').textContent = activeProducts.length;
+        const activeProducts = this.products ? this.products.filter(p => p.isActive) : [];
+        const productCount = activeProducts.length;
+        const activeProductsElement = document.getElementById('active-products');
+        if (activeProductsElement) {
+            activeProductsElement.textContent = productCount;
+        }
 
-        // Monthly revenue
-        const monthlyRevenue = activeProducts.reduce((sum, p) => sum + (p.monthlyFee || 0), 0);
-        document.getElementById('monthly-revenue').textContent = `$${monthlyRevenue.toLocaleString()}`;
-
-        // Total clicks
-        document.getElementById('total-clicks').textContent = this.clicks.length;
+        // Monthly revenue and Total clicks are now "Coming Soon" - no need to update
     }
 
     loadTabData(tabName) {
         switch (tabName) {
             case 'dashboard':
-                this.loadDashboardCharts();
+                // Dashboard charts removed - no action needed
                 break;
             case 'products':
                 this.loadAllProducts();
@@ -258,24 +419,6 @@ class AdminDashboard {
         }
     }
 
-    loadDashboardCharts() {
-        // Placeholder for charts - in production, you'd use Chart.js or similar
-        document.getElementById('signups-chart').innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <i class="fas fa-chart-line" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
-                <p>Chart coming soon!</p>
-                <small>${this.users.length} total signups</small>
-            </div>
-        `;
-
-        document.getElementById('categories-chart').innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <i class="fas fa-chart-pie" style="font-size: 3rem; color: #764ba2; margin-bottom: 1rem;"></i>
-                <p>Chart coming soon!</p>
-                <small>Category distribution</small>
-            </div>
-        `;
-    }
 
     async loadProductsTable() {
         console.log('Loading products table...');
@@ -285,7 +428,9 @@ class AdminDashboard {
 
         try {
             // Fetch fresh data from server
-            const response = await fetch('/api/admin/sponsored-products');
+            const response = await fetch('/api/admin/sponsored-products', {
+                headers: this.getAuthHeaders()
+            });
             const data = await response.json();
             
             if (data.success) {
@@ -560,9 +705,7 @@ class AdminDashboard {
             try {
                 const response = await fetch('/api/admin/delete-product', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: this.getAuthHeaders(),
                     body: JSON.stringify({ productId: productId })
                 });
                 
@@ -571,6 +714,7 @@ class AdminDashboard {
                 if (response.ok && result.success) {
                     this.showNotification('Product deleted successfully!', 'success');
                     await this.loadProductsTable(); // Refresh the products table with fresh data
+                    await this.loadDashboardData(); // Update dashboard numbers
                 } else {
                     throw new Error(result.message || 'Failed to delete product');
                 }
@@ -583,7 +727,9 @@ class AdminDashboard {
 
     async loadAllProducts() {
         try {
-            const response = await fetch('/api/sponsored-products');
+            const response = await fetch('/api/admin/sponsored-products', {
+                headers: this.getAuthHeaders()
+            });
             const data = await response.json();
             
             if (data.success && data.products) {
@@ -678,12 +824,14 @@ class AdminDashboard {
         if (confirm('Are you sure you want to delete ALL products? This action cannot be undone.')) {
             try {
                 const response = await fetch('/api/admin/clear-all-products', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: this.getAuthHeaders()
                 });
                 
                 if (response.ok) {
                     this.showNotification('All products deleted successfully!', 'success');
                     this.loadAllProducts();
+                    this.loadDashboardData(); // Update dashboard numbers
                 } else {
                     throw new Error('Failed to delete products');
                 }
@@ -1270,23 +1418,34 @@ class AdminDashboard {
     }
 
     async syncWithMailchimp() {
+        console.log('syncWithMailchimp function called!');
         const button = document.getElementById('sync-mailchimp-btn');
         const originalText = button.innerHTML;
         const syncStatus = document.getElementById('sync-status');
         
+        console.log('Button found:', !!button);
+        console.log('Sync status found:', !!syncStatus);
+        
+        if (!button || !syncStatus) {
+            console.error('Required elements not found!');
+            this.showNotification('Error: Required elements not found', 'error');
+            return;
+        }
+        
         try {
+            // Update button state
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
             button.disabled = true;
+            button.style.opacity = '0.7';
             
-            syncStatus.className = 'sync-status';
-            syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing users...';
+            // Update status
+            syncStatus.className = 'sync-status syncing';
+            syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing users with Mailchimp...';
 
             // Actually perform the sync (this will add database users to Mailchimp)
             const syncResponse = await fetch('/api/admin/sync-mailchimp', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: this.getAuthHeaders()
             });
             
             const syncResult = await syncResponse.json();
@@ -1296,7 +1455,9 @@ class AdminDashboard {
             }
 
             // Get updated user counts after sync
-            const dbResponse = await fetch('/api/admin/users');
+            const dbResponse = await fetch('/api/admin/users', {
+                headers: this.getAuthHeaders()
+            });
             const dbData = await dbResponse.json();
             
             const mailchimpResponse = await fetch('/api/mailchimp/users');
@@ -1343,13 +1504,22 @@ class AdminDashboard {
             
             this.showNotification(notificationMessage, 'success');
             
+            // Update sync status with success message
+            syncStatus.className = 'sync-status success';
+            syncStatus.innerHTML = `<i class="fas fa-check-circle"></i> Sync completed! ${syncResult.syncedCount} users synced.`;
+            
+            // Update dashboard with new user data
+            this.loadDashboardData();
+            
         } catch (error) {
             syncStatus.className = 'sync-status error';
             syncStatus.innerHTML = '<i class="fas fa-times-circle"></i> Sync failed: ' + error.message;
             this.showNotification('Error syncing with Mailchimp: ' + error.message, 'error');
         } finally {
+            // Reset button state
             button.innerHTML = originalText;
             button.disabled = false;
+            button.style.opacity = '1';
         }
     }
 
@@ -1360,7 +1530,8 @@ class AdminDashboard {
 
         try {
             const response = await fetch(`/api/admin/users/${userId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
             });
 
             const result = await response.json();
@@ -1379,7 +1550,9 @@ class AdminDashboard {
 
     async loadUsers() {
         try {
-            const response = await fetch('/api/admin/users');
+            const response = await fetch('/api/admin/users', {
+                headers: this.getAuthHeaders()
+            });
             const data = await response.json();
             
             this.users = data.users || [];
@@ -1393,12 +1566,50 @@ class AdminDashboard {
         const tbody = document.getElementById('users-table-body');
         tbody.innerHTML = '';
 
+        // Category mapping with icons and colors
+        const categoryMap = {
+            'tech-electronics': { name: 'Tech', icon: 'fas fa-laptop', color: '#3b82f6' },
+            'home-garden': { name: 'Home', icon: 'fas fa-home', color: '#10b981' },
+            'fashion-accessories': { name: 'Fashion', icon: 'fas fa-gem', color: '#f59e0b' },
+            'mens-fashion': { name: 'Men', icon: 'fas fa-male', color: '#8b5cf6' },
+            'womens-fashion': { name: 'Women', icon: 'fas fa-female', color: '#ec4899' },
+            'health-beauty': { name: 'Health', icon: 'fas fa-heart', color: '#ef4444' },
+            'sports-outdoors': { name: 'Sports', icon: 'fas fa-dumbbell', color: '#06b6d4' },
+            'automotive': { name: 'Auto', icon: 'fas fa-car', color: '#6b7280' },
+            'books-media': { name: 'Books', icon: 'fas fa-book', color: '#84cc16' },
+            'food-dining': { name: 'Food', icon: 'fas fa-utensils', color: '#f97316' },
+            'kids-family': { name: 'Kids', icon: 'fas fa-child', color: '#8b5cf6' },
+            'pets': { name: 'Pets', icon: 'fas fa-paw', color: '#10b981' },
+            'travel': { name: 'Travel', icon: 'fas fa-plane', color: '#3b82f6' },
+            'office-education': { name: 'Office', icon: 'fas fa-briefcase', color: '#6366f1' },
+            'entertainment': { name: 'Entertainment', icon: 'fas fa-gamepad', color: '#ec4899' },
+            'other': { name: 'Other', icon: 'fas fa-ellipsis-h', color: '#6b7280' }
+        };
+
         this.users.forEach(user => {
             const row = document.createElement('tr');
+            
+            // Create categories display
+            let categoriesDisplay = 'N/A';
+            if (user.categories && user.categories.length > 0) {
+                let categoryTags = user.categories.slice(0, 3).map(cat => {
+                    const catInfo = categoryMap[cat] || { name: cat, icon: 'fas fa-tag', color: '#6b7280' };
+                    return `<span class="category-tag" style="background: ${catInfo.color}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin: 1px; display: inline-block;">
+                        <i class="${catInfo.icon}" style="font-size: 8px; margin-right: 2px;"></i>${catInfo.name}
+                    </span>`;
+                }).join('');
+                
+                if (user.categories.length > 3) {
+                    categoryTags += `<span class="category-more" style="color: #6b7280; font-size: 10px; margin-left: 4px;">+${user.categories.length - 3} more</span>`;
+                }
+                
+                categoriesDisplay = categoryTags;
+            }
+            
             row.innerHTML = `
                 <td>${user.email}</td>
                 <td>${user.name || 'N/A'}</td>
-                <td>${user.categories ? user.categories.join(', ') : 'N/A'}</td>
+                <td style="max-width: 200px; overflow: hidden;">${categoriesDisplay}</td>
                 <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                 <td>
                     <span class="status-badge ${user.status || 'active'}">
@@ -1426,7 +1637,6 @@ class AdminDashboard {
         const uploadArea = document.getElementById('upload-area');
         const fileInput = document.getElementById('csv-file-input');
         const browseBtn = document.getElementById('browse-files-btn');
-        const downloadTemplateBtn = document.getElementById('download-template-btn');
         const processBtn = document.getElementById('process-csv-btn');
         const cancelBtn = document.getElementById('cancel-upload-btn');
 
@@ -1460,10 +1670,6 @@ class AdminDashboard {
             }
         });
 
-        // Download template
-        downloadTemplateBtn.addEventListener('click', () => {
-            this.downloadTemplate();
-        });
 
         // Process CSV
         processBtn.addEventListener('click', () => {
@@ -1589,9 +1795,7 @@ class AdminDashboard {
         try {
             const response = await fetch('/api/admin/add-multiple-products', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify({ products: this.csvData })
             });
 
@@ -1627,26 +1831,11 @@ class AdminDashboard {
         
         uploadResults.style.display = 'block';
         
-        // Refresh products table
+        // Refresh products table and dashboard
         this.loadProductsTable();
+        this.loadDashboardData();
     }
 
-    downloadTemplate() {
-        const templateContent = `title,description,price,originalPrice,imageUrl,affiliateUrl,category,productType
-"KitchenAid Artisan Stand Mixer","KitchenAid Artisan Series 5-Qt Stand Mixer with Pouring Shield - Perfect for baking and cooking",199.99,399.99,"https://m.media-amazon.com/images/I/71h6PpGaz9L._AC_SL1500_.jpg","https://www.amazon.com/dp/B08N5WRWNW","home-garden","deal"
-"Instant Pot Duo 7-in-1","Instant Pot Duo 7-in-1 Electric Pressure Cooker, 6 Quart, 14 One-Touch Programs",49.97,99.95,"https://m.media-amazon.com/images/I/71QHvW2hl7L._AC_SL1500_.jpg","https://www.amazon.com/dp/B00FLYWNYQ","home-garden","deal"
-"Sony WH-1000XM4 Headphones","Industry Leading Noise Canceling Overhead Headphones with Mic for Phone-Call and Alexa Voice Control",199.99,349.99,"https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg","https://www.amazon.com/dp/B0863TXGM3","tech-electronics","deal"`;
-
-        const blob = new Blob([templateContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'products-template.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    }
 
     cancelUpload() {
         document.getElementById('csv-preview').style.display = 'none';

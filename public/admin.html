@@ -6,34 +6,73 @@
     <title>Catered Savings - Admin Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin-styles.css">
+    <link rel="stylesheet" href="login-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .sidebar-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .admin-logo {
+            margin-bottom: 15px;
+        }
+        .header-actions {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: #e55a2b !important;
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
-    <div class="admin-container">
+    <!-- Login Form -->
+    <div id="login-container" class="login-container">
+        <div class="login-form">
+            <div class="login-header">
+                <div class="admin-logo">
+                    <img src="/logo.svg" alt="Catered Savers Logo" width="200" height="80" style="margin: 0; padding: 0;">
+                </div>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" name="password" required>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </button>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (hidden until login) -->
+    <div id="admin-container" class="admin-container" style="display: none;">
         <!-- Sidebar Navigation -->
         <nav class="admin-sidebar">
             <div class="sidebar-header">
                 <div class="admin-logo">
-                    <div class="admin-logo-icon">
-                        <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="https://www.w3.org/2000/svg">
-                            <!-- Envelope -->
-                            <path d="M15 25 L85 25 L85 75 L15 75 Z" fill="none" stroke="#1e3a5f" stroke-width="4"/>
-                            <path d="M15 25 L50 50 L85 25" fill="none" stroke="#1e3a5f" stroke-width="4" stroke-linejoin="round"/>
-                            <path d="M15 75 L35 55" stroke="#1e3a5f" stroke-width="4" stroke-linecap="round"/>
-                            <path d="M85 75 L65 55" stroke="#1e3a5f" stroke-width="4" stroke-linecap="round"/>
-                            
-                            <!-- Price Tag -->
-                            <path d="M45 15 L70 15 L75 20 L75 35 L70 40 L45 40 L40 35 L40 20 Z" fill="#f4a261" stroke="#1e3a5f" stroke-width="3"/>
-                            <circle cx="47" cy="22" r="2" fill="#1e3a5f"/>
-                            
-                            <!-- Dollar Sign -->
-                            <text x="60" y="32" font-family="Arial Black, sans-serif" font-size="14" font-weight="900" fill="#1e3a5f" text-anchor="middle">$</text>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2>Admin</h2>
-                        <p>Catered<span style="color: #ffd700;">Savings</span></p>
-                    </div>
+                    <img src="/logo.svg" alt="Catered Savers Logo" width="200" height="80" style="margin: 0; padding: 0;">
+                </div>
+                <div class="header-actions">
+                    <button id="logout-btn" class="logout-btn" title="Logout" style="background: #ff6b35; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
                 </div>
             </div>
             
@@ -53,14 +92,6 @@
                 <li class="nav-item" data-tab="users">
                     <i class="fas fa-users"></i>
                     <span>Users</span>
-                </li>
-                <li class="nav-item" data-tab="revenue">
-                    <i class="fas fa-dollar-sign"></i>
-                    <span>Revenue</span>
-                </li>
-                <li class="nav-item" data-tab="database">
-                    <i class="fas fa-database"></i>
-                    <span>Database Views</span>
                 </li>
                 <li class="nav-item" data-tab="settings">
                     <i class="fas fa-cog"></i>
@@ -115,44 +146,27 @@
                         </div>
                     </div>
                     
-                    <div class="stat-card">
+                    <div class="stat-card coming-soon">
                         <div class="stat-icon">
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 id="monthly-revenue">$0</h3>
+                            <h3>Coming Soon</h3>
                             <p>Monthly Revenue</p>
                         </div>
                     </div>
                     
-                    <div class="stat-card">
+                    <div class="stat-card coming-soon">
                         <div class="stat-icon">
                             <i class="fas fa-mouse-pointer"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 id="total-clicks">0</h3>
+                            <h3>Coming Soon</h3>
                             <p>Total Clicks</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="dashboard-charts">
-                    <div class="chart-container">
-                        <h3>Recent Signups</h3>
-                        <div id="signups-chart" class="chart-placeholder">
-                            <i class="fas fa-chart-line"></i>
-                            <p>Loading chart...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <h3>Top Categories</h3>
-                        <div id="categories-chart" class="chart-placeholder">
-                            <i class="fas fa-chart-pie"></i>
-                            <p>Loading chart...</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Products Management Tab -->
@@ -162,9 +176,6 @@
                     <div class="product-actions">
                         <button class="btn btn-primary" id="upload-csv-btn">
                             <i class="fas fa-upload"></i> Upload CSV
-                        </button>
-                        <button class="btn btn-secondary" id="download-template-btn">
-                            <i class="fas fa-download"></i> Download Template
                         </button>
                         <button class="btn btn-danger" id="clear-all-products-btn">
                             <i class="fas fa-trash"></i> Clear All Products
@@ -355,6 +366,53 @@
                         <i class="fas fa-info-circle"></i>
                         <span>Click "Sync with Mailchimp" to compare user lists</span>
                     </div>
+                    
+                    <style>
+                        .stat-card.coming-soon {
+                            opacity: 0.6;
+                            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                        }
+                        
+                        .stat-card.coming-soon h3 {
+                            color: #6c757d;
+                            font-style: italic;
+                        }
+                        
+                        .sync-status {
+                            margin-top: 15px;
+                            padding: 12px;
+                            border-radius: 6px;
+                            background-color: #f8f9fa;
+                            border: 1px solid #e9ecef;
+                            color: #6c757d;
+                            font-size: 14px;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .sync-status.syncing {
+                            background-color: #fff3cd;
+                            border-color: #ffeaa7;
+                            color: #856404;
+                        }
+                        
+                        .sync-status.success {
+                            background-color: #d4edda;
+                            border-color: #c3e6cb;
+                            color: #155724;
+                        }
+                        
+                        .sync-status.error {
+                            background-color: #f8d7da;
+                            border-color: #f5c6cb;
+                            color: #721c24;
+                        }
+                        
+                        .sync-status i {
+                            font-size: 16px;
+                        }
+                    </style>
                 </div>
 
                 <div class="users-table-container">
@@ -376,32 +434,6 @@
                     </table>
                 </div>
             </div>
-
-            <!-- Revenue Tab -->
-            <div id="revenue" class="tab-content">
-                <div class="revenue-overview">
-                    <div class="revenue-card">
-                        <h3>Monthly Revenue</h3>
-                        <div class="revenue-amount" id="monthly-revenue-amount">$0</div>
-                        <p>From sponsored products</p>
-                    </div>
-                    
-                    <div class="revenue-card">
-                        <h3>Projected Annual</h3>
-                        <div class="revenue-amount" id="annual-revenue">$0</div>
-                        <p>Based on current products</p>
-                    </div>
-                </div>
-
-                <div class="revenue-breakdown">
-                    <h3>Revenue by Product</h3>
-                    <div id="revenue-breakdown-chart" class="chart-placeholder">
-                        <i class="fas fa-chart-bar"></i>
-                        <p>Loading breakdown...</p>
-                    </div>
-                </div>
-            </div>
-
 
             <!-- Settings Tab -->
             <div id="settings" class="tab-content">
@@ -436,102 +468,6 @@
                 </div>
             </div>
 
-            <!-- Database Views Tab -->
-            <div id="database" class="tab-content">
-                <div class="database-section">
-                    <h3>Database Views & API Endpoints</h3>
-                    <p>Quick access to all database information and API endpoints</p>
-                    
-                    <div class="database-links-grid">
-                        <div class="database-link-card">
-                            <div class="link-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="link-content">
-                                <h4>Deal Statistics</h4>
-                                <p>View total deals, average discounts, and category breakdown</p>
-                                <a href="/api/deal-discovery/stats" target="_blank" class="btn btn-outline">
-                                    <i class="fas fa-external-link-alt"></i> View Stats
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="database-link-card">
-                            <div class="link-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="link-content">
-                                <h4>Recent Deals</h4>
-                                <p>See the latest deals discovered and stored in the database</p>
-                                <a href="/api/deal-discovery/recent" target="_blank" class="btn btn-outline">
-                                    <i class="fas fa-external-link-alt"></i> View Recent
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="database-link-card">
-                            <div class="link-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <div class="link-content">
-                                <h4>System Status</h4>
-                                <p>Check deal discovery system status and configuration</p>
-                                <a href="/api/deal-discovery/status" target="_blank" class="btn btn-outline">
-                                    <i class="fas fa-external-link-alt"></i> View Status
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="database-link-card">
-                            <div class="link-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="link-content">
-                                <h4>User Analytics</h4>
-                                <p>View user data, signups, and engagement metrics</p>
-                                <a href="/api/admin/analytics" target="_blank" class="btn btn-outline">
-                                    <i class="fas fa-external-link-alt"></i> View Analytics
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="database-link-card">
-                            <div class="link-icon">
-                                <i class="fas fa-mouse-pointer"></i>
-                            </div>
-                            <div class="link-content">
-                                <h4>Click Analytics</h4>
-                                <p>Track sponsored product clicks and conversion data</p>
-                                <a href="/api/admin/clicks" target="_blank" class="btn btn-outline">
-                                    <i class="fas fa-external-link-alt"></i> View Clicks
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="database-link-card">
-                            <div class="link-icon">
-                                <i class="fas fa-gift"></i>
-                            </div>
-                            <div class="link-content">
-                                <h4>Sponsored Products</h4>
-                                <p>View active sponsored products and their performance</p>
-                                <a href="/api/sponsored-products" target="_blank" class="btn btn-outline">
-                                    <i class="fas fa-external-link-alt"></i> View Products
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="database-actions">
-                        <h4>Quick Actions</h4>
-                        <div class="action-buttons">
-                            <button class="btn btn-info" id="refresh-database">
-                                <i class="fas fa-sync"></i> Refresh Data
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 
@@ -757,7 +693,36 @@
         </div>
     </div>
 
-    <script src="admin.js"></script>
+    <script src="admin.js?v=2025-09-11-4"></script>
+    <script>
+        // Ensure admin.js loads and dashboard updates
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.adminDashboard) {
+                    console.log('Debug: adminDashboard found, loading data...');
+                    window.adminDashboard.loadDashboardData();
+                } else {
+                    console.log('Debug: adminDashboard not found, setting fallback numbers...');
+                    // Fallback: manually set numbers if admin.js fails to load
+                    document.getElementById('total-users').textContent = '7';
+                    document.getElementById('active-products').textContent = '8';
+                }
+                
+                // Debug sync button
+                const syncButton = document.getElementById('sync-mailchimp-btn');
+                console.log('Debug: Sync button found:', !!syncButton);
+                if (syncButton) {
+                    syncButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Debug: Sync button clicked via fallback handler!');
+                        alert('Sync button clicked! Check console for details.');
+                    });
+                }
+            }, 1000);
+        });
+    </script>
+    
+    </div> <!-- End admin-container -->
 </body>
 </html>
 

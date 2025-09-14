@@ -1,0 +1,64 @@
+Category Slug,Category Name,Description,Retailer Name,Retailer URL,Retailer Description,Affiliate Status
+tech-electronics,Tech & Electronics,Latest deals on laptops phones gadgets and electronics,Best Buy,https://www.bestbuy.com/site/home-appliances/major-appliances-sale-event/pcmcat321600050000.c?id=pcmcat321600050000,✅ Labor Day: 50% off major appliances + extra $600 with codes SAVE10/SAVE20,Yes
+tech-electronics,Tech & Electronics,Latest deals on laptops phones gadgets and electronics,Newegg,https://www.newegg.com/todays-deals,✅ Shell Shocker deals up to 70% off daily,Yes
+tech-electronics,Tech & Electronics,Latest deals on laptops phones gadgets and electronics,Amazon Warehouse,https://www.amazon.com/Warehouse-Deals/b?ie=UTF8&node=10158976011,✅ Open-box items 20-50% off,Yes
+tech-electronics,Tech & Electronics,Latest deals on laptops phones gadgets and electronics,B&H Photo,https://www.bhphotovideo.com,Camera/electronics clearance,Yes
+tech-electronics,Tech & Electronics,Latest deals on laptops phones gadgets and electronics,Woot!,https://www.woot.com/,Daily tech deals,Yes
+tech-electronics,Tech & Electronics,Latest deals on laptops phones gadgets and electronics,Micro Center,https://www.microcenter.com/,PC components,Yes
+mens-fashion,Men's Fashion,Men's clothing shoes and style deals,ASOS Men,https://www.asos.com/us/men/sale/,Men's fashion clearance,Yes
+mens-fashion,Men's Fashion,Men's clothing shoes and style deals,H&M Men,https://www2.hm.com/en_us/men/sale.html,Men's end-of-season clearance,Yes
+mens-fashion,Men's Fashion,Men's clothing shoes and style deals,Zara Men,https://www.zara.com/us/en/man-c358001.html,Men's seasonal sales,Yes
+mens-fashion,Men's Fashion,Men's clothing shoes and style deals,Nordstrom Rack Men,https://www.nordstromrack.com/category/Men,Men's designer outlet,Yes
+mens-fashion,Men's Fashion,Men's clothing shoes and style deals,T.J. Maxx Men,https://tjmaxx.tjx.com/store/shop/men,Men's discount designer,Yes
+mens-fashion,Men's Fashion,Men's clothing shoes and style deals,J.Crew Factory Men,https://factory.jcrew.com/c/mens,Men's preppy style deals,Yes
+womens-fashion,Women's Fashion,Women's clothing shoes and style deals,Forever 21,https://www.forever21.com/collections/sale,✅ 50% off sitewide with code TAKE50,Yes
+womens-fashion,Women's Fashion,Women's clothing shoes and style deals,H&M Women,https://www2.hm.com/en_us/women/sale.html,Women's end-of-season clearance,Yes
+womens-fashion,Women's Fashion,Women's clothing shoes and style deals,Zara Women,https://www.zara.com/us/en/woman-c358002.html,Women's seasonal sales,Yes
+womens-fashion,Women's Fashion,Women's clothing shoes and style deals,ASOS Women,https://www.asos.com/us/women/sale/,Women's fashion clearance,Yes
+womens-fashion,Women's Fashion,Women's clothing shoes and style deals,Nordstrom Rack Women,https://www.nordstromrack.com/category/Women,Women's designer outlet,Yes
+womens-fashion,Women's Fashion,Women's clothing shoes and style deals,T.J. Maxx Women,https://tjmaxx.tjx.com/store/shop/women,Women's discount designer,Yes
+fashion-accessories,Fashion Accessories,Shoes bags jewelry watches and unisex accessories,Zappos,https://www.zappos.com/sale,Shoe deals and clearance,Yes
+fashion-accessories,Fashion Accessories,Shoes bags jewelry watches and unisex accessories,DSW,https://www.dsw.com/en/us/sale,Shoe warehouse deals,Yes
+fashion-accessories,Fashion Accessories,Shoes bags jewelry watches and unisex accessories,Kate Spade Outlet,https://www.katespadeoutlet.com/,Handbags and accessories,Yes
+fashion-accessories,Fashion Accessories,Shoes bags jewelry watches and unisex accessories,Coach Outlet,https://www.coachoutlet.com/,Luxury handbags and accessories,Yes
+fashion-accessories,Fashion Accessories,Shoes bags jewelry watches and unisex accessories,Fossil,https://www.fossil.com/us/en/sale.html,Watches and accessories,Yes
+home-garden,Home & Garden,Furniture decor tools and outdoor living,Lowe's,https://www.lowes.com/pl/Weekly-ad-Special-offers/4294857781,✅ Labor Day: Up to 50% off outdoor furniture + 35% off appliances,Yes
+home-garden,Home & Garden,Furniture decor tools and outdoor living,Williams Sonoma,https://www.williams-sonoma.com/shop/sale-special-offer/,Cookware sales,Yes
+home-garden,Home & Garden,Furniture decor tools and outdoor living,Wayfair,https://www.wayfair.com/daily-sales,Furniture clearance,Yes
+home-garden,Home & Garden,Furniture decor tools and outdoor living,Overstock,https://www.overstock.com/,Home goods clearance,Yes
+home-garden,Home & Garden,Furniture decor tools and outdoor living,Pottery Barn,https://www.potterybarn.com/sale/,Furniture/decor sales,Yes
+health-beauty,Health & Beauty,Skincare makeup wellness and personal care,Sephora,https://www.sephora.com/beauty/sephora-sale,⏰ One-Day Deals (50% off) - Next: Late August 2025,Yes
+health-beauty,Health & Beauty,Skincare makeup wellness and personal care,Ulta,https://www.ulta.com/promotion/21-days-of-beauty,⏰ 21 Days of Beauty (50% off daily) - Aug 29-Sep 18 2025,Yes
+health-beauty,Health & Beauty,Skincare makeup wellness and personal care,Sally Beauty,https://www.sallybeauty.com/,Professional supplies clearance,Yes
+sports-outdoors,Sports & Outdoors,Athletic gear outdoor equipment and fitness deals,Dick's Sporting Goods,https://www.dickssportinggoods.com/f/clearance,Regular clearance up to 50% off,Yes
+sports-outdoors,Sports & Outdoors,Athletic gear outdoor equipment and fitness deals,REI,https://www.rei.com/rei-garage,Outlet/garage sales,Yes
+sports-outdoors,Sports & Outdoors,Athletic gear outdoor equipment and fitness deals,Nike,https://www.nike.com/w/sale-3yaep,Clearance section,Yes
+sports-outdoors,Sports & Outdoors,Athletic gear outdoor equipment and fitness deals,Adidas,https://www.adidas.com/us/outlet,Outlet deals,Yes
+entertainment,Entertainment,Movies games books and streaming deals,GameStop,https://www.gamestop.com/deals,Video game deals,Yes
+entertainment,Entertainment,Movies games books and streaming deals,Steam,https://store.steampowered.com/,PC game sales (seasonal),Yes
+entertainment,Entertainment,Movies games books and streaming deals,PlayStation Store,https://store.playstation.com/,Digital game sales,Yes
+food-dining,Food & Dining,Restaurant deals grocery savings and meal delivery,Thrive Market,https://thrivemarket.com/,Organic/natural foods,Yes
+food-dining,Food & Dining,Restaurant deals grocery savings and meal delivery,Vitacost,https://www.vitacost.com/,Health foods,Yes
+travel,Travel & Vacations,Flights hotels vacation packages and travel deals,Expedia,https://www.expedia.com/Deals,Travel package deals,Yes
+travel,Travel & Vacations,Flights hotels vacation packages and travel deals,Groupon Getaways,https://www.groupon.com/getaways,Travel up to 70% off,Yes
+travel,Travel & Vacations,Flights hotels vacation packages and travel deals,Priceline,https://www.priceline.com/,Express deals,Yes
+automotive,Automotive,Car deals parts accessories and maintenance,AutoZone,https://www.autozone.com/specials-and-promotions,Car parts promotions,Yes
+automotive,Automotive,Car deals parts accessories and maintenance,Advance Auto Parts,https://shop.advanceautoparts.com/,Auto supplies,Yes
+automotive,Automotive,Car deals parts accessories and maintenance,RockAuto,https://www.rockauto.com/,Discount parts,Yes
+books-media,Books & Media,Books magazines digital content and educational resources,Barnes & Noble,https://www.barnesandnoble.com/b/bargain-books/_/N-8q8,Bargain books,Yes
+books-media,Books & Media,Books magazines digital content and educational resources,ThriftBooks,https://www.thriftbooks.com/,Used books up to 90% off,Yes
+books-media,Books & Media,Books magazines digital content and educational resources,Book Outlet,https://bookoutlet.com/,Remainder books,Yes
+kids-family,Kids & Family,Toys baby gear children's clothing and family essentials,Carter's,https://www.carters.com/c/deals,✅ 50% off entire site and stores,Yes
+kids-family,Kids & Family,Toys baby gear children's clothing and family essentials,OshKosh B'gosh,https://www.oshkosh.com/sale,Children's clothing,Yes
+kids-family,Kids & Family,Toys baby gear children's clothing and family essentials,Buy Buy Baby,https://www.buybuybaby.com/,Baby gear,Yes
+office-education,Office & Education,Office supplies school materials and educational tools,Staples,https://www.staples.com/deals,Office supplies deals,Yes
+office-education,Office & Education,Office supplies school materials and educational tools,Office Depot,https://www.officedepot.com/,Business supplies,Yes
+pets,Pet Supplies,Pet food supplies and services,Petco,https://www.petco.com/shop/en/petcostore/special-offers,Pet supplies deals,Yes
+pets,Pet Supplies,Pet food supplies and services,Chewy,https://www.chewy.com/deals/,Pet products,Yes
+pets,Pet Supplies,Pet food supplies and services,PetSmart,https://www.petsmart.com/deals-and-promotions/,Pet supplies,Yes
+other,Other,Miscellaneous deals and special offers,Amazon Daily Deals,https://www.amazon.com/gp/goldbox,Various categories,Yes
+other,Other,Miscellaneous deals and special offers,eBay Daily Deals,https://www.ebay.com/dth/daily-deals,Auction/fixed price deals,Yes
+other,Other,Miscellaneous deals and special offers,Groupon,https://www.groupon.com/,Local services/products,Yes
+other,Other,Miscellaneous deals and special offers,Overstock,https://www.overstock.com/,Various departments,Yes
+other,Other,Miscellaneous deals and special offers,Adobe,https://www.adobe.com/creativecloud/plans.html,Creative software sales,Yes
+other,Other,Miscellaneous deals and special offers,Microsoft,https://www.microsoft.com/en-us/store/b/sale,Software/subscriptions,Yes

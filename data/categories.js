@@ -45,9 +45,51 @@ const categoriesData = {
             }
         ]
     },
-    "fashion": {
-        name: "Fashion & Style",
-        description: "Clothing, shoes, accessories, and style deals",
+    "mens-fashion": {
+        name: "Men's Fashion",
+        description: "Men's clothing, shoes, and style deals",
+        companies: [
+            {
+                name: "ASOS Men",
+                url: "https://www.asos.com/us/men/sale/",
+                description: "Men's fashion clearance",
+                affiliate: true
+            },
+            {
+                name: "H&M Men",
+                url: "https://www2.hm.com/en_us/men/sale.html",
+                description: "Men's end-of-season clearance",
+                affiliate: true
+            },
+            {
+                name: "Zara Men",
+                url: "https://www.zara.com/us/en/man-c358001.html",
+                description: "Men's seasonal sales",
+                affiliate: true
+            },
+            {
+                name: "Nordstrom Rack Men",
+                url: "https://www.nordstromrack.com/category/Men",
+                description: "Men's designer outlet",
+                affiliate: true
+            },
+            {
+                name: "T.J. Maxx Men",
+                url: "https://tjmaxx.tjx.com/store/shop/men",
+                description: "Men's discount designer",
+                affiliate: true
+            },
+            {
+                name: "J.Crew Factory Men",
+                url: "https://factory.jcrew.com/c/mens",
+                description: "Men's preppy style deals",
+                affiliate: true
+            }
+        ]
+    },
+    "womens-fashion": {
+        name: "Women's Fashion",
+        description: "Women's clothing, shoes, and style deals",
         companies: [
             {
                 name: "Forever 21",
@@ -56,33 +98,69 @@ const categoriesData = {
                 affiliate: true
             },
             {
-                name: "H&M",
-                url: "https://www2.hm.com/en_us/sale.html",
-                description: "End-of-season clearance",
+                name: "H&M Women",
+                url: "https://www2.hm.com/en_us/women/sale.html",
+                description: "Women's end-of-season clearance",
                 affiliate: true
             },
             {
-                name: "Zara",
-                url: "https://www.zara.com/us/",
-                description: "Seasonal sales",
+                name: "Zara Women",
+                url: "https://www.zara.com/us/en/woman-c358002.html",
+                description: "Women's seasonal sales",
                 affiliate: true
             },
             {
-                name: "ASOS",
-                url: "https://www.asos.com/us/sale/",
-                description: "Regular clearance",
+                name: "ASOS Women",
+                url: "https://www.asos.com/us/women/sale/",
+                description: "Women's fashion clearance",
                 affiliate: true
             },
             {
-                name: "Nordstrom Rack",
-                url: "https://www.nordstromrack.com/",
-                description: "Designer outlet",
+                name: "Nordstrom Rack Women",
+                url: "https://www.nordstromrack.com/category/Women",
+                description: "Women's designer outlet",
                 affiliate: true
             },
             {
-                name: "T.J. Maxx",
-                url: "https://tjmaxx.tjx.com/",
-                description: "Discount designer",
+                name: "T.J. Maxx Women",
+                url: "https://tjmaxx.tjx.com/store/shop/women",
+                description: "Women's discount designer",
+                affiliate: true
+            }
+        ]
+    },
+    "fashion-accessories": {
+        name: "Fashion Accessories",
+        description: "Shoes, bags, jewelry, watches, and unisex accessories",
+        companies: [
+            {
+                name: "Zappos",
+                url: "https://www.zappos.com/sale",
+                description: "Shoe deals and clearance",
+                affiliate: true
+            },
+            {
+                name: "DSW",
+                url: "https://www.dsw.com/en/us/sale",
+                description: "Shoe warehouse deals",
+                affiliate: true
+            },
+            {
+                name: "Kate Spade Outlet",
+                url: "https://www.katespadeoutlet.com/",
+                description: "Handbags and accessories",
+                affiliate: true
+            },
+            {
+                name: "Coach Outlet",
+                url: "https://www.coachoutlet.com/",
+                description: "Luxury handbags and accessories",
+                affiliate: true
+            },
+            {
+                name: "Fossil",
+                url: "https://www.fossil.com/us/en/sale.html",
+                description: "Watches and accessories",
                 affiliate: true
             }
         ]
