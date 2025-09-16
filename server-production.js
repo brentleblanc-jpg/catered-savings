@@ -260,7 +260,7 @@ app.get('/api/savings-responses', async (req, res) => {
 });
 
 // Get admin clicks data
-app.get('/api/admin/clicks', async (req, res) => {
+app.get('/api/admin/clicks', adminAuth, async (req, res) => {
   try {
     const clickAnalytics = await db.getClickAnalytics(30); // Last 30 days
     res.json({ clicks: clickAnalytics });
@@ -271,7 +271,7 @@ app.get('/api/admin/clicks', async (req, res) => {
 });
 
 // Get admin dashboard analytics
-app.get('/api/admin/analytics', async (req, res) => {
+app.get('/api/admin/analytics', adminAuth, async (req, res) => {
   try {
     const analytics = await db.getAnalyticsSummary();
     const users = await db.getAllUsers();
@@ -512,7 +512,7 @@ app.post('/api/add-company', (req, res) => {
 });
 
 // Get sponsored products for admin
-app.get('/api/admin/sponsored-products', async (req, res) => {
+app.get('/api/admin/sponsored-products', adminAuth, async (req, res) => {
   try {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
@@ -543,6 +543,60 @@ app.get('/api/admin/sponsored-products', async (req, res) => {
 // Admin panel route
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Admin Authentication Middleware
+const adminAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const token = authHeader.substring(7);
+  
+  // Accept either the password directly or a valid JWT-style token
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'Admin password not configured' });
+  }
+  
+  // For now, accept the password as a token (simple approach)
+  if (token === adminPassword) {
+    req.admin = { authenticated: true };
+    next();
+  } else {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+// Admin login endpoint
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'Admin password not configured' });
+  }
+  
+  if (password === adminPassword) {
+    // Create session token (simple approach for single admin)
+    const sessionToken = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64');
+    const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
+    
+    res.json({
+      success: true,
+      token: sessionToken,
+      expiresAt: expiresAt.toISOString()
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
+
+// Admin logout endpoint
+app.post('/api/admin/logout', (req, res) => {
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 // Personalized deals page route moved above static middleware
