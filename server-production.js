@@ -18,6 +18,60 @@ const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 
+// Admin Authentication Middleware
+const adminAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const token = authHeader.substring(7);
+  
+  // Accept either the password directly or a valid JWT-style token
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'Admin password not configured' });
+  }
+  
+  // For now, accept the password as a token (simple approach)
+  if (token === adminPassword) {
+    req.admin = { authenticated: true };
+    next();
+  } else {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+// Admin login endpoint
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'Admin password not configured' });
+  }
+  
+  if (password === adminPassword) {
+    // Create session token (simple approach for single admin)
+    const sessionToken = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64');
+    const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
+    
+    res.json({
+      success: true,
+      token: sessionToken,
+      expiresAt: expiresAt.toISOString()
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
+
+// Admin logout endpoint
+app.post('/api/admin/logout', (req, res) => {
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
 // Health check endpoint for production monitoring
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -543,60 +597,6 @@ app.get('/api/admin/sponsored-products', adminAuth, async (req, res) => {
 // Admin panel route
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-// Admin Authentication Middleware
-const adminAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  
-  const token = authHeader.substring(7);
-  
-  // Accept either the password directly or a valid JWT-style token
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  
-  if (!adminPassword) {
-    return res.status(500).json({ error: 'Admin password not configured' });
-  }
-  
-  // For now, accept the password as a token (simple approach)
-  if (token === adminPassword) {
-    req.admin = { authenticated: true };
-    next();
-  } else {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
-
-// Admin login endpoint
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  
-  if (!adminPassword) {
-    return res.status(500).json({ error: 'Admin password not configured' });
-  }
-  
-  if (password === adminPassword) {
-    // Create session token (simple approach for single admin)
-    const sessionToken = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64');
-    const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
-    
-    res.json({
-      success: true,
-      token: sessionToken,
-      expiresAt: expiresAt.toISOString()
-    });
-  } else {
-    res.status(401).json({ error: 'Invalid password' });
-  }
-});
-
-// Admin logout endpoint
-app.post('/api/admin/logout', (req, res) => {
-  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 // Personalized deals page route moved above static middleware
