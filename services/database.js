@@ -169,13 +169,14 @@ class DatabaseService {
 
     const userCategories = user.preferences?.categories || [];
     
-    // Get sponsored products (filtered by user's preferred categories if they have any)
+    // Get products (filtered by user's preferred categories if they have any)
     let sponsoredProducts;
     if (userCategories && userCategories.length > 0) {
       // Filter by user's preferred categories
-      sponsoredProducts = await prisma.sponsoredProduct.findMany({
+      sponsoredProducts = await prisma.product.findMany({
         where: {
           isActive: true,
+          productType: 'regular',
           category: {
             in: userCategories
           }
@@ -185,8 +186,11 @@ class DatabaseService {
       });
     } else {
       // If no categories specified, return all active products
-      sponsoredProducts = await prisma.sponsoredProduct.findMany({
-        where: { isActive: true },
+      sponsoredProducts = await prisma.product.findMany({
+        where: { 
+          isActive: true,
+          productType: 'regular'
+        },
         orderBy: { createdAt: 'desc' },
         take: 10
       });
@@ -310,7 +314,7 @@ class DatabaseService {
   // Get products by categories from database
   async getProductsByCategories(categories, limit = 50) {
     const now = new Date();
-    const products = await prisma.sponsoredProduct.findMany({
+    const products = await prisma.product.findMany({
       where: {
         isActive: true,
         startDate: { lte: now },
@@ -361,14 +365,14 @@ class DatabaseService {
   }
 
   async getAllSponsoredProducts() {
-    return await prisma.sponsoredProduct.findMany({
+    return await prisma.product.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' }
     });
   }
 
   async createSponsoredProduct(data) {
-    return await prisma.sponsoredProduct.create({ data });
+    return await prisma.product.create({ data });
   }
 
   async addMultipleSponsoredProducts(products) {
@@ -378,7 +382,7 @@ class DatabaseService {
     for (const product of products) {
       try {
         // Check if product already exists (only active products)
-        const existingActive = await prisma.sponsoredProduct.findFirst({
+        const existingActive = await prisma.product.findFirst({
           where: { 
             title: product.title,
             isActive: true
@@ -391,7 +395,7 @@ class DatabaseService {
         }
         
         // Check if product exists but is inactive (reactivate and update)
-        const existingInactive = await prisma.sponsoredProduct.findFirst({
+        const existingInactive = await prisma.product.findFirst({
           where: { 
             title: product.title,
             isActive: false
@@ -400,7 +404,7 @@ class DatabaseService {
         
         if (existingInactive) {
           // Reactivate and update the existing product
-          await prisma.sponsoredProduct.update({
+          await prisma.product.update({
             where: { id: existingInactive.id },
             data: {
               description: product.description || existingInactive.description,
@@ -431,7 +435,7 @@ class DatabaseService {
           affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=820cf-20';
         }
         
-        await prisma.sponsoredProduct.create({
+        await prisma.product.create({
           data: {
             title: product.title,
             description: product.description || '',
@@ -457,25 +461,25 @@ class DatabaseService {
   }
 
   async clearSponsoredProducts() {
-    return await prisma.sponsoredProduct.deleteMany({});
+    return await prisma.product.deleteMany({});
   }
 
   async updateSponsoredProduct(id, data) {
-    return await prisma.sponsoredProduct.update({
+    return await prisma.product.update({
       where: { id },
       data: { ...data, updatedAt: new Date() }
     });
   }
 
   async deleteSponsoredProduct(id) {
-    return await prisma.sponsoredProduct.update({
+    return await prisma.product.update({
       where: { id },
       data: { isActive: false }
     });
   }
 
   async trackSponsoredClick(productId, metadata = {}) {
-    await prisma.sponsoredProduct.update({
+    await prisma.product.update({
       where: { id: productId },
       data: { clickCount: { increment: 1 } }
     });
@@ -504,7 +508,7 @@ class DatabaseService {
     ] = await Promise.all([
       prisma.user.count(),
       prisma.retailer.count({ where: { isActive: true } }),
-      prisma.sponsoredProduct.count({ where: { isActive: true } }),
+      prisma.product.count({ where: { isActive: true } }),
       prisma.analyticsEvent.count(),
       prisma.user.count({
         where: {
@@ -519,7 +523,7 @@ class DatabaseService {
         take: 5,
         include: { category: true }
       }),
-      prisma.sponsoredProduct.findMany({
+      prisma.product.findMany({
         where: { isActive: true },
         orderBy: { clickCount: 'desc' },
         take: 5
@@ -603,7 +607,7 @@ class DatabaseService {
   }
 
   async updateSponsoredProductAffiliate(productId, affiliateId) {
-    return await prisma.sponsoredProduct.update({
+    return await prisma.product.update({
       where: { id: productId },
       data: { 
         affiliateId,
@@ -619,7 +623,7 @@ class DatabaseService {
   }
 
   async getSponsoredProductById(id) {
-    return await prisma.sponsoredProduct.findUnique({
+    return await prisma.product.findUnique({
       where: { id: parseInt(id) }
     });
   }
