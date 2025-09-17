@@ -111,24 +111,26 @@ function displaySponsoredProducts(products) {
         const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
         console.log(`Processing product: ${product.title} - ${discount}% off`);
         
-        return `
-        <div class="sponsored-product" data-product-id="${product.id}">
-            <div class="sponsored-badge">Sponsored</div>
-            <img src="${product.imageUrl}" alt="${product.title}" class="product-image" 
-                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+IiU2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
-            <div class="product-title">${product.title}</div>
-            <div class="product-retailer">from Amazon</div>
-            <div class="product-pricing">
-                <span class="sale-price">$${product.price.toFixed(2)}</span>
-                <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
-                <span class="discount-badge">${discount}% OFF</span>
+            return `
+            <div class="sponsored-product" data-product-id="${product.id}">
+                <div class="sponsored-badge">Sponsored</div>
+                <img src="${product.imageUrl}" alt="${product.title}" class="product-image"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+IiU2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
+                <div class="product-content">
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-retailer">from Amazon</div>
+                    <div class="product-pricing">
+                        <span class="sale-price">$${product.price.toFixed(2)}</span>
+                        <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="discount-badge">${discount}% OFF</div>
+                    <div class="product-description">${product.description}</div>
+                    <button class="sponsored-cta" onclick="handleSponsoredClick('${product.id}', '${product.affiliateUrl}')">
+                        Shop Now <i class="fas fa-external-link-alt"></i>
+                    </button>
+                </div>
             </div>
-            <div class="product-description">${product.description}</div>
-            <button class="sponsored-cta" onclick="handleSponsoredClick('${product.id}', '${product.affiliateUrl}')">
-                <i class="fas fa-external-link-alt"></i> Shop Now
-            </button>
-        </div>
-        `;
+            `;
     }).join('');
     
     console.log('📄 Generated HTML length:', htmlContent.length);
