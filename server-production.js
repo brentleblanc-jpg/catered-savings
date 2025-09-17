@@ -1038,6 +1038,135 @@ app.post('/api/admin/add-multiple-products', async (req, res) => {
   }
 });
 
+// Featured Deals API Endpoints
+app.get('/api/featured-deals', async (req, res) => {
+  try {
+    const deals = await db.getFeaturedDealsForHomepage(4);
+    res.json({
+      success: true,
+      deals: deals
+    });
+  } catch (error) {
+    console.error('Error fetching featured deals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching featured deals',
+      error: error.message
+    });
+  }
+});
+
+// Admin Featured Deals Management
+app.get('/api/admin/featured-deals', adminAuth, async (req, res) => {
+  try {
+    const deals = await db.getAllFeaturedDeals();
+    res.json({
+      success: true,
+      deals: deals
+    });
+  } catch (error) {
+    console.error('Error fetching featured deals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching featured deals',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/featured-deals', adminAuth, async (req, res) => {
+  try {
+    const deal = await db.createFeaturedDeal(req.body);
+    res.json({
+      success: true,
+      deal: deal,
+      message: 'Featured deal created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating featured deal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating featured deal',
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/admin/featured-deals/:id', adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deal = await db.updateFeaturedDeal(id, req.body);
+    res.json({
+      success: true,
+      deal: deal,
+      message: 'Featured deal updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating featured deal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating featured deal',
+      error: error.message
+    });
+  }
+});
+
+app.delete('/api/admin/featured-deals/:id', adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.deleteFeaturedDeal(id);
+    res.json({
+      success: true,
+      message: 'Featured deal deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting featured deal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting featured deal',
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/admin/featured-deals/order', adminAuth, async (req, res) => {
+  try {
+    const { deals } = req.body;
+    await db.updateFeaturedDealOrder(deals);
+    res.json({
+      success: true,
+      message: 'Featured deals order updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating featured deals order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating featured deals order',
+      error: error.message
+    });
+  }
+});
+
+// Track featured deal clicks
+app.post('/api/track-featured-deal-click', async (req, res) => {
+  try {
+    const { dealId } = req.body;
+    await db.trackFeaturedDealClick(dealId, {
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      timestamp: new Date().toISOString()
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error tracking featured deal click:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error tracking click',
+      error: error.message
+    });
+  }
+});
+
 // Manual Weekly Automation (MVP Approach)
 // No automatic scheduling - you control when to send emails
 

@@ -618,6 +618,101 @@ class DatabaseService {
     });
   }
 
+  // Featured Deals Management
+  async getAllFeaturedDeals() {
+    return await prisma.featuredDeal.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' }
+    });
+  }
+
+  async getFeaturedDealsForHomepage(limit = 4) {
+    return await prisma.featuredDeal.findMany({
+      where: { 
+        isActive: true,
+        startDate: { lte: new Date() },
+        OR: [
+          { endDate: null },
+          { endDate: { gte: new Date() } }
+        ]
+      },
+      orderBy: { displayOrder: 'asc' },
+      take: limit
+    });
+  }
+
+  async createFeaturedDeal(dealData) {
+    return await prisma.featuredDeal.create({
+      data: {
+        title: dealData.title,
+        description: dealData.description,
+        imageUrl: dealData.imageUrl,
+        affiliateUrl: dealData.affiliateUrl,
+        price: dealData.price,
+        originalPrice: dealData.originalPrice,
+        discount: dealData.discount,
+        category: dealData.category,
+        retailer: dealData.retailer,
+        displayOrder: dealData.displayOrder || 0,
+        startDate: dealData.startDate || new Date(),
+        endDate: dealData.endDate,
+        isActive: dealData.isActive !== undefined ? dealData.isActive : true
+      }
+    });
+  }
+
+  async updateFeaturedDeal(id, dealData) {
+    return await prisma.featuredDeal.update({
+      where: { id },
+      data: {
+        ...dealData,
+        updatedAt: new Date()
+      }
+    });
+  }
+
+  async deleteFeaturedDeal(id) {
+    return await prisma.featuredDeal.delete({
+      where: { id }
+    });
+  }
+
+  async getFeaturedDealById(id) {
+    return await prisma.featuredDeal.findUnique({
+      where: { id }
+    });
+  }
+
+  async updateFeaturedDealOrder(deals) {
+    const updatePromises = deals.map(deal => 
+      prisma.featuredDeal.update({
+        where: { id: deal.id },
+        data: { displayOrder: deal.displayOrder }
+      })
+    );
+    return await Promise.all(updatePromises);
+  }
+
+  async trackFeaturedDealClick(dealId, metadata = {}) {
+    // Track the click event
+    await prisma.analyticsEvent.create({
+      data: {
+        eventType: 'featured_deal_click',
+        featuredDealId: dealId,
+        metadata: JSON.stringify(metadata)
+      }
+    });
+
+    // Update click count
+    return await prisma.featuredDeal.update({
+      where: { id: dealId },
+      data: { 
+        clickCount: { increment: 1 },
+        updatedAt: new Date()
+      }
+    });
+  }
+
   async disconnect() {
     await prisma.$disconnect();
   }

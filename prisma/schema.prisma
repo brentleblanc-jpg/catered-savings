@@ -114,11 +114,13 @@ model AnalyticsEvent {
   userId            String?
   retailerId        String?
   sponsoredProductId String?
+  featuredDealId    String?
   
   // Relationships
   user              User? @relation(fields: [userId], references: [id])
   retailer          Retailer? @relation(fields: [retailerId], references: [id])
   sponsoredProduct  SponsoredProduct? @relation(fields: [sponsoredProductId], references: [id])
+  featuredDeal      FeaturedDeal? @relation(fields: [featuredDealId], references: [id])
   
   @@map("analytics_events")
 }
@@ -140,6 +142,34 @@ model EmailCampaign {
   updatedAt     DateTime @updatedAt
   
   @@map("email_campaigns")
+}
+
+// Featured deals for homepage display
+model FeaturedDeal {
+  id               String @id @default(cuid())
+  title            String
+  description      String?
+  imageUrl         String?
+  affiliateUrl     String
+  price            Float?
+  originalPrice    Float?
+  discount         Int? // Discount percentage
+  category         String? // Category for product matching
+  retailer         String? // Retailer name (Amazon, Best Buy, etc.)
+  isActive         Boolean @default(true)
+  displayOrder     Int @default(0) // Order of display on homepage
+  startDate        DateTime @default(now())
+  endDate          DateTime?
+  clickCount       Int @default(0)
+  conversionCount  Int @default(0)
+  revenueGenerated Float @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relationships
+  clickEvents      AnalyticsEvent[]
+  
+  @@map("featured_deals")
 }
 
 // Admin users for dashboard access

@@ -1,6 +1,33 @@
-// Global functions for sponsored products
+// Global functions for featured deals
+async function loadFeaturedDeals() {
+    console.log('🚀 loadFeaturedDeals() called');
+    try {
+        console.log('📡 Fetching featured deals from API...');
+        const response = await fetch('/api/featured-deals');
+        const data = await response.json();
+        
+        console.log('📦 API response:', data);
+        
+        if (data.success && data.deals.length > 0) {
+            console.log(`🎯 Found ${data.deals.length} featured deals, displaying them...`);
+            displayFeaturedDeals(data.deals);
+        } else {
+            console.log('⚠️ No featured deals found or API error');
+            console.log('Data success:', data.success);
+            console.log('Deals length:', data.deals ? data.deals.length : 'deals is undefined');
+            // Fallback to sponsored products if no featured deals
+            loadSponsoredProducts();
+        }
+    } catch (error) {
+        console.error('❌ Error loading featured deals:', error);
+        // Fallback to sponsored products on error
+        loadSponsoredProducts();
+    }
+}
+
+// Fallback function for sponsored products
 async function loadSponsoredProducts() {
-    console.log('🚀 loadSponsoredProducts() called');
+    console.log('🚀 loadSponsoredProducts() called (fallback)');
     try {
         console.log('📡 Fetching sponsored products from API...');
         const response = await fetch('/api/sponsored-products');
@@ -19,6 +46,49 @@ async function loadSponsoredProducts() {
     } catch (error) {
         console.error('❌ Error loading sponsored products:', error);
     }
+}
+
+function displayFeaturedDeals(deals) {
+    console.log('🎨 displayFeaturedDeals() called with:', deals);
+    const container = document.getElementById('sponsoredProductsList');
+    
+    if (!container) {
+        console.error('❌ Could not find sponsoredProductsList container!');
+        console.log('Available elements with "sponsored" in ID:', document.querySelectorAll('[id*="sponsored"]'));
+        return;
+    }
+    
+    console.log('✅ Found container:', container);
+    console.log('📝 Updating container HTML...');
+    
+    const htmlContent = deals.map(deal => {
+        // Calculate discount percentage
+        const discount = deal.discount || Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100);
+        console.log(`Processing deal: ${deal.title} - ${discount}% off`);
+        
+        return `
+        <div class="sponsored-product" data-deal-id="${deal.id}">
+            <div class="sponsored-badge">Featured Deal</div>
+            <img src="${deal.imageUrl}" alt="${deal.title}" class="product-image" 
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+IiU2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
+            <div class="product-title">${deal.title}</div>
+            <div class="product-retailer">from ${deal.retailer || 'Amazon'}</div>
+            <div class="product-pricing">
+                <span class="sale-price">$${deal.price.toFixed(2)}</span>
+                <span class="original-price">$${deal.originalPrice.toFixed(2)}</span>
+                <span class="discount-badge">${discount}% OFF</span>
+            </div>
+            <div class="product-description">${deal.description}</div>
+            <button class="sponsored-cta" onclick="handleFeaturedDealClick('${deal.id}', '${deal.affiliateUrl}')">
+                <i class="fas fa-external-link-alt"></i> Shop Now
+            </button>
+        </div>
+        `;
+    }).join('');
+    
+    console.log('📄 Generated HTML length:', htmlContent.length);
+    container.innerHTML = htmlContent;
+    console.log('✅ Container updated with', deals.length, 'deals');
 }
 
 function displaySponsoredProducts(products) {
@@ -114,10 +184,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.style.display = 'none';
                 successMessage.style.display = 'block';
                 
-                console.log('🔄 Loading sponsored products...');
-                // Load sponsored products with a small delay to ensure DOM is ready
+                console.log('🔄 Loading featured deals...');
+                // Load featured deals with a small delay to ensure DOM is ready
                 setTimeout(() => {
-                    loadSponsoredProducts();
+                    loadFeaturedDeals();
                 }, 100);
                 
                 // Reset form for potential reuse
@@ -354,6 +424,25 @@ function resetForm() {
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+    // Function to handle featured deal clicks (tracking + redirect)
+    window.handleFeaturedDealClick = async function(dealId, url) {
+        try {
+            // Track the click
+            await fetch('/api/track-featured-deal-click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ dealId })
+            });
+        } catch (error) {
+            console.error('Error tracking featured deal click:', error);
+        }
+        
+        // Redirect to product page
+        window.open(url, '_blank');
+    }
 
     // Function to handle sponsored product clicks (tracking + redirect)
     window.handleSponsoredClick = async function(productId, url) {
