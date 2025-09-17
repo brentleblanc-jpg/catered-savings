@@ -639,11 +639,12 @@
 #featured-deal-modal .form-group select,
 #featured-deal-modal .form-group textarea {
     width: 100%;
-    padding: 0.75rem;
+    padding: 1rem 1.25rem;
     border: 2px solid #e5e7eb;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     transition: border-color 0.2s ease;
+    min-height: 48px;
 }
 
 #featured-deal-modal .form-group input:focus,
@@ -656,7 +657,8 @@
 
 #featured-deal-modal .form-group textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 120px;
+    padding: 1rem 1.25rem;
 }
 
 #featured-deal-modal .form-actions {

@@ -42,11 +42,12 @@ class AdminDashboard {
                 this.isAuthenticated = true;
                 this.authToken = token;
                 this.showAdminInterface();
-                this.loadDashboardData();
-                // Load saved tab after everything is loaded
-                window.addEventListener('load', () => {
+                
+                // Wait a bit for the interface to be ready before loading data
+                setTimeout(() => {
+                    this.loadDashboardData();
                     this.loadSavedTab();
-                });
+                }, 100);
             } else {
                 this.clearAuth();
                 this.showLoginForm();
