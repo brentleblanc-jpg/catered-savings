@@ -604,15 +604,20 @@
     width: 95%;
 }
 
+#featured-deal-modal .modal-header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
 #featured-deal-modal .modal-body {
-    padding: 2rem;
+    padding: 3rem;
 }
 
 #featured-deal-modal .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    gap: 2rem;
+    margin-bottom: 2rem;
 }
 
 #featured-deal-modal .form-group {
@@ -658,8 +663,8 @@
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
     border-top: 1px solid #e5e7eb;
 }
 
