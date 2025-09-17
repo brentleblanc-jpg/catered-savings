@@ -58,6 +58,41 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Version validation endpoint
+app.get('/api/version-check', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    // Check if the correct files exist and are being served
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+    
+    const hasModernCSS = indexContent.includes('styles-modern.css');
+    const hasModernJS = indexContent.includes('script-modern.js');
+    const hasVersionCheck = indexContent.includes('version-check.js');
+    
+    const isValid = hasModernCSS && hasModernJS && hasVersionCheck;
+    
+    res.json({
+      status: isValid ? 'valid' : 'invalid',
+      details: {
+        hasModernCSS,
+        hasModernJS,
+        hasVersionCheck,
+        expectedVersion: 'modern'
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Admin login endpoint
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;

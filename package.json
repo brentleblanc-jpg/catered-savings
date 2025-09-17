@@ -10,7 +10,10 @@
     "build": "echo 'No build step needed'",
     "weekly-automation": "node weekly-automation.js",
     "deploy": "git add . && git commit -m 'Deploy to production' && git push origin main",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "test:version": "node scripts/test-version.js",
+    "test:local": "TEST_URL=http://localhost:3000 node scripts/test-version.js",
+    "pre-deploy": "npm run test:version"
   },
   "keywords": [
     "deals",
