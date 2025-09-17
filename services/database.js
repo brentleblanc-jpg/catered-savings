@@ -251,12 +251,13 @@ class DatabaseService {
     });
   }
 
-  // Sponsored Products
-  async getActiveSponsoredProducts(limit = 4) {
+  // Products (Regular and Sponsored)
+  async getActiveProducts(limit = 4, productType = 'regular') {
     const now = new Date();
-    const products = await prisma.sponsoredProduct.findMany({
+    const products = await prisma.product.findMany({
       where: {
         isActive: true,
+        productType: productType,
         startDate: { lte: now },
         OR: [
           { endDate: null },
@@ -299,6 +300,11 @@ class DatabaseService {
         affiliateUrl: affiliateUrl
       };
     });
+  }
+
+  // Legacy method for backward compatibility
+  async getActiveSponsoredProducts(limit = 4) {
+    return await this.getActiveProducts(limit, 'sponsored');
   }
 
   // Get products by categories from database

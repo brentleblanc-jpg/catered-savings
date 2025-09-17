@@ -73,8 +73,8 @@ model User {
   @@map("users")
 }
 
-// Sponsored products for monetization
-model SponsoredProduct {
+// Regular products (free deals, general products)
+model Product {
   id               String @id @default(cuid())
   title            String
   description      String?
@@ -86,6 +86,7 @@ model SponsoredProduct {
   category         String? // Category for product matching
   source           String? // Source retailer (bestbuy, woot, etc.)
   sku              String? // Product SKU
+  productType      String @default("regular") // "regular", "sponsored", "featured"
   isActive         Boolean @default(true)
   startDate        DateTime @default(now())
   endDate          DateTime?
@@ -97,8 +98,31 @@ model SponsoredProduct {
   
   // Relationships
   clickEvents      AnalyticsEvent[]
+  sponsoredPlacements SponsoredProduct[]
   
-  @@map("sponsored_products")
+  @@map("products")
+}
+
+// Sponsored product placements (paid placements of regular products)
+model SponsoredProduct {
+  id               String @id @default(cuid())
+  productId        String // Reference to Product
+  sponsorName      String? // Who is sponsoring
+  sponsorEmail     String? // Sponsor contact
+  paymentStatus    String @default("pending") // pending, paid, expired
+  placementType    String @default("homepage") // "homepage", "email", "category"
+  priority         Int @default(0)
+  isActive         Boolean @default(true)
+  startDate        DateTime @default(now())
+  endDate          DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relationships
+  product          Product @relation(fields: [productId], references: [id])
+  clickEvents      AnalyticsEvent[]
+  
+  @@map("sponsored_placements")
 }
 
 // Analytics and tracking
@@ -113,12 +137,14 @@ model AnalyticsEvent {
   // Foreign Keys (optional)
   userId            String?
   retailerId        String?
+  productId         String?
   sponsoredProductId String?
   featuredDealId    String?
   
   // Relationships
   user              User? @relation(fields: [userId], references: [id])
   retailer          Retailer? @relation(fields: [retailerId], references: [id])
+  product           Product? @relation(fields: [productId], references: [id])
   sponsoredProduct  SponsoredProduct? @relation(fields: [sponsoredProductId], references: [id])
   featuredDeal      FeaturedDeal? @relation(fields: [featuredDealId], references: [id])
   

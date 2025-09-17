@@ -495,19 +495,19 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
-// Get sponsored products
+// Get products (regular products for main page)
 app.get('/api/sponsored-products', async (req, res) => {
   try {
-    const products = await db.getActiveSponsoredProducts(4);
+    const products = await db.getActiveProducts(4, 'regular');
     res.json({
       success: true,
       products: products
     });
   } catch (error) {
-    console.error('Error fetching sponsored products:', error);
+    console.error('Error fetching products:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching sponsored products'
+      message: 'Error fetching products'
     });
   }
 });
@@ -566,13 +566,13 @@ app.post('/api/add-company', (req, res) => {
   }
 });
 
-// Get sponsored products for admin
+// Get products for admin
 app.get('/api/admin/sponsored-products', adminAuth, async (req, res) => {
   try {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
     
-    const products = await prisma.sponsoredProduct.findMany({
+    const products = await prisma.product.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' }
     });
