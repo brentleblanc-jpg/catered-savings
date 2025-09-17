@@ -285,8 +285,11 @@ class AdminDashboard {
         const addBtn = document.getElementById('add-featured-deal-btn');
         if (addBtn) {
             console.log('Setting up add featured deal button listener');
-            addBtn.addEventListener('click', () => {
+            addBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 console.log('Add featured deal button clicked');
+                console.log('this context:', this);
+                console.log('addFeaturedDeal method exists:', typeof this.addFeaturedDeal);
                 this.addFeaturedDeal();
             });
         } else {

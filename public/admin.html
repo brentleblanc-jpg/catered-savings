@@ -362,7 +362,7 @@
                 <div class="tab-header">
                     <h2>Featured Deals Management</h2>
                     <div class="featured-deals-actions">
-                        <button class="btn btn-primary" id="add-featured-deal-btn">
+                        <button class="btn btn-primary" id="add-featured-deal-btn" onclick="console.log('Direct onclick triggered'); if(window.adminDashboard) { window.adminDashboard.addFeaturedDeal(); } else { alert('Admin dashboard not loaded'); }">
                             <i class="fas fa-plus"></i> Add Featured Deal
                         </button>
                         <button class="btn btn-secondary" id="refresh-featured-deals-btn">
