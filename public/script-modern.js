@@ -170,7 +170,7 @@ function displayFeaturedDeals(deals) {
         const discount = deal.discount || Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100);
         
         return `
-            <div class="sponsored-card">
+            <a href="${deal.affiliateUrl}" target="_blank" class="sponsored-card sponsored-card-link" onclick="handleFeaturedDealClick('${deal.id}', '${deal.affiliateUrl}')">
                 <div class="sponsored-badge">Featured Deal</div>
                 <img src="${deal.imageUrl}" alt="${deal.title}" class="sponsored-image" 
                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
@@ -181,11 +181,11 @@ function displayFeaturedDeals(deals) {
                     <div class="sponsored-original-price">$${deal.originalPrice.toFixed(2)}</div>
                     <div class="sponsored-discount">${discount}% OFF</div>
                     <div class="sponsored-description">${deal.description}</div>
-                    <a href="${deal.affiliateUrl}" target="_blank" class="sponsored-link" onclick="handleFeaturedDealClick('${deal.id}', '${deal.affiliateUrl}')">
+                    <div class="sponsored-link">
                         Shop Now <i class="fas fa-external-link-alt"></i>
-                    </a>
+                    </div>
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
     
@@ -206,7 +206,7 @@ function displaySponsoredProducts(products) {
         const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
         
         return `
-            <div class="sponsored-card">
+            <a href="${product.affiliateUrl}" target="_blank" class="sponsored-card sponsored-card-link" onclick="handleSponsoredClick('${product.id}', '${product.affiliateUrl}')">
                 <div class="sponsored-badge">Sponsored</div>
                 <img src="${product.imageUrl}" alt="${product.title}" class="sponsored-image" 
                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
@@ -217,11 +217,11 @@ function displaySponsoredProducts(products) {
                     <div class="sponsored-original-price">$${product.originalPrice.toFixed(2)}</div>
                     <div class="sponsored-discount">${discount}% OFF</div>
                     <div class="sponsored-description">${product.description}</div>
-                    <a href="${product.affiliateUrl}" target="_blank" class="sponsored-link" onclick="handleSponsoredClick('${product.id}', '${product.affiliateUrl}')">
+                    <div class="sponsored-link">
                         Shop Now <i class="fas fa-external-link-alt"></i>
-                    </a>
+                    </div>
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
     

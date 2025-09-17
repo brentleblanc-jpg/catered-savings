@@ -377,6 +377,13 @@ body {
     position: relative;
 }
 
+.sponsored-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    cursor: pointer;
+}
+
 .sponsored-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-medium);
@@ -384,7 +391,7 @@ body {
 
 .sponsored-image {
     width: 100%;
-    height: 160px;
+    height: 120px;
     object-fit: cover;
     background: var(--background-light);
 }
@@ -430,15 +437,10 @@ body {
     display: inline-flex;
     align-items: center;
     color: var(--primary-blue);
-    text-decoration: none;
     font-weight: 600;
     font-size: 12px;
     gap: 4px;
-    transition: color var(--transition-fast);
-}
-
-.sponsored-link:hover {
-    color: var(--primary-blue-dark);
+    margin-top: auto;
 }
 
 .sponsored-badge {
@@ -608,7 +610,7 @@ body {
     }
     
     .sponsored-image {
-        height: 140px;
+        height: 100px;
     }
     
     .sponsored-name {
