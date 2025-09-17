@@ -123,26 +123,74 @@ function initializeLogoClick() {
     }
 }
 
-// Load sponsored products
+// Load featured deals and sponsored products
 async function loadSponsoredProducts() {
-    console.log('🚀 Loading sponsored products...');
+    console.log('🚀 Loading featured deals...');
     
     try {
-        const response = await fetch('/api/sponsored-products');
+        // Try featured deals first
+        const response = await fetch('/api/featured-deals');
         const data = await response.json();
         
-        console.log('📦 API response:', data);
+        console.log('📦 Featured deals API response:', data);
         
-        if (data.success && data.products.length > 0) {
-            displaySponsoredProducts(data.products);
+        if (data.success && data.deals.length > 0) {
+            console.log(`🎯 Found ${data.deals.length} featured deals, displaying them...`);
+            displayFeaturedDeals(data.deals);
         } else {
-            console.log('⚠️ No sponsored products found');
-            displayFallbackProducts();
+            console.log('⚠️ No featured deals found, trying sponsored products...');
+            // Fallback to sponsored products
+            const response2 = await fetch('/api/sponsored-products');
+            const data2 = await response2.json();
+            
+            if (data2.success && data2.products.length > 0) {
+                console.log(`🎯 Found ${data2.products.length} sponsored products, displaying them...`);
+                displaySponsoredProducts(data2.products);
+            } else {
+                console.log('⚠️ No products found, showing fallback');
+                displayFallbackProducts();
+            }
         }
     } catch (error) {
-        console.error('❌ Error loading sponsored products:', error);
+        console.error('❌ Error loading products:', error);
         displayFallbackProducts();
     }
+}
+
+// Display featured deals with modern design
+function displayFeaturedDeals(deals) {
+    const container = document.getElementById('sponsoredProductsList');
+    
+    if (!container) {
+        console.error('❌ Container not found');
+        return;
+    }
+    
+    const htmlContent = deals.map(deal => {
+        const discount = deal.discount || Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100);
+        
+        return `
+            <div class="sponsored-card">
+                <div class="sponsored-badge">Featured Deal</div>
+                <img src="${deal.imageUrl}" alt="${deal.title}" class="sponsored-image" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
+                <div class="sponsored-content">
+                    <h3 class="sponsored-name">${deal.title}</h3>
+                    <div class="sponsored-retailer">from ${deal.retailer || 'Amazon'}</div>
+                    <div class="sponsored-price">$${deal.price.toFixed(2)}</div>
+                    <div class="sponsored-original-price">$${deal.originalPrice.toFixed(2)}</div>
+                    <div class="sponsored-discount">${discount}% OFF</div>
+                    <div class="sponsored-description">${deal.description}</div>
+                    <a href="${deal.affiliateUrl}" target="_blank" class="sponsored-link" onclick="handleFeaturedDealClick('${deal.id}', '${deal.affiliateUrl}')">
+                        Shop Now <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = htmlContent;
+    console.log(`✅ Displayed ${deals.length} featured deals`);
 }
 
 // Display sponsored products with modern design
@@ -159,14 +207,17 @@ function displaySponsoredProducts(products) {
         
         return `
             <div class="sponsored-card">
+                <div class="sponsored-badge">Sponsored</div>
                 <img src="${product.imageUrl}" alt="${product.title}" class="sponsored-image" 
                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA2OEg5M1Y3NEg4N1Y2OFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
                 <div class="sponsored-content">
                     <h3 class="sponsored-name">${product.title}</h3>
+                    <div class="sponsored-retailer">from Amazon</div>
                     <div class="sponsored-price">$${product.price.toFixed(2)}</div>
                     <div class="sponsored-original-price">$${product.originalPrice.toFixed(2)}</div>
                     <div class="sponsored-discount">${discount}% OFF</div>
-                    <a href="${product.url}" target="_blank" class="sponsored-link">
+                    <div class="sponsored-description">${product.description}</div>
+                    <a href="${product.affiliateUrl}" target="_blank" class="sponsored-link" onclick="handleSponsoredClick('${product.id}', '${product.affiliateUrl}')">
                         Shop Now <i class="fas fa-external-link-alt"></i>
                     </a>
                 </div>
@@ -293,3 +344,40 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(el);
     });
 });
+
+// Click tracking functions
+window.handleFeaturedDealClick = async function(dealId, url) {
+    try {
+        // Track the click
+        await fetch('/api/track-featured-deal-click', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ dealId })
+        });
+    } catch (error) {
+        console.error('Error tracking featured deal click:', error);
+    }
+
+    // Redirect to product page
+    window.open(url, '_blank');
+}
+
+window.handleSponsoredClick = async function(productId, url) {
+    try {
+        // Track the click
+        await fetch('/api/track-sponsored-click', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId })
+        });
+    } catch (error) {
+        console.error('Error tracking sponsored click:', error);
+    }
+
+    // Redirect to product page
+    window.open(url, '_blank');
+}
