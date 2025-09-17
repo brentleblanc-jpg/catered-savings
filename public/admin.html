@@ -781,6 +781,106 @@
         </div>
     </div>
 
+    <!-- Featured Deal Modal -->
+    <div id="featured-deal-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="featured-deal-modal-title">Add Featured Deal</h3>
+                <span class="close" id="close-featured-deal-modal">&times;</span>
+            </div>
+            <form id="featured-deal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deal-title">Title *</label>
+                        <input type="text" id="deal-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deal-retailer">Retailer</label>
+                        <select id="deal-retailer" name="retailer">
+                            <option value="Amazon">Amazon</option>
+                            <option value="Best Buy">Best Buy</option>
+                            <option value="Woot">Woot</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deal-description">Description</label>
+                    <textarea id="deal-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deal-image-url">Image URL *</label>
+                        <input type="url" id="deal-image-url" name="imageUrl" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deal-affiliate-url">Affiliate URL *</label>
+                        <input type="url" id="deal-affiliate-url" name="affiliateUrl" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deal-price">Price ($)</label>
+                        <input type="number" id="deal-price" name="price" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="deal-original-price">Original Price ($)</label>
+                        <input type="number" id="deal-original-price" name="originalPrice" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="deal-discount">Discount (%)</label>
+                        <input type="number" id="deal-discount" name="discount" min="0" max="100">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deal-category">Category</label>
+                        <select id="deal-category" name="category">
+                            <option value="fashion">Fashion</option>
+                            <option value="tech-electronics">Tech & Electronics</option>
+                            <option value="home-garden">Home & Garden</option>
+                            <option value="health-beauty">Health & Beauty</option>
+                            <option value="sports-outdoors">Sports & Outdoors</option>
+                            <option value="automotive">Automotive</option>
+                            <option value="books-media">Books & Media</option>
+                            <option value="kids-family">Kids & Family</option>
+                            <option value="pets">Pets</option>
+                            <option value="office-education">Office & Education</option>
+                            <option value="food-dining">Food & Dining</option>
+                            <option value="travel">Travel</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="deal-display-order">Display Order</label>
+                        <input type="number" id="deal-display-order" name="displayOrder" min="0" value="0">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deal-start-date">Start Date</label>
+                        <input type="datetime-local" id="deal-start-date" name="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="deal-end-date">End Date (optional)</label>
+                        <input type="datetime-local" id="deal-end-date" name="endDate">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-featured-deal-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-featured-deal-btn">Save Deal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="admin.js?v=2025-09-11-4"></script>
     <script>
         // Ensure admin.js loads and dashboard updates

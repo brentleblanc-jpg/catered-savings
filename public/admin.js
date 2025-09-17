@@ -289,6 +289,43 @@ class AdminDashboard {
         document.getElementById('refresh-featured-deals-btn').addEventListener('click', () => {
             this.loadFeaturedDeals();
         });
+
+        // Featured deal modal event listeners
+        document.getElementById('close-featured-deal-modal').addEventListener('click', () => {
+            this.closeFeaturedDealModal();
+        });
+
+        document.getElementById('cancel-featured-deal-btn').addEventListener('click', () => {
+            this.closeFeaturedDealModal();
+        });
+
+        document.getElementById('featured-deal-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const dealData = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                imageUrl: formData.get('imageUrl'),
+                affiliateUrl: formData.get('affiliateUrl'),
+                price: parseFloat(formData.get('price')) || null,
+                originalPrice: parseFloat(formData.get('originalPrice')) || null,
+                discount: parseInt(formData.get('discount')) || null,
+                category: formData.get('category'),
+                retailer: formData.get('retailer'),
+                displayOrder: parseInt(formData.get('displayOrder')) || 0,
+                startDate: formData.get('startDate') ? new Date(formData.get('startDate')) : new Date(),
+                endDate: formData.get('endDate') ? new Date(formData.get('endDate')) : null
+            };
+
+            await this.saveFeaturedDeal(dealData);
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('featured-deal-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'featured-deal-modal') {
+                this.closeFeaturedDealModal();
+            }
+        });
     }
 
     switchTab(tabName) {
@@ -2006,25 +2043,23 @@ class AdminDashboard {
         `).join('');
     }
 
-    async addFeaturedDeal() {
-        const dealData = {
-            title: prompt('Enter deal title:'),
-            description: prompt('Enter deal description:'),
-            imageUrl: prompt('Enter image URL:'),
-            affiliateUrl: prompt('Enter affiliate URL:'),
-            price: parseFloat(prompt('Enter price:')),
-            originalPrice: parseFloat(prompt('Enter original price:')),
-            discount: parseInt(prompt('Enter discount percentage:')),
-            category: prompt('Enter category:'),
-            retailer: prompt('Enter retailer:'),
-            displayOrder: parseInt(prompt('Enter display order:')) || 0
-        };
+    addFeaturedDeal() {
+        // Reset form
+        document.getElementById('featured-deal-form').reset();
+        document.getElementById('featured-deal-modal-title').textContent = 'Add Featured Deal';
+        
+        // Set default values
+        const now = new Date();
+        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        document.getElementById('deal-start-date').value = now.toISOString().slice(0, 16);
+        document.getElementById('deal-end-date').value = tomorrow.toISOString().slice(0, 16);
+        document.getElementById('deal-display-order').value = this.featuredDeals.length + 1;
+        
+        // Show modal
+        document.getElementById('featured-deal-modal').style.display = 'block';
+    }
 
-        if (!dealData.title || !dealData.affiliateUrl) {
-            alert('Title and affiliate URL are required');
-            return;
-        }
-
+    async saveFeaturedDeal(dealData) {
         try {
             const response = await fetch('/api/admin/featured-deals', {
                 method: 'POST',
@@ -2041,11 +2076,16 @@ class AdminDashboard {
 
             const result = await response.json();
             this.showSuccess('Featured deal created successfully');
+            this.closeFeaturedDealModal();
             this.loadFeaturedDeals();
         } catch (error) {
             console.error('Error creating featured deal:', error);
             this.showError('Failed to create featured deal');
         }
+    }
+
+    closeFeaturedDealModal() {
+        document.getElementById('featured-deal-modal').style.display = 'none';
     }
 
     async editFeaturedDeal(dealId) {
