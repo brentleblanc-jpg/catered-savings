@@ -34,13 +34,22 @@ class AdminDashboard {
         const token = localStorage.getItem('adminToken');
         const expiresAt = localStorage.getItem('adminTokenExpires');
         
+        console.log('🔍 Checking authentication...');
+        console.log('🔑 Token from localStorage:', token ? 'present' : 'missing');
+        console.log('⏰ Expires at:', expiresAt);
+        
         if (token && expiresAt) {
             const now = new Date();
             const expiration = new Date(expiresAt);
             
+            console.log('🕐 Current time:', now);
+            console.log('🕐 Token expires:', expiration);
+            console.log('🕐 Is expired:', now >= expiration);
+            
             if (now < expiration) {
                 this.isAuthenticated = true;
                 this.authToken = token;
+                console.log('✅ Authentication successful');
                 this.showAdminInterface();
                 
                 // Wait a bit for the interface to be ready before loading data
@@ -49,10 +58,12 @@ class AdminDashboard {
                     this.loadSavedTab();
                 }, 100);
             } else {
+                console.log('❌ Token expired, clearing auth');
                 this.clearAuth();
                 this.showLoginForm();
             }
         } else {
+            console.log('❌ No token found, showing login form');
             this.showLoginForm();
         }
     }
@@ -2152,6 +2163,14 @@ class AdminDashboard {
     async saveFeaturedDeal(dealData) {
         console.log('💾 saveFeaturedDeal called with data:', dealData);
         console.log('🔑 Auth token:', this.authToken ? 'present' : 'missing');
+        console.log('🔑 Is authenticated:', this.isAuthenticated);
+        console.log('🔑 Token value:', this.authToken);
+        
+        if (!this.isAuthenticated || !this.authToken) {
+            console.error('❌ Not authenticated, cannot save featured deal');
+            this.showError('Please log in to save featured deals');
+            return;
+        }
         
         try {
             const response = await fetch('/api/admin/featured-deals', {
