@@ -880,7 +880,8 @@ body {
     margin-bottom: 1.5rem;
 }
 
-.sponsored-products-grid {
+.sponsored-products-grid,
+.sponsored-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
     gap: 20px;
@@ -1039,7 +1040,8 @@ body {
 
 /* Responsive adjustments for sponsored products */
 @media (max-width: 768px) {
-    .sponsored-products-grid {
+    .sponsored-products-grid,
+    .sponsored-grid {
         grid-template-columns: 1fr;
         gap: 16px;
         padding: 0 16px;
