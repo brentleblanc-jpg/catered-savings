@@ -6,6 +6,7 @@
  */
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -152,7 +153,8 @@ class VersionTester {
         timeout: 5000
       };
 
-      const req = http.request(options, (res) => {
+      const client = url.protocol === 'https:' ? https : http;
+      const req = client.request(options, (res) => {
         let data = '';
         res.on('data', chunk => data += chunk);
         res.on('end', () => resolve(data));
