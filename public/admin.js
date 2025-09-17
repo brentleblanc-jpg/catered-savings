@@ -202,40 +202,64 @@ class AdminDashboard {
         });
 
         // Database action buttons
-        document.getElementById('refresh-database').addEventListener('click', () => {
-            this.refreshDatabase();
-        });
+        const refreshDbBtn = document.getElementById('refresh-database');
+        if (refreshDbBtn) {
+            refreshDbBtn.addEventListener('click', () => {
+                this.refreshDatabase();
+            });
+        }
 
         // Weekly automation buttons
-        document.getElementById('run-weekly-automation').addEventListener('click', () => {
-            this.runWeeklyAutomation();
-        });
+        const runWeeklyBtn = document.getElementById('run-weekly-automation');
+        if (runWeeklyBtn) {
+            runWeeklyBtn.addEventListener('click', () => {
+                this.runWeeklyAutomation();
+            });
+        }
 
-        document.getElementById('update-mailchimp-only').addEventListener('click', () => {
-            this.updateMailchimpOnly();
-        });
+        const updateMailchimpBtn = document.getElementById('update-mailchimp-only');
+        if (updateMailchimpBtn) {
+            updateMailchimpBtn.addEventListener('click', () => {
+                this.updateMailchimpOnly();
+            });
+        }
 
         // Deal discovery buttons (moved from database tab)
-        document.getElementById('run-deal-discovery').addEventListener('click', () => {
-            this.runDealDiscovery();
-        });
+        const runDealDiscoveryBtn = document.getElementById('run-deal-discovery');
+        if (runDealDiscoveryBtn) {
+            runDealDiscoveryBtn.addEventListener('click', () => {
+                this.runDealDiscovery();
+            });
+        }
 
-        document.getElementById('scrape-amazon-deals').addEventListener('click', () => {
-            this.scrapeAmazonDeals();
-        });
+        const scrapeAmazonBtn = document.getElementById('scrape-amazon-deals');
+        if (scrapeAmazonBtn) {
+            scrapeAmazonBtn.addEventListener('click', () => {
+                this.scrapeAmazonDeals();
+            });
+        }
 
-        document.getElementById('test-scraper').addEventListener('click', () => {
-            this.testScraper();
-        });
+        const testScraperBtn = document.getElementById('test-scraper');
+        if (testScraperBtn) {
+            testScraperBtn.addEventListener('click', () => {
+                this.testScraper();
+            });
+        }
 
-        document.getElementById('update-product-images').addEventListener('click', () => {
-            this.updateProductImages();
-        });
+        const updateImagesBtn = document.getElementById('update-product-images');
+        if (updateImagesBtn) {
+            updateImagesBtn.addEventListener('click', () => {
+                this.updateProductImages();
+            });
+        }
 
         // User management buttons
-        document.getElementById('add-user-btn').addEventListener('click', () => {
-            this.openUserModal();
-        });
+        const addUserBtn = document.getElementById('add-user-btn');
+        if (addUserBtn) {
+            addUserBtn.addEventListener('click', () => {
+                this.openUserModal();
+            });
+        }
 
         const syncButton = document.getElementById('sync-mailchimp-btn');
         if (syncButton) {
@@ -296,46 +320,61 @@ class AdminDashboard {
             console.error('Add featured deal button not found');
         }
 
-        document.getElementById('refresh-featured-deals-btn').addEventListener('click', () => {
-            this.loadFeaturedDeals();
-        });
+        const refreshFeaturedBtn = document.getElementById('refresh-featured-deals-btn');
+        if (refreshFeaturedBtn) {
+            refreshFeaturedBtn.addEventListener('click', () => {
+                this.loadFeaturedDeals();
+            });
+        }
 
         // Featured deal modal event listeners
-        document.getElementById('close-featured-deal-modal').addEventListener('click', () => {
-            this.closeFeaturedDealModal();
-        });
+        const closeModalBtn = document.getElementById('close-featured-deal-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                this.closeFeaturedDealModal();
+            });
+        }
 
-        document.getElementById('cancel-featured-deal-btn').addEventListener('click', () => {
-            this.closeFeaturedDealModal();
-        });
+        const cancelModalBtn = document.getElementById('cancel-featured-deal-btn');
+        if (cancelModalBtn) {
+            cancelModalBtn.addEventListener('click', () => {
+                this.closeFeaturedDealModal();
+            });
+        }
 
-        document.getElementById('featured-deal-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const dealData = {
-                title: formData.get('title'),
-                description: formData.get('description'),
-                imageUrl: formData.get('imageUrl'),
-                affiliateUrl: formData.get('affiliateUrl'),
-                price: parseFloat(formData.get('price')) || null,
-                originalPrice: parseFloat(formData.get('originalPrice')) || null,
-                discount: parseInt(formData.get('discount')) || null,
-                category: formData.get('category'),
-                retailer: formData.get('retailer'),
-                displayOrder: parseInt(formData.get('displayOrder')) || 0,
-                startDate: formData.get('startDate') ? new Date(formData.get('startDate')) : new Date(),
-                endDate: formData.get('endDate') ? new Date(formData.get('endDate')) : null
-            };
+        const featuredDealForm = document.getElementById('featured-deal-form');
+        if (featuredDealForm) {
+            featuredDealForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const dealData = {
+                    title: formData.get('title'),
+                    description: formData.get('description'),
+                    imageUrl: formData.get('imageUrl'),
+                    affiliateUrl: formData.get('affiliateUrl'),
+                    price: parseFloat(formData.get('price')) || null,
+                    originalPrice: parseFloat(formData.get('originalPrice')) || null,
+                    discount: parseInt(formData.get('discount')) || null,
+                    category: formData.get('category'),
+                    retailer: formData.get('retailer'),
+                    displayOrder: parseInt(formData.get('displayOrder')) || 0,
+                    startDate: formData.get('startDate') ? new Date(formData.get('startDate')) : new Date(),
+                    endDate: formData.get('endDate') ? new Date(formData.get('endDate')) : null
+                };
 
-            await this.saveFeaturedDeal(dealData);
-        });
+                await this.saveFeaturedDeal(dealData);
+            });
+        }
 
         // Close modal when clicking outside
-        document.getElementById('featured-deal-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'featured-deal-modal') {
-                this.closeFeaturedDealModal();
-            }
-        });
+        const featuredDealModal = document.getElementById('featured-deal-modal');
+        if (featuredDealModal) {
+            featuredDealModal.addEventListener('click', (e) => {
+                if (e.target.id === 'featured-deal-modal') {
+                    this.closeFeaturedDealModal();
+                }
+            });
+        }
     }
 
     switchTab(tabName) {
@@ -1986,7 +2025,13 @@ class AdminDashboard {
 
     // Featured Deals Management
     async loadFeaturedDeals() {
+        if (!this.isAuthenticated || !this.authToken) {
+            console.log('Not authenticated, skipping featured deals load');
+            return;
+        }
+        
         try {
+            console.log('Loading featured deals with token:', this.authToken ? 'present' : 'missing');
             const response = await fetch('/api/admin/featured-deals', {
                 headers: {
                     'Authorization': `Bearer ${this.authToken}`
@@ -1994,7 +2039,7 @@ class AdminDashboard {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to fetch featured deals');
+                throw new Error(`Failed to fetch featured deals: ${response.status} ${response.statusText}`);
             }
             
             const data = await response.json();
