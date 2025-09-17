@@ -133,9 +133,13 @@ class AdminDashboard {
         }, 5000);
     }
 
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+
     getAuthHeaders() {
         return {
-            'Authorization': `Bearer admin123`,
+            'Authorization': `Bearer ${this.authToken}`,
             'Content-Type': 'application/json'
         };
     }
