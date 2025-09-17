@@ -349,7 +349,9 @@ class AdminDashboard {
 
         const featuredDealForm = document.getElementById('featured-deal-form');
         if (featuredDealForm) {
+            console.log('✅ Featured deal form found, adding submit listener');
             featuredDealForm.addEventListener('submit', async (e) => {
+                console.log('📝 Featured deal form submitted!');
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const dealData = {
@@ -367,8 +369,11 @@ class AdminDashboard {
                     endDate: formData.get('endDate') ? new Date(formData.get('endDate')) : null
                 };
 
+                console.log('📦 Form data processed:', dealData);
                 await this.saveFeaturedDeal(dealData);
             });
+        } else {
+            console.error('❌ Featured deal form not found!');
         }
 
         // Close modal when clicking outside
@@ -2145,6 +2150,9 @@ class AdminDashboard {
     }
 
     async saveFeaturedDeal(dealData) {
+        console.log('💾 saveFeaturedDeal called with data:', dealData);
+        console.log('🔑 Auth token:', this.authToken ? 'present' : 'missing');
+        
         try {
             const response = await fetch('/api/admin/featured-deals', {
                 method: 'POST',
@@ -2155,17 +2163,23 @@ class AdminDashboard {
                 body: JSON.stringify(dealData)
             });
 
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response ok:', response.ok);
+
             if (!response.ok) {
-                throw new Error('Failed to create featured deal');
+                const errorText = await response.text();
+                console.error('❌ Response error:', errorText);
+                throw new Error(`Failed to create featured deal: ${response.status} ${errorText}`);
             }
 
             const result = await response.json();
+            console.log('✅ Featured deal created successfully:', result);
             this.showSuccess('Featured deal created successfully');
             this.closeFeaturedDealModal();
             this.loadFeaturedDeals();
         } catch (error) {
-            console.error('Error creating featured deal:', error);
-            this.showError('Failed to create featured deal');
+            console.error('❌ Error creating featured deal:', error);
+            this.showError('Failed to create featured deal: ' + error.message);
         }
     }
 
