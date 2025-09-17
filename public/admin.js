@@ -662,25 +662,80 @@ class AdminDashboard {
         });
 
         document.getElementById('category-distribution').innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <i class="fas fa-chart-pie" style="font-size: 3rem; color: #764ba2; margin-bottom: 1rem;"></i>
-                <p>Category distribution</p>
-                <div style="margin-top: 1rem;">
-                    ${Object.entries(categoryCounts).map(([cat, count]) => 
-                        `<div style="margin: 0.5rem 0; padding: 0.5rem; background: #f3f4f6; border-radius: 8px;">
-                            <strong>${cat}:</strong> ${count} users
-                        </div>`
-                    ).join('')}
+            <div class="category-distribution-container">
+                <div class="category-stats">
+                    ${Object.entries(categoryCounts)
+                        .sort(([,a], [,b]) => b - a)
+                        .map(([cat, count]) => {
+                            const percentage = Math.round((count / totalUsers) * 100);
+                            const categoryName = cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            return `
+                                <div class="category-item">
+                                    <div class="category-info">
+                                        <span class="category-name">${categoryName}</span>
+                                        <span class="category-count">${count} users</span>
+                                    </div>
+                                    <div class="category-bar">
+                                        <div class="category-fill" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="category-percentage">${percentage}%</span>
+                                </div>
+                            `;
+                        }).join('')}
+                </div>
+                <div class="category-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Categories</span>
+                        <span class="summary-value">${Object.keys(categoryCounts).length}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Most Popular</span>
+                        <span class="summary-value">${Object.entries(categoryCounts).sort(([,a], [,b]) => b - a)[0]?.[0]?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}</span>
+                    </div>
                 </div>
             </div>
         `;
 
         // Click performance
         document.getElementById('click-performance').innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <i class="fas fa-chart-bar" style="font-size: 3rem; color: #059669; margin-bottom: 1rem;"></i>
-                <p>Click performance</p>
-                <small>${this.clicks.length} total clicks</small>
+            <div class="click-performance-container">
+                <div class="performance-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-mouse-pointer"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">${this.clicks.length}</div>
+                            <div class="stat-label">Total Clicks</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">${totalUsers > 0 ? Math.round((this.clicks.length / totalUsers) * 100) / 100 : 0}</div>
+                            <div class="stat-label">Clicks per User</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">${this.clicks.length > 0 ? '100%' : '0%'}</div>
+                            <div class="stat-label">Engagement Rate</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="performance-summary">
+                    <p class="summary-text">
+                        ${this.clicks.length > 0 
+                            ? `Your content has generated ${this.clicks.length} clicks across ${totalUsers} users, showing strong engagement.`
+                            : 'No clicks recorded yet. Start promoting your deals to see engagement metrics.'
+                        }
+                    </p>
+                </div>
             </div>
         `;
     }

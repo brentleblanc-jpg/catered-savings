@@ -4,10 +4,12 @@
   "description": "Personalized weekly deals platform with email automation",
   "main": "server.js",
   "scripts": {
-    "start": "node server-hybrid.js",
-    "dev": "nodemon server.js",
+    "start": "node server-production.js",
+    "dev": "node dev-server.js",
+    "dev:watch": "nodemon dev-server.js",
     "build": "echo 'No build step needed'",
     "weekly-automation": "node weekly-automation.js",
+    "deploy": "git add . && git commit -m 'Deploy to production' && git push origin main",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
