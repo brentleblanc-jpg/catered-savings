@@ -874,7 +874,7 @@ app.get('/api/admin/sponsored-products', async (req, res) => {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
     
-    const products = await prisma.sponsoredProduct.findMany({
+    const products = await prisma.product.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' }
     });
@@ -902,7 +902,7 @@ app.post('/api/admin/clear-all-products', async (req, res) => {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
     
-    const result = await prisma.sponsoredProduct.deleteMany({});
+    const result = await prisma.product.deleteMany({});
     
     await prisma.$disconnect();
     
@@ -935,7 +935,7 @@ app.post('/api/admin/delete-product', async (req, res) => {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
     
-    const result = await prisma.sponsoredProduct.delete({
+    const result = await prisma.product.delete({
       where: { id: productId }
     });
     
@@ -977,7 +977,7 @@ app.post('/api/admin/add-multiple-products', async (req, res) => {
     for (const product of products) {
       try {
         // Check if product already exists
-        const existing = await prisma.sponsoredProduct.findFirst({
+        const existing = await prisma.product.findFirst({
           where: { title: product.title }
         });
         
@@ -998,7 +998,7 @@ app.post('/api/admin/add-multiple-products', async (req, res) => {
           affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=820cf-20';
         }
         
-        await prisma.sponsoredProduct.create({
+        await prisma.product.create({
           data: {
             title: product.title,
             description: product.description || '',
