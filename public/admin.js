@@ -282,9 +282,16 @@ class AdminDashboard {
         });
 
         // Featured deals buttons
-        document.getElementById('add-featured-deal-btn').addEventListener('click', () => {
-            this.addFeaturedDeal();
-        });
+        const addBtn = document.getElementById('add-featured-deal-btn');
+        if (addBtn) {
+            console.log('Setting up add featured deal button listener');
+            addBtn.addEventListener('click', () => {
+                console.log('Add featured deal button clicked');
+                this.addFeaturedDeal();
+            });
+        } else {
+            console.error('Add featured deal button not found');
+        }
 
         document.getElementById('refresh-featured-deals-btn').addEventListener('click', () => {
             this.loadFeaturedDeals();
@@ -2044,19 +2051,44 @@ class AdminDashboard {
     }
 
     addFeaturedDeal() {
-        // Reset form
-        document.getElementById('featured-deal-form').reset();
-        document.getElementById('featured-deal-modal-title').textContent = 'Add Featured Deal';
+        console.log('addFeaturedDeal called'); // Debug log
         
-        // Set default values
-        const now = new Date();
-        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        document.getElementById('deal-start-date').value = now.toISOString().slice(0, 16);
-        document.getElementById('deal-end-date').value = tomorrow.toISOString().slice(0, 16);
-        document.getElementById('deal-display-order').value = this.featuredDeals.length + 1;
-        
-        // Show modal
-        document.getElementById('featured-deal-modal').style.display = 'block';
+        try {
+            // Check if elements exist
+            const form = document.getElementById('featured-deal-form');
+            const modal = document.getElementById('featured-deal-modal');
+            const title = document.getElementById('featured-deal-modal-title');
+            
+            if (!form || !modal || !title) {
+                console.error('Required elements not found:', { form: !!form, modal: !!modal, title: !!title });
+                alert('Error: Modal form not found. Please refresh the page.');
+                return;
+            }
+            
+            // Reset form
+            form.reset();
+            title.textContent = 'Add Featured Deal';
+            
+            // Set default values
+            const now = new Date();
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            
+            const startDateInput = document.getElementById('deal-start-date');
+            const endDateInput = document.getElementById('deal-end-date');
+            const displayOrderInput = document.getElementById('deal-display-order');
+            
+            if (startDateInput) startDateInput.value = now.toISOString().slice(0, 16);
+            if (endDateInput) endDateInput.value = tomorrow.toISOString().slice(0, 16);
+            if (displayOrderInput) displayOrderInput.value = (this.featuredDeals?.length || 0) + 1;
+            
+            // Show modal
+            modal.style.display = 'block';
+            console.log('Modal should be visible now');
+            
+        } catch (error) {
+            console.error('Error in addFeaturedDeal:', error);
+            alert('Error opening add deal form: ' + error.message);
+        }
     }
 
     async saveFeaturedDeal(dealData) {
