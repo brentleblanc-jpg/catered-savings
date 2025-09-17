@@ -792,7 +792,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="deal-title">Title *</label>
-                        <input type="text" id="deal-title" name="title" required>
+                        <input type="text" id="deal-title" name="title" required placeholder="Enter product title...">
                     </div>
                     <div class="form-group">
                         <label for="deal-retailer">Retailer</label>
@@ -805,34 +805,34 @@
                     </div>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group full-width">
                     <label for="deal-description">Description</label>
-                    <textarea id="deal-description" name="description" rows="3"></textarea>
+                    <textarea id="deal-description" name="description" rows="3" placeholder="Enter a detailed description of the featured deal..."></textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="deal-image-url">Image URL *</label>
-                        <input type="url" id="deal-image-url" name="imageUrl" required>
+                        <input type="url" id="deal-image-url" name="imageUrl" required placeholder="https://example.com/image.jpg">
                     </div>
                     <div class="form-group">
                         <label for="deal-affiliate-url">Affiliate URL *</label>
-                        <input type="url" id="deal-affiliate-url" name="affiliateUrl" required>
+                        <input type="url" id="deal-affiliate-url" name="affiliateUrl" required placeholder="https://amazon.com/dp/PRODUCT_ID?tag=820cf-20">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="deal-price">Price ($)</label>
-                        <input type="number" id="deal-price" name="price" step="0.01" min="0">
+                        <input type="number" id="deal-price" name="price" step="0.01" min="0" placeholder="0.00">
                     </div>
                     <div class="form-group">
                         <label for="deal-original-price">Original Price ($)</label>
-                        <input type="number" id="deal-original-price" name="originalPrice" step="0.01" min="0">
+                        <input type="number" id="deal-original-price" name="originalPrice" step="0.01" min="0" placeholder="0.00">
                     </div>
                     <div class="form-group">
                         <label for="deal-discount">Discount (%)</label>
-                        <input type="number" id="deal-discount" name="discount" min="0" max="100">
+                        <input type="number" id="deal-discount" name="discount" min="0" max="100" placeholder="0">
                     </div>
                 </div>
                 

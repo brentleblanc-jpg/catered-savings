@@ -598,6 +598,101 @@
     color: #374151;
 }
 
+/* Featured Deal Modal Specific Styles */
+#featured-deal-modal .modal-content {
+    max-width: 900px;
+    width: 95%;
+}
+
+#featured-deal-modal .modal-body {
+    padding: 2rem;
+}
+
+#featured-deal-modal .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#featured-deal-modal .form-group {
+    margin-bottom: 0;
+}
+
+#featured-deal-modal .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+#featured-deal-modal .form-group label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+#featured-deal-modal .form-group input,
+#featured-deal-modal .form-group select,
+#featured-deal-modal .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+#featured-deal-modal .form-group input:focus,
+#featured-deal-modal .form-group select:focus,
+#featured-deal-modal .form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#featured-deal-modal .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+#featured-deal-modal .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+#featured-deal-modal .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+#featured-deal-modal .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+#featured-deal-modal .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+#featured-deal-modal .btn-secondary {
+    background: #f8fafc;
+    color: #64748b;
+    border: 2px solid #e5e7eb;
+}
+
+#featured-deal-modal .btn-secondary:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
 /* Form Styles */
 #product-form {
     padding: 2rem;
