@@ -139,6 +139,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('savingsForm');
     const successMessage = document.getElementById('successMessage');
     
+    // Load featured deals when page loads
+    console.log('🔄 Page loaded, loading featured deals...');
+    loadFeaturedDeals();
+    
     // Form submission handler
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
