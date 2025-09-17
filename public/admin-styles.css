@@ -600,8 +600,17 @@
 
 /* Featured Deal Modal Specific Styles */
 #featured-deal-modal .modal-content {
-    max-width: 900px;
+    max-width: 1000px;
     width: 95%;
+}
+
+/* Hide any unwanted content in featured deals grid */
+.featured-deals-grid {
+    display: none;
+}
+
+.featured-deals-grid:empty {
+    display: none;
 }
 
 #featured-deal-modal .modal-header {
@@ -610,7 +619,7 @@
 }
 
 #featured-deal-modal .modal-body {
-    padding: 3rem;
+    padding: 3rem 4rem;
 }
 
 #featured-deal-modal .form-row {
@@ -645,6 +654,7 @@
     font-size: 1rem;
     transition: border-color 0.2s ease;
     min-height: 48px;
+    box-sizing: border-box;
 }
 
 #featured-deal-modal .form-group input:focus,
