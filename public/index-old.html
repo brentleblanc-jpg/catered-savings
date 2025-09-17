@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catered Savers - Weekly Deals & Discounts</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <img src="/logo.svg" alt="Catered Savers Logo" width="400" height="160" style="margin: 0; padding: 0; margin-bottom: -30px;">
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="intro-section">
+                <h2>Why Choose Catered Savings?</h2>
+                <div class="steps">
+                    <div class="step-item">
+                        <div class="step-number">🎯</div>
+                        <p><strong>50%+ Off</strong><br>No fluff deals</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">⚡</div>
+                        <p><strong>Weekly</strong><br>Fresh deals</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">🎨</div>
+                        <p><strong>Personalized</strong><br>Your categories</p>
+                    </div>
+                </div>
+            </div>
+
+            <form id="savingsForm" class="savings-form">
+                <div class="form-section">
+                    <h3>Select Your Categories</h3>
+                    <div class="selection-counter">
+                        <span id="selectedCount">0</span> selected
+                    </div>
+                    
+                    <div class="categories-grid">
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="tech-electronics">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-laptop"></i>
+                            <span>Tech & Electronics</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="mens-fashion">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-male"></i>
+                            <span>Men's Fashion</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="womens-fashion">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-female"></i>
+                            <span>Women's Fashion</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="fashion-accessories">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-gem"></i>
+                            <span>Fashion Accessories</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="home-garden">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-home"></i>
+                            <span>Home & Garden</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="health-beauty">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Health & Beauty</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="sports-outdoors">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-football-ball"></i>
+                            <span>Sports & Outdoors</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="entertainment">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-film"></i>
+                            <span>Entertainment</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="food-dining">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-utensils"></i>
+                            <span>Food & Dining</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="travel">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-plane"></i>
+                            <span>Travel & Vacations</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="automotive">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-car"></i>
+                            <span>Automotive</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="books-media">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-book"></i>
+                            <span>Books & Media</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="kids-family">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-baby"></i>
+                            <span>Kids & Family</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="pets">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-paw"></i>
+                            <span>Pet Supplies</span>
+                        </label>
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="office-education">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Office & Education</span>
+                        </label>
+                        
+
+                        
+
+                        
+                        <label class="category-checkbox">
+                            <input type="checkbox" name="categories" value="other">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-ellipsis-h"></i>
+                            <span>Other</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Your Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Your first name" required>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                        <span class="checkmark"></span>
+                        I agree to receive weekly deal emails
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary submit-btn">
+                    <i class="fas fa-envelope"></i> Get Weekly Deals
+                </button>
+            </form>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message" style="display: none;">
+                <div class="success-content">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h2>Welcome!</h2>
+                    <p>You're all set for weekly deals.</p>
+                </div>
+                
+                <!-- Sponsored Products Section -->
+                <div id="sponsoredProducts" class="sponsored-section">
+                    <div class="sponsored-header">
+                        <h3><i class="fas fa-star"></i> Featured Deals Just for You</h3>
+                        <p class="sponsored-subtitle">Hand-picked deals from our retail partners</p>
+                    </div>
+                    <div id="sponsoredProductsList" class="sponsored-products-grid">
+                        <!-- Sponsored products will be loaded here -->
+                    </div>
+                    <p class="sponsored-disclaimer">
+                        <i class="fas fa-info-circle"></i> 
+                        These are sponsored placements from our retail partners
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2025 Catered Savings. All deals are 50% off or more from verified online retailers.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
