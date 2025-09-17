@@ -21,7 +21,7 @@ class AdminDashboard {
         const savedTab = localStorage.getItem('adminActiveTab') || 'dashboard';
         
         // Validate that the saved tab exists
-        const validTabs = ['dashboard', 'products', 'analytics', 'users', 'settings'];
+        const validTabs = ['dashboard', 'products', 'featured-deals', 'analytics', 'users', 'settings'];
         const tabToLoad = validTabs.includes(savedTab) ? savedTab : 'dashboard';
         
         // Only switch if it's not the default dashboard
@@ -280,6 +280,15 @@ class AdminDashboard {
                 this.closeAffiliateModal();
             }
         });
+
+        // Featured deals buttons
+        document.getElementById('add-featured-deal-btn').addEventListener('click', () => {
+            this.addFeaturedDeal();
+        });
+
+        document.getElementById('refresh-featured-deals-btn').addEventListener('click', () => {
+            this.loadFeaturedDeals();
+        });
     }
 
     switchTab(tabName) {
@@ -317,6 +326,7 @@ class AdminDashboard {
         const titles = {
             dashboard: 'Dashboard',
             products: 'Sponsored Products',
+            'featured-deals': 'Featured Deals',
             analytics: 'Analytics',
             users: 'User Management',
             revenue: 'Revenue Tracking',
@@ -328,6 +338,7 @@ class AdminDashboard {
         const descriptions = {
             dashboard: 'Overview of your Catered Savings business',
             products: 'Manage sponsored products and pricing',
+            'featured-deals': 'Manage featured deals for homepage display',
             analytics: 'View detailed performance metrics',
             users: 'Monitor user signups and preferences',
             revenue: 'Track monthly and projected revenue',
@@ -400,6 +411,9 @@ class AdminDashboard {
                 break;
             case 'products':
                 this.loadAllProducts();
+                break;
+            case 'featured-deals':
+                this.loadFeaturedDeals();
                 break;
             case 'analytics':
                 this.loadAnalytics();
@@ -1921,6 +1935,197 @@ class AdminDashboard {
         document.getElementById('upload-results').style.display = 'none';
         document.getElementById('csv-file-input').value = '';
         this.csvData = null;
+    }
+
+    // Featured Deals Management
+    async loadFeaturedDeals() {
+        try {
+            const response = await fetch('/api/admin/featured-deals', {
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch featured deals');
+            }
+            
+            const data = await response.json();
+            this.featuredDeals = data.deals || [];
+            this.displayFeaturedDeals();
+        } catch (error) {
+            console.error('Error loading featured deals:', error);
+            this.showError('Failed to load featured deals');
+        }
+    }
+
+    displayFeaturedDeals() {
+        const tableBody = document.getElementById('featured-deals-table-body');
+        if (!tableBody) return;
+
+        if (this.featuredDeals.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        <i class="fas fa-star"></i>
+                        <p>No featured deals found</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = this.featuredDeals.map(deal => `
+            <tr>
+                <td>${deal.displayOrder}</td>
+                <td>
+                    <img src="${deal.imageUrl}" alt="${deal.title}" class="product-thumbnail" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNyAzNEgyM1Y0MEgxN1YzNFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
+                </td>
+                <td class="product-title">${deal.title}</td>
+                <td>${deal.retailer || 'Amazon'}</td>
+                <td>$${deal.price?.toFixed(2) || '0.00'}</td>
+                <td>${deal.discount || 0}%</td>
+                <td>
+                    <span class="status-badge ${deal.isActive ? 'active' : 'inactive'}">
+                        ${deal.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td>${deal.clickCount || 0}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-primary" onclick="adminDashboard.editFeaturedDeal('${deal.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="adminDashboard.deleteFeaturedDeal('${deal.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async addFeaturedDeal() {
+        const dealData = {
+            title: prompt('Enter deal title:'),
+            description: prompt('Enter deal description:'),
+            imageUrl: prompt('Enter image URL:'),
+            affiliateUrl: prompt('Enter affiliate URL:'),
+            price: parseFloat(prompt('Enter price:')),
+            originalPrice: parseFloat(prompt('Enter original price:')),
+            discount: parseInt(prompt('Enter discount percentage:')),
+            category: prompt('Enter category:'),
+            retailer: prompt('Enter retailer:'),
+            displayOrder: parseInt(prompt('Enter display order:')) || 0
+        };
+
+        if (!dealData.title || !dealData.affiliateUrl) {
+            alert('Title and affiliate URL are required');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/featured-deals', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.authToken}`
+                },
+                body: JSON.stringify(dealData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create featured deal');
+            }
+
+            const result = await response.json();
+            this.showSuccess('Featured deal created successfully');
+            this.loadFeaturedDeals();
+        } catch (error) {
+            console.error('Error creating featured deal:', error);
+            this.showError('Failed to create featured deal');
+        }
+    }
+
+    async editFeaturedDeal(dealId) {
+        const deal = this.featuredDeals.find(d => d.id === dealId);
+        if (!deal) return;
+
+        const newTitle = prompt('Enter new title:', deal.title);
+        const newDescription = prompt('Enter new description:', deal.description);
+        const newImageUrl = prompt('Enter new image URL:', deal.imageUrl);
+        const newAffiliateUrl = prompt('Enter new affiliate URL:', deal.affiliateUrl);
+        const newPrice = parseFloat(prompt('Enter new price:', deal.price));
+        const newOriginalPrice = parseFloat(prompt('Enter new original price:', deal.originalPrice));
+        const newDiscount = parseInt(prompt('Enter new discount percentage:', deal.discount));
+        const newCategory = prompt('Enter new category:', deal.category);
+        const newRetailer = prompt('Enter new retailer:', deal.retailer);
+        const newDisplayOrder = parseInt(prompt('Enter new display order:', deal.displayOrder));
+
+        if (!newTitle || !newAffiliateUrl) {
+            alert('Title and affiliate URL are required');
+            return;
+        }
+
+        const updateData = {
+            title: newTitle,
+            description: newDescription,
+            imageUrl: newImageUrl,
+            affiliateUrl: newAffiliateUrl,
+            price: newPrice,
+            originalPrice: newOriginalPrice,
+            discount: newDiscount,
+            category: newCategory,
+            retailer: newRetailer,
+            displayOrder: newDisplayOrder
+        };
+
+        try {
+            const response = await fetch(`/api/admin/featured-deals/${dealId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.authToken}`
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update featured deal');
+            }
+
+            this.showSuccess('Featured deal updated successfully');
+            this.loadFeaturedDeals();
+        } catch (error) {
+            console.error('Error updating featured deal:', error);
+            this.showError('Failed to update featured deal');
+        }
+    }
+
+    async deleteFeaturedDeal(dealId) {
+        if (!confirm('Are you sure you want to delete this featured deal?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/featured-deals/${dealId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete featured deal');
+            }
+
+            this.showSuccess('Featured deal deleted successfully');
+            this.loadFeaturedDeals();
+        } catch (error) {
+            console.error('Error deleting featured deal:', error);
+            this.showError('Failed to delete featured deal');
+        }
     }
 }
 
