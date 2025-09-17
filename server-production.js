@@ -84,9 +84,44 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Version validation endpoint
+app.get('/api/version-check', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    // Check if the correct files exist and are being served
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+    
+    const hasModernCSS = indexContent.includes('styles-modern.css');
+    const hasModernJS = indexContent.includes('script-modern.js');
+    const hasVersionCheck = indexContent.includes('version-check.js');
+    
+    const isValid = hasModernCSS && hasModernJS && hasVersionCheck;
+    
+    res.json({
+      status: isValid ? 'valid' : 'invalid',
+      details: {
+        hasModernCSS,
+        hasModernJS,
+        hasVersionCheck,
+        expectedVersion: 'modern'
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Routes (must be before static middleware)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index-modern.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Deals page route (must be before static middleware)
