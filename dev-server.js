@@ -318,7 +318,7 @@ app.post('/api/contact', async (req, res) => {
       userAgent: req.get('User-Agent')
     };
     
-    // Log the contact message (in production, you'd send this via email service)
+    // Log the contact message
     console.log('📧 New Contact Form Submission:');
     console.log('Name:', contactMessage.name);
     console.log('Email:', contactMessage.email);
@@ -328,17 +328,36 @@ app.post('/api/contact', async (req, res) => {
     console.log('IP:', contactMessage.ip);
     console.log('---');
     
-    // In a real implementation, you would:
-    // 1. Send email using nodemailer, SendGrid, or similar
-    // 2. Store in database for tracking
-    // 3. Send auto-reply to user
-    // 4. Notify admin of new message
+    // Import email service
+    const emailService = require('./services/email-service');
     
-    // For now, we'll just log it and return success
-    res.json({
-      success: true,
-      message: 'Thank you for your message! We\'ll get back to you soon.'
-    });
+    // Send email to admin
+    const emailResult = await emailService.sendContactFormEmail(contactMessage);
+    
+    if (emailResult.success) {
+      console.log('✅ Contact form email sent successfully');
+      
+      // Send auto-reply to user
+      const autoReplyResult = await emailService.sendAutoReplyEmail(contactMessage.email, contactMessage.name);
+      if (autoReplyResult.success) {
+        console.log('✅ Auto-reply email sent successfully');
+      } else {
+        console.log('⚠️ Auto-reply email failed:', autoReplyResult.error);
+      }
+      
+      res.json({
+        success: true,
+        message: 'Thank you for your message! We\'ll get back to you soon.'
+      });
+    } else {
+      console.error('❌ Failed to send contact form email:', emailResult.error);
+      
+      // Still return success to user, but log the error
+      res.json({
+        success: true,
+        message: 'Thank you for your message! We\'ll get back to you soon.'
+      });
+    }
     
   } catch (error) {
     console.error('Error processing contact form:', error);
