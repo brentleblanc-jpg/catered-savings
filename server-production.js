@@ -85,6 +85,32 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test email service endpoint
+app.get('/api/test-email', (req, res) => {
+  try {
+    const emailService = require('./services/email-service');
+    emailService.testEmailConfiguration().then(result => {
+      res.json({
+        success: true,
+        emailConfigured: result,
+        message: result ? 'Email service is configured' : 'Email service is not configured'
+      });
+    }).catch(err => {
+      res.json({
+        success: false,
+        error: err.message,
+        message: 'Email service test failed'
+      });
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message,
+      message: 'Failed to load email service'
+    });
+  }
+});
+
 // Version validation endpoint
 app.get('/api/version-check', (req, res) => {
   const fs = require('fs');
