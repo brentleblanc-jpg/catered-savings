@@ -105,8 +105,16 @@
 
     <!-- Admin Dashboard (hidden until login) -->
     <div id="admin-container" class="admin-container" style="display: none;">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <!-- Sidebar Navigation -->
-        <nav class="admin-sidebar">
+        <nav class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
                 <div class="admin-logo">
                     <img src="/logo.svg" alt="Catered Savers Logo" width="200" height="80" style="margin: 0; padding: 0;">

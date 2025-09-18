@@ -7,6 +7,7 @@ class AdminDashboard {
         this.clicks = [];
         this.isAuthenticated = false;
         this.authToken = null;
+        this.mobileMenuOpen = false;
         this.init();
     }
 
@@ -205,6 +206,18 @@ class AdminDashboard {
             this.saveSiteSettings();
         });
 
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => this.toggleMobileMenu());
+        }
+
+        // Sidebar overlay (close menu when clicking outside)
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => this.closeMobileMenu());
+        }
+
         // User search
         document.getElementById('user-search').addEventListener('input', (e) => {
             this.filterUsers(e.target.value);
@@ -399,6 +412,11 @@ class AdminDashboard {
     }
 
     switchTab(tabName) {
+        // Close mobile menu when switching tabs on mobile
+        if (window.innerWidth <= 768) {
+            this.closeMobileMenu();
+        }
+        
         // Update navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
@@ -2339,6 +2357,31 @@ class AdminDashboard {
             console.error('Error deleting featured deal:', error);
             this.showError('Failed to delete featured deal');
         }
+    }
+
+    // Mobile menu functionality
+    toggleMobileMenu() {
+        this.mobileMenuOpen = !this.mobileMenuOpen;
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (this.mobileMenuOpen) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        } else {
+            this.closeMobileMenu();
+        }
+    }
+
+    closeMobileMenu() {
+        this.mobileMenuOpen = false;
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = ''; // Restore scrolling
     }
 }
 
