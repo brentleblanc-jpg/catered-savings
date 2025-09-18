@@ -7,21 +7,40 @@ class EmailService {
     }
 
     initializeTransporter() {
-        // For development, we'll use a test account
-        // In production, you'd use your actual email service credentials
+        // Check if email credentials are configured
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_PASS === 'your-app-password') {
+            console.log('⚠️ Email credentials not configured - contact form will only log to console');
+            this.transporter = null;
+            return;
+        }
+
+        // Initialize email transporter with configured credentials
         this.transporter = nodemailer.createTransporter({
             host: 'smtp.gmail.com',
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                user: process.env.EMAIL_USER || 'brent@anuvenconsulting.com',
-                pass: process.env.EMAIL_PASS || 'your-app-password' // Use app password for Gmail
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
             }
         });
     }
 
     async sendContactFormEmail(contactData) {
         try {
+            // Check if email is configured
+            if (!this.transporter) {
+                console.log('📧 Email not configured - logging contact form submission only');
+                console.log('Contact Details:', {
+                    name: contactData.name,
+                    email: contactData.email,
+                    subject: contactData.subject,
+                    message: contactData.message,
+                    timestamp: new Date().toISOString()
+                });
+                return { success: true, message: 'Email not configured - logged to console' };
+            }
+
             const { name, email, subject, message } = contactData;
             
             const mailOptions = {
@@ -80,6 +99,12 @@ This email was sent from the Catered Savers contact form.
 
     async sendAutoReplyEmail(userEmail, userName) {
         try {
+            // Check if email is configured
+            if (!this.transporter) {
+                console.log('📧 Email not configured - skipping auto-reply');
+                return { success: true, message: 'Email not configured - auto-reply skipped' };
+            }
+
             const mailOptions = {
                 from: `"Catered Savers" <${process.env.EMAIL_USER || 'brent@anuvenconsulting.com'}>`,
                 to: userEmail,
@@ -132,6 +157,10 @@ This is an automated response. Please do not reply to this email.
     // Test email configuration
     async testEmailConfiguration() {
         try {
+            if (!this.transporter) {
+                console.log('⚠️ Email not configured - no transporter available');
+                return false;
+            }
             await this.transporter.verify();
             console.log('✅ Email configuration is valid');
             return true;
