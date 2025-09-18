@@ -119,6 +119,16 @@ app.get('/api/version-check', (req, res) => {
   }
 });
 
+// Debug endpoint to check environment variables
+app.get('/api/debug/env', (req, res) => {
+  res.json({
+    BASE_URL: process.env.BASE_URL || 'NOT SET',
+    NODE_ENV: process.env.NODE_ENV || 'NOT SET',
+    PORT: process.env.PORT || 'NOT SET',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes (must be before static middleware)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
