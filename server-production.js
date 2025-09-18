@@ -130,6 +130,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Contact page route (must be before static middleware)
+app.get('/contact', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'contact.html'));
+});
+
 // Deals page route (must be before static middleware)
 app.get('/deals/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'deals.html'));
@@ -719,6 +724,70 @@ app.get('/api/deals/personalized/:token', async (req, res) => {
     res.status(401).json({
       success: false,
       message: 'Invalid or expired access token'
+    });
+  }
+});
+
+// Contact form submission
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
+    
+    // Create contact message object
+    const contactMessage = {
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      subject: subject.trim(),
+      message: message.trim(),
+      timestamp: new Date().toISOString(),
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent')
+    };
+    
+    // Log the contact message (in production, you'd send this via email service)
+    console.log('📧 New Contact Form Submission:');
+    console.log('Name:', contactMessage.name);
+    console.log('Email:', contactMessage.email);
+    console.log('Subject:', contactMessage.subject);
+    console.log('Message:', contactMessage.message);
+    console.log('Timestamp:', contactMessage.timestamp);
+    console.log('IP:', contactMessage.ip);
+    console.log('---');
+    
+    // In a real implementation, you would:
+    // 1. Send email using nodemailer, SendGrid, or similar
+    // 2. Store in database for tracking
+    // 3. Send auto-reply to user
+    // 4. Notify admin of new message
+    
+    // For now, we'll just log it and return success
+    res.json({
+      success: true,
+      message: 'Thank you for your message! We\'ll get back to you soon.'
+    });
+    
+  } catch (error) {
+    console.error('Error processing contact form:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error. Please try again later.'
     });
   }
 });
