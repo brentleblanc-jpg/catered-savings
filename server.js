@@ -6,6 +6,7 @@ const path = require('path');
 const db = require('./services/database');
 // const dealDiscovery = require('./services/deal-discovery-manager');
 // const weeklyAutomation = require('./services/weekly-email-automation');
+const { getPersonalizedDealsUrl, getPendingDealsUrl } = require('./utils/url-helper');
 require('dotenv').config();
 
 const app = express();
@@ -251,8 +252,8 @@ app.post('/api/submit-savings', async (req, res) => {
         // Get the user's access token from database
         const user = await db.getUserByEmail(response.email);
         const personalizedUrl = user?.accessToken ? 
-          `${process.env.BASE_URL || 'http://localhost:3000'}/deals/${user.accessToken}` : 
-          `${process.env.BASE_URL || 'http://localhost:3000'}/deals/pending`;
+          getPersonalizedDealsUrl(user.accessToken) : 
+          getPendingDealsUrl();
 
         const mailchimpResult = await mailchimp.lists.addListMember(process.env.MAILCHIMP_LIST_ID, {
           email_address: response.email,

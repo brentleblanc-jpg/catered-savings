@@ -4,6 +4,7 @@
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const db = require('./database');
 const dealDiscovery = require('./deal-discovery-manager');
+const { getPersonalizedDealsUrl } = require('../utils/url-helper');
 
 class WeeklyEmailAutomation {
   constructor() {
@@ -177,7 +178,7 @@ class WeeklyEmailAutomation {
         if (user.email && user.accessToken) {
           try {
             // Update user in Mailchimp with their personalized deal link
-            const personalizedUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/deals/${user.accessToken}`;
+            const personalizedUrl = getPersonalizedDealsUrl(user.accessToken);
             
             await mailchimp.lists.updateListMember(process.env.MAILCHIMP_LIST_ID, user.email, {
               merge_fields: {
