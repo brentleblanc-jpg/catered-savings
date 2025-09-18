@@ -7,6 +7,7 @@ const db = require('./services/database');
 // const dealDiscovery = require('./services/deal-discovery-manager');
 // const weeklyAutomation = require('./services/weekly-email-automation');
 const { getPersonalizedDealsUrl, getPendingDealsUrl, getUrlDebugInfo } = require('./utils/url-helper');
+const emailService = require('./services/email-service');
 require('dotenv').config();
 
 const app = express();
@@ -86,27 +87,19 @@ app.get('/health', (req, res) => {
 });
 
 // Test email service endpoint
-app.get('/api/test-email', (req, res) => {
+app.get('/api/test-email', async (req, res) => {
   try {
-    const emailService = require('./services/email-service');
-    emailService.testEmailConfiguration().then(result => {
-      res.json({
-        success: true,
-        emailConfigured: result,
-        message: result ? 'Email service is configured' : 'Email service is not configured'
-      });
-    }).catch(err => {
-      res.json({
-        success: false,
-        error: err.message,
-        message: 'Email service test failed'
-      });
+    const result = await emailService.testEmailConfiguration();
+    res.json({
+      success: true,
+      emailConfigured: result,
+      message: result ? 'Email service is configured' : 'Email service is not configured'
     });
   } catch (error) {
     res.json({
       success: false,
       error: error.message,
-      message: 'Failed to load email service'
+      message: 'Email service test failed'
     });
   }
 });
@@ -796,9 +789,6 @@ app.post('/api/contact', async (req, res) => {
     console.log('Timestamp:', contactMessage.timestamp);
     console.log('IP:', contactMessage.ip);
     console.log('---');
-    
-    // Import email service
-    const emailService = require('./services/email-service');
     
     // Send email to admin
     const emailResult = await emailService.sendContactFormEmail(contactMessage);
